@@ -2,6 +2,7 @@
 .DS_store
 # Ignore root files
 #*.root
+testBaseANA_UL18.root
 # Ignore all .pcm and .o files
 *.png
 *.o
