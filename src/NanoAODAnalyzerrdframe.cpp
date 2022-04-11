@@ -48,13 +48,6 @@ NanoAODAnalyzerrdframe::NanoAODAnalyzerrdframe(TTree *atree, std::string outfile
             cout << "Analysing through Run 2018" << endl;
         }
 
-        /*if(_year.find("17") != std::string::npos){
-                _isRun17 = true;
-                cout << "Run 17" << endl;
-        }else if(_year.find("18") != std::string::npos){
-                _isRun18 = true;
-                cout << "Run 18" << endl;
-        }*/
         // Run type switch : UL or ReReco
         if(_runtype.find("UL") != std::string::npos){
                 _isUL = true;
@@ -105,7 +98,7 @@ NanoAODAnalyzerrdframe::NanoAODAnalyzerrdframe(TTree *atree, std::string outfile
     {
         TBranch *abranch = dynamic_cast<TBranch *>(allbranches->At(i));
         if (abranch!= nullptr){
-            cout << abranch->GetName() << ", \n";
+            //cout << abranch->GetName() << ", \n";
             _originalvars.push_back(abranch->GetName());
         }
     }
@@ -146,22 +139,12 @@ NanoAODAnalyzerrdframe::NanoAODAnalyzerrdframe(TTree *atree, std::string outfile
             setupJetMETCorrection(_globaltag);
 
             if(!_isData){
-                //cout<<"Loading Btag SF"<<endl;
-                //if(_isRun17)
                 if(run_year==2017){
                       //  _btagcalib = {"DeepJet","data/btagSF/DeepJet_106XUL17SF_V2p1.csv"};
                 }else if(run_year==2018){//if(_isRun18){
                        // _btagcalib = {"DeepJet","data/btagSF/DeepJet_106XUL18SF.csv"};
                 }
 
-                // load the formula b flavor tagging
-                //_btagcalibreader.load(_btagcalib, BTagEntry::FLAV_B, "iterativefit");
-                //_btagcalibreader.load(_btagcalib, BTagEntry::FLAV_C, "iterativefit");
-                //_btagcalibreader.load(_btagcalib, BTagEntry::FLAV_UDSG, "iterativefit");
-
-                // Loading Muon Scale Factor
-                //cout<<"Loading Muon SF"<<endl;
-                //if(_isRun17)
                 if(run_year==2017){
                     TFile muontrg("data/MuonSF/UL2017/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root");
                     _hmuontrg = dynamic_cast<TH2F *>(muontrg.Get("NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight_abseta_pt"));
@@ -212,7 +195,7 @@ NanoAODAnalyzerrdframe::~NanoAODAnalyzerrdframe() {
     //
 
     std::cout<< "-------------------------------------------------------------------" << std::endl;
-    cout << "output root file name is :  " << endl;
+    cout << "Creating output root file :  " << endl;
 
         for (auto afile:_outrootfilenames)
         {
@@ -220,37 +203,7 @@ NanoAODAnalyzerrdframe::~NanoAODAnalyzerrdframe() {
                 cout<<endl;
                 std::cout<< "-------------------------------------------------------------------" << std::endl;
 
-                _outrootfile = new TFile(afile.c_str(), "UPDATE");
-                //double nevt1 = -1;
-                //double nevt2 = -1;
-                //double nevt3 = -1;
-        cout << "Writing histograms...   " << endl;
-        std::cout<< "-------------------------------------------------------------------" << std::endl;
-                for (auto &h : _th1dhistos)
-                {
-                    std::cout << h.first << std::endl;
-
-
-                        if (h.second.GetPtr() != nullptr) h.second->Write();
-                        //if(!isDefined("pugenWeight")){
-                        //    if (h.first == "hcounter1_nocut") nevt1 = h.second->GetBinContent(2);
-                        //    if (h.first == "hcounter2_nocut") nevt2 = h.second->GetBinContent(2);
-                        //    if (h.first == "hcounter3_nocut") nevt3 = h.second->GetBinContent(2);
-                        //}
-                }
-                /*if(!isDefined("pugenWeight")){
-                    TH1D *hnEvents = new TH1D("hnEvents", "Number of Events", 4, 0, 4);
-                    hnEvents->Fill(0.5,nevt1);
-                    hnEvents->Fill(1.5,nevt2);
-                    //hnEvents->Fill(2.5,nevt3);
-                    hnEvents->Write();
-                }*/
-
-
-
-                _outrootfile->Write(0, TObject::kOverwrite);
-                _outrootfile->Close();
-                delete _outrootfile;
+                //_outrootfile = new TFile(afile.c_str(), "UPDATE");
         }   
         std::cout<< "-------------------------------------------------------------------" << std::endl;
         std::cout << "END...  :) " << std::endl;
@@ -265,47 +218,13 @@ bool NanoAODAnalyzerrdframe::isDefined(string v)
 
 /*void NanoAODAnalyzerrdframe::setTree(TTree *t, std::string outfilename)
 {
-    //ROOT::EnableImplicitMT();
-    _rd = ROOT::RDataFrame(*t);
-    _rlm = RNode(_rd);
-    _outfilename = outfilename;
-    _hist1dinfovector.clear();
-    _th1dhistos.clear();
-    _varstostore.clear();
-    _hist1dinfovector.clear();
-    _selections.clear();
 
     this->setupAnalysis();
 }*/
 
 void NanoAODAnalyzerrdframe::setupAnalysis()
 {
-    /* Must sequentially define objects.
-     *
-     */
-    //_rlm = _rlm.Define("HLT","HLT_Mu37_TkMu27 && HLT_Mu37_TkMu28");
-   /*if (_isData) _jsonOK = readjson();
-    // Event weight for data it's always one. For MC, it depends on the sign
-
-    _rlm = _rlm.Define("one", "1.0");
-        if(_isSkim){
-                if(_isData){
-                    _rlm = _rlm.Define("unitGenWeight","one")
-                                .Define("pugenWeight","one");
-                }else{
-                    _rlm = _rlm.Define("unitGenWeight","genWeight != 0 ? genWeight/abs(genWeight) : 0")
-                                .Define("puWeight",[this](float x) {return _puweightcalc->getWeight(x);}, {"Pileup_nTrueInt"})
-                                .Define("puWeight_plus",[this](float x) {return _puweightcalc_plus->getWeight(x);}, {"Pileup_nTrueInt"})
-                                .Define("puWeight_minus",[this](float x) {return _puweightcalc_minus->getWeight(x);}, {"Pileup_nTrueInt"})
-                                .Define("pugenWeight", "unitGenWeight * puWeight");
-                }
-        }else if(_isData){
-            _rlm = _rlm.Define("evWeight","one")
-                        .Define("evWeight_muonSF","one")
-                        .Define("evWeight_leptonSF","one");
-                        //.Define("btagWeight_DeepFlavBrecalc","one");
-        }
-*/
+    // Must sequentially define objects.
     //defineMoreVars();
     //defineCuts();
     //bookHists();
@@ -530,54 +449,17 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 // This function is newly added for getting event weight with selected objects
 //void NanoAODAnalyzerrdframe::calculateEvWeight()
 //{
-  /*  // Muon SF
-    cout<<"Getting Muon Scale Factors"<<endl;
-    auto muonSF = [this](floats &pt, floats &eta)->float {
-        float weight = 1.0;
-        if(pt.size() > 0){
-            for(unsigned int i=0; i<pt.size(); i++){
-                    float trg_SF = _muontrg->getWeight(std::abs(eta[i]),pt[i]);
-                    float ID_SF = _muonid->getWeight(std::abs(eta[i]),pt[i]);
-                    float Iso_SF = _muoniso->getWeight(std::abs(eta[i]),pt[i]);
-                    weight *= trg_SF * ID_SF * Iso_SF;
-                }
-        }
-        return weight;
-    };
-    _rlm = _rlm.Define("evWeight_muonSF",muonSF,{"Selected_muon_pt","Selected_muon_eta"});
-
+  /*  
  */   
-        // B tagging SF
-    /*_rlm = _rlm.Define("Sel_jethadflav","Jet_hadronFlavour[jet_cuts]")
-                .Define("Selmu_jethadflav","Sel_jethadflav[muonjetoverlap]");
-    // function to calculate event weight for MC events based on DeepJet algorithm
-    auto btagweightgenerator= [this](floats &pts, floats &etas, ints &hadflav, floats &btags)->float
-    {
-        double bweight=1.0;
-        BTagEntry::JetFlavor hadfconv;
-        for (unsigned int i=0; i<pts.size(); i++)
-        {
-            if (hadflav[i]==5) hadfconv=BTagEntry::FLAV_B;
-            else if (hadflav[i]==4) hadfconv=BTagEntry::FLAV_C;
-            else hadfconv=BTagEntry::FLAV_UDSG;
-            double w = _btagcalibreader.eval_auto_bounds("central", hadfconv, fabs(etas[i]), pts[i], btags[i]);
-            bweight *= w;
-        }
-        return bweight;
-    };*/
-
-    /*cout<<"Generate b-tagging weight"<<endl;
-    //_rlm = _rlm.Define("btagWeight_DeepFlavBrecalc", btagweightgenerator, {"Selmu_jetpt", "Selmu_jeteta", "Selmu_jethadflav", "Selmu_jetbtag"});
-    _rlm = _rlm.Define("btagWeight_DeepFlavBrecalc", "one"); //candan: must be added btag  - now bweight==1 
-    _rlm = _rlm.Define("evWeight", "pugenWeight * btagWeight_DeepFlavBrecalc * evWeight_leptonSF");
-*/
 //}
 
 
 void NanoAODAnalyzerrdframe::helper_1DHistCreator(std::string hname, std::string title, const int nbins, const double xlow, const double xhi, std::string rdfvar, std::string evWeight, RNode *anode)
 {
+    cout << "1DHistCreator " << hname  << endl;
     RDF1DHist histojets = anode->Histo1D({hname.c_str(), title.c_str(), nbins, xlow, xhi}, rdfvar, evWeight); // Fill with weight given by evWeight
     _th1dhistos[hname] = histojets;
+    //return true;
 };
 
 // Automatically loop to create
@@ -707,21 +589,12 @@ void NanoAODAnalyzerrdframe::addCuts(string cut, string idx)
 void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 {
      //ROOT::EnableImplicitMT();
-    /*
-    if (saveAll) {
-        _rlm.Snapshot(outtreename, _outfilename);
-    }
-    else {
-        // use the following if you want to store only a few variables
-        _rlm.Snapshot(outtreename, _outfilename, _varstostore);
-    }
-    */
 
     vector<RNodeTree *> rntends;
     _rnt.getRNodeLeafs(rntends);
-    _rnt.Print();
-        cout << " rntends size ==" <<rntends.size() << endl;
-        std::cout<< "-------------------------------------------------------------------" << std::endl;
+    //_rnt.Print();
+    //cout << " rntends size ==" <<rntends.size() << endl;
+    std::cout<< "-------------------------------------------------------------------" << std::endl;
 
     for (auto arnt: rntends)
     {
@@ -731,23 +604,34 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 
         _outrootfilenames.push_back(outname);
         RNode *arnode = arnt->getRNode();
-                cout << arnt->getIndex();
+        //cout << arnt->getIndex();
         if (saveAll) {
             arnode->Snapshot(outtreename, outname);
         }
         else {
             // use the following if you want to store only a few variables
             //arnode->Snapshot(outtreename, outname, _varstostore);
-            //std::cout<< "-------------------------------------------------------------------" << std::endl;
+            std::cout<< "-------------------------------------------------------------------" << std::endl;
             cout << " writing branches" << endl;
             std::cout<< "-------------------------------------------------------------------" << std::endl;
             for (auto bname: _varstostorepertree[nodename])
             {
-                std::cout << bname << " " <<std::endl;
+                //std::cout << bname << " " <<std::endl;
             }
                         //cout<<endl;
             arnode->Snapshot(outtreename, outname, _varstostorepertree[nodename]);
+        } 
+        _outrootfile = new TFile(outname.c_str(), "UPDATE");
+        for (auto &h : _th1dhistos)
+        {
+			if (h.second.GetPtr() != nullptr) {
+				h.second.GetPtr()->Print();
+				h.second.GetPtr()->Write();
+			}
         }
+        _outrootfile->Write(0, TObject::kOverwrite);
+        _outrootfile->Close();
+
     }
 
 }
