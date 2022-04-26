@@ -59,7 +59,7 @@ void BaseAnalyser::defineCuts()
 
     //MinimalSelection to filter events
     addCuts("nMuon > 0 && nElectron > 0", "0");
-    addCuts(setHLT(),"00"); //HLT cut buy checking HLT names in the root file
+    addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
 
     //addCuts("Sum(goodMuons)>0 && (Selected_muon_charge[0]!=Selected_muon_charge[1])", "00");
     //addCuts("Sum(Electron_charge>0)==2 && (Sum(Muon_charge==1)>=2 || Sum(Muon_charge==-1)>=2)","00");

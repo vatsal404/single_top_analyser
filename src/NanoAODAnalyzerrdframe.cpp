@@ -64,7 +64,7 @@ NanoAODAnalyzerrdframe::NanoAODAnalyzerrdframe(TTree *atree, std::string outfile
         }
 
         // Data/mc switch (options: -1:  choose according to the inputfile branch ,  0: is MC , 1: is DATA )
-        
+
         std::cout<<"You enter --isDATA  =  " <<isDATA<<  std::endl;
         if (isDATA == -1){
             std::cout << "File type selected Automatically by checking the {gen} branch in input rootfiles:\n";
@@ -204,10 +204,10 @@ NanoAODAnalyzerrdframe::~NanoAODAnalyzerrdframe() {
                 std::cout<< "-------------------------------------------------------------------" << std::endl;
 
                 //_outrootfile = new TFile(afile.c_str(), "UPDATE");
-        }   
+        }
         std::cout<< "-------------------------------------------------------------------" << std::endl;
         std::cout << "END...  :) " << std::endl;
-}   
+}
 
 bool NanoAODAnalyzerrdframe::isDefined(string v)
 {
@@ -352,7 +352,7 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string globaltag, string jeta
     {
         cout << "Not applying new JetMET corrections. Using NanoAOD as is." << endl;
         std::cout<< "-------------------------------------------------------------------" << std::endl;
-        
+
     }
 }
 
@@ -449,8 +449,8 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 // This function is newly added for getting event weight with selected objects
 //void NanoAODAnalyzerrdframe::calculateEvWeight()
 //{
-  /*  
- */   
+/*
+ */
 //}
 
 
@@ -487,11 +487,11 @@ void NanoAODAnalyzerrdframe::setupCuts_and_Hists()
 
     for (auto acut : _cutinfovector)
     {
-       
+
         std::string cutname = "cut"+ acut.idx;
         std::cout << "cut name  : " << cutname  << std::endl;
         std::cout << "cut id  : " << acut.idx  << std::endl;
-       
+
         std::string hpost = "_"+cutname;
         RNode *r = _rnt.getParent(acut.idx)->getRNode();
         auto rnext = new RNode(r->Define(cutname, acut.cutdefinition));
@@ -542,9 +542,12 @@ void NanoAODAnalyzerrdframe::addVartoStore(string varname)
 }
 
 void NanoAODAnalyzerrdframe::setupTree()
-{
-    if (debug){
-    std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;}
+{   if (debug){
+        std::cout<< "================================//=================================" << std::endl;
+        std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
+        std::cout<< "================================//=================================" << std::endl;
+    }
+
 
     vector<RNodeTree *> rntends;
     _rnt.getRNodeLeafs(rntends);
@@ -594,7 +597,6 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
     _rnt.getRNodeLeafs(rntends);
     //_rnt.Print();
     //cout << " rntends size ==" <<rntends.size() << endl;
-    std::cout<< "-------------------------------------------------------------------" << std::endl;
 
     for (auto arnt: rntends)
     {
@@ -604,14 +606,16 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 
         _outrootfilenames.push_back(outname);
         RNode *arnode = arnt->getRNode();
-        //cout << arnt->getIndex();
+        std::cout<< "-------------------------------------------------------------------" << std::endl;
+        cout<<" cut " ;
+        cout << arnt->getIndex();
+        //std::cout<< "-------------------------------------------------------------------" << std::endl;
         if (saveAll) {
             arnode->Snapshot(outtreename, outname);
         }
         else {
             // use the following if you want to store only a few variables
             //arnode->Snapshot(outtreename, outname, _varstostore);
-            std::cout<< "-------------------------------------------------------------------" << std::endl;
             cout << " writing branches" << endl;
             std::cout<< "-------------------------------------------------------------------" << std::endl;
             for (auto bname: _varstostorepertree[nodename])
@@ -723,8 +727,6 @@ std::string NanoAODAnalyzerrdframe::ctrlBranchName(std::string str_Branch){
 //cut-based ID Fall17 V2 (1:veto, 2:loose, 3:medium, 4:tight)
 //--------------------------------------------------------------------------------------------------------//
 std::string NanoAODAnalyzerrdframe::ElectronID(int cutbasedID){
-    //if (debug){
-    //std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;}
     //double Electron_eta;
     //double Electron_pt;
     if (cutbasedID==1)std::cout<< " VETO Electron ID requested == " << cutbasedID <<std::endl;
@@ -762,9 +764,6 @@ return output;
 // MuonID defintion should be added
 //--------------------------------------------------------------------------------------------------------//
 std::string NanoAODAnalyzerrdframe::MuonID(int cutbasedID){
-    
-    //if (debug){
-    //std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;}
 
     //if (cutbasedID==1)std::cout<< "You selected Veto Muon ID == " << cutbasedID <<std::endl;
     if (cutbasedID==2)std::cout<< " LOOSE Muon ID requested == " << cutbasedID <<std::endl;
@@ -810,16 +809,14 @@ jetId==6 means: pass tight and tightLepVeto ID.
 //--------------------------------------------------------------------------------------------------------//
 
 std::string NanoAODAnalyzerrdframe::JetID(int cutbasedID){
-    
-    //if (debug){
-    //std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;}
+
 
     if(cutbasedID<1 || cutbasedID>7){
         std::cout<< "Error Wrong JET ID requested == " << cutbasedID << "!! Can't be applied" <<std::endl;
         std::cout<< "Please select number from 1 to 7 " <<std::endl;
 
     }
-    
+
     /*
     code
     */
