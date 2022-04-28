@@ -762,14 +762,28 @@ return output;
 // MuonID defintion should be added
 //--------------------------------------------------------------------------------------------------------//
 std::string NanoAODAnalyzerrdframe::MuonID(int cutbasedID){
+  
+    string newcutbasedID = "null";
     
     //if (debug){
     //std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;}
 
-    //if (cutbasedID==1)std::cout<< "You selected Veto Muon ID == " << cutbasedID <<std::endl;
-    if (cutbasedID==2)std::cout<< " LOOSE Muon ID requested == " << cutbasedID <<std::endl;
-    if (cutbasedID==3)std::cout<< " MEDIUM Muon ID requested == " << cutbasedID <<std::endl;
-    if (cutbasedID==4)std::cout<< " TIGHT Muon ID requested == " << cutbasedID <<std::endl;
+    if (cutbasedID==1){
+      newcutbasedID = "Muon_looseId";
+      std::cout<< " VETO Muon ID requested == " >> cutbasedID <<", but it doesn't exist in the nanoAOD branches. It is moved to loose MuonID. " << cutbasedID <<std::endl;
+    }
+    if (cutbasedID==2){
+      newcutbasedID = "Muon_looseId";
+      std::cout<< " LOOSE Muon ID requested == " << cutbasedID <<std::endl;
+    }
+    if (cutbasedID==3){
+      newcutbasedID = "Muon_mediumId";
+      std::cout<< " MEDIUM Muon ID requested == " << cutbasedID <<std::endl;
+    }
+    if (cutbasedID==4){
+      newcutbasedID = "Muon_tightId";
+      std::cout<< " TIGHT Muon ID requested == " << cutbasedID <<std::endl;
+    }
     std::cout<< "-------------------------------------------------------------------" << std::endl;
 
     if (cutbasedID<1 || cutbasedID>4){
@@ -781,14 +795,10 @@ std::string NanoAODAnalyzerrdframe::MuonID(int cutbasedID){
         exit(1);
     }
 
-    /*if(cutbasedID<1 || cutbasedID>4){
-        std::cout<< "Error Wrong Muon ID requested == " << cutbasedID << "!! Can't be applied" <<std::endl;
-        std::cout<< "Please select number from 1 to 4 " <<std::endl;
-    }*/
+    std::cout<<"newcutbasedID = "<<newcutbasedID<<endl;
+    std::string output = Form("%s==true", &newcutbasedID[0]);
 
-    /*
-      code
-    */
+    return output;
 }
 
 //--------------------------------------------------------------------------------------------------------//
