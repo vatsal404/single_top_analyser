@@ -770,7 +770,7 @@ std::string NanoAODAnalyzerrdframe::MuonID(int cutbasedID){
 
     if (cutbasedID==1){
       newcutbasedID = "Muon_looseId";
-      std::cout<< " VETO Muon ID requested == " >> cutbasedID <<", but it doesn't exist in the nanoAOD branches. It is moved to loose MuonID. " << cutbasedID <<std::endl;
+      std::cout<< " VETO Muon ID requested == " << cutbasedID <<", but it doesn't exist in the nanoAOD branches. It is moved to loose MuonID. " << cutbasedID <<std::endl;
     }
     if (cutbasedID==2){
       newcutbasedID = "Muon_looseId";
