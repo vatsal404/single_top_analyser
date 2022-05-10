@@ -1,5 +1,7 @@
 #time ./processnanoaod.py --allinone -Y 18 roottestfilesUL18/ testBaseANA_UL18.root >testBaseUL.out
+
 time ./processnanoaod.py --allinone  -Y 2018 --runtype UL --nrootfiles 1 --isDATA 0 roottestfilesUL18/ testBaseANA_UL18.root >testBaseUL.out
+
 #time ./processnanoaod.py  --nrootfiles 4 --split 4 --isDATA 0  --runtype UL -Y 2018 roottestfilesUL18/ testBaseANA_out >testBaseUL.out #(if not allinone)
 
 	#info:
