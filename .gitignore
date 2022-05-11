@@ -1,13 +1,13 @@
 # Ignore Mac system files
 .DS_store
 # Ignore root files
-#*.root
-testBaseANA_UL18*.root
+*.root
 # Ignore all .pcm and .o files
 *.png
 *.pdf
 *.pyc
 *.o
+*.so
 *.out
 *.pcm
 # Ignore IDE specific files

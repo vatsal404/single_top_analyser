@@ -94,7 +94,7 @@ RNodeTree *RNodeTree::getRNodeTree(string idx)
 	if (idx.size()==0) result = this;
 	else
 	{
-		int nodenumber=std::stoi(idx.substr(0, 1)); //convets a string to integer
+		int nodenumber=std::stoi(idx.substr(0, 1));
 		RNodeTree *daughter = daughters[nodenumber];
 		result = daughter->getRNodeTree(idx.substr(1));
 	}

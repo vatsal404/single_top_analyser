@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Sep 14 11:01:46 2018
@@ -11,31 +11,43 @@ This script applies nanoaod processing to one file
 import sys
 import cppyy
 import ROOT
+#from jobconfig import config, procflags
+from importlib import import_module
+from argparse import ArgumentParser
 
 if __name__=='__main__':
-    from optparse import OptionParser
-    parser = OptionParser(usage="%prog [options] inputDir outputDir")
-    parser.add_option("-Y", "--year",  dest="year", type="string", default="", help="Select 2016, 2017, or 2018 for years")
-    parser.add_option("-S", "--syst",  dest="syst", type="string", default="", help="Systematic sources")
-    parser.add_option("-J", "--json",  dest="json", type="string", default="", help="Select events using this JSON file, meaningful only for data")
-    parser.add_option("--saveallbranches", dest="saveallbranches", action="store_true", default=False, help="Save all branches. False by default")
-    parser.add_option("--globaltag", dest="globaltag", type="string", default="", help="Global tag to be used in JetMET corrections")
-    (options, args) = parser.parse_args()
+    parser = ArgumentParser(usage="%prog inputfile outputfile jobconfmod")
+    parser.add_argument("infile")
+    parser.add_argument("outfile")
+    parser.add_argument("jobconfmod")
+    args = parser.parse_args()
+    infile = args.infile
+    outfile = args.outfile
+    jobconfmod = args.jobconfmod
 
-    if len(args) < 1:
-        parser.print_help()
-        sys.exit(1)
-    infile = args[0]
-    outfile = args[1]
-    intreename = args[2]
-    outtreename = args[3]
+    # load job configuration python module and get bjects
+    mod = import_module(jobconfmod)
+    config = getattr(mod, 'config')
+    procflags = getattr(mod, 'procflags')
+    print(config)
+
+    intreename = config['intreename']
+    outtreename = config['outtreename']
+    saveallbranches = procflags['saveallbranches']
 
 
     # load compiled C++ library into ROOT/python
     cppyy.load_reflection_info("libnanoadrdframe.so")
+    cppyy.load_reflection_info("libcorrectionlib.so")
     t = ROOT.TChain(intreename)
     t.Add(infile)
-    aproc=None
-    aproc = ROOT.SkimEvents(t, outfile, options.year, options.syst, options.json, options.globaltag, 1)
+    #aproc = ROOT.SkimEvents(t, outfile)
+    aproc = ROOT.BaseAnalyser(t, outfile)
+    # setup JSONS for corrections
+    #aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
+    #    , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+    # prepare for processing
+    aproc.setupObjects()
     aproc.setupAnalysis()
-    aproc.run(options.saveallbranches, outtreename)
+    aproc.run(saveallbranches, outtreename)
+    
