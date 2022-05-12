@@ -5,8 +5,10 @@
 # Ignore all .pcm and .o files
 *.png
 *.o
+*.so
 *.out
 *.pcm
+__pycache__/
 # Ignore IDE specific files
 .vscode/
 *.sw*
