@@ -10,7 +10,7 @@ In ROOT, RDataFrame allows us to borrow the concept for analysis.
 This package code implements a hadronic channel analysis using NanoAOD format.
 However, it can be adapted for any flat ROOT trees.
 
-I. Introduction
+## I. Introduction
 
 - The advantage of using RDataFrame is that you don't have to
 worry about looping, filling of histograms at the right place,
@@ -30,7 +30,7 @@ In this package, the data frame concept is used together
 with object oriented concept for this purpose.
 
 
-II. Code
+## II. Code
 
 - The code consists of a main class NanoAODAnalyzerrdframe. 
 There is one.h header file and one .cpp source file for it.
@@ -43,7 +43,7 @@ The class has several methods:
 
 - Users should modify: object definitions, define additional variables, histogram definitions, selections.
 
-III. Clone Repository 
+## III. Clone Repository 
 
   * Setup CMSSW
 
@@ -62,49 +62,49 @@ III. Clone Repository
 
       > source /cvmfs/cms.cern.ch/slc7_amd64_gcc900/lcg/root/6.24.07-db9b7135424812ed5b8723a7a77f4016/bin/thisroot.(c)sh
 
-  * Compiling
+## IV. Compiling
 
-      > make -j(24)
+        > make -j(24)
 
   this will compile and create a libnanoaodrdframe.so shared library that can be loaded in a ROOT session or macro:  gSystem->Load("libnanoadrdframe.so");
 
 
-III. Running over large dataset
+## V. Running over large dataset
 
       > ./submitanalysisjob.py jobconfiganalysis.py
 
-  * submitanalysisjob.py script loop over the directories and submit jobs over the configuation python module (processnanoad.py)
+  * "submitanalysisjob.py" script loop over the directories and submit jobs over the configuation python module (processnanoad.py)
       > os.system('./processnanoaod.py '+ indir + ' ' + outdir + ' ' + jobconfmod  + ' > ' + outfile + ' 2>&1 &')
 
-  * processnanoaod.py script can automatically run over all ROOT files in an input directory and run over the subclass (BaseAnalyser.cpp)
+  * "processnanoaod.py" script can automatically run over all ROOT files in an input directory and run over the subclass (BaseAnalyser.cpp)
       > aproc = ROOT.BaseAnalyser(t, outputroot)
 
-  * jobconfiganalysis.py script consists of options for Nanoaodrdframe (config) + processing options (proflags) to enter your parameters and input/output directories.
+  * "jobconfiganalysis.py" script consists of options for Nanoaodrdframe (config) + processing options (proflags) to enter your parameters and input/output directories.
 
-      #options for Nanoaodrdframe
-      config = {
-        'intreename': "Events",       # tree name of input file(s)
-        'outtreename': "outputTree2", # tree name of output file(s) it cannot be the same as thinput tree name or it'll crash
-        'year': 2018,                 #data year (2016,2017,2018)
-        'runtype': 'UL',              # is ReReco or Ultra Legacy
-        'datatype': -1,               # -1: checking "gen" branch if it's exist run over MC. 1: Data0:MC
-      }
-      #processing options
-      procflags = {
-        'split': 1,                   # how many jobs?
-        'allinone': True,             # if "False" one output file per input file, if True then onoutput file for everything
-        'skipold': True,              # if "True" then skip existing analyzed files
-        'recursive': True,            # travel through the subdirectories and their subdirecties wheprocessing.
+        # options for Nanoaodrdframe
+        
+            config = {
+            'intreename': "Events",       # tree name of input file(s)
+            'outtreename': "outputTree2", # tree name of output file(s) it cannot be the same as thinput tree name or it'll crash
+            'year': 2018,                 #data year (2016,2017,2018)
+            'runtype': 'UL',              # is ReReco or Ultra Legacy
+            'datatype': -1,               # -1: checking "gen" branch if it's exist run over MC. 1: Data0:MC
+        }
+        # processing options
+        
+          procflags = {
+            'split': 1,                   # how many jobs?
+            'allinone': True,             # if "False" one output file per input file, if True then onoutput file for everything
+            'skipold': True,              # if "True" then skip existing analyzed files
+            'recursive': True,            # travel through the subdirectories and their subdirecties wheprocessing.
                                       # be careful not to mix   MC and real DATA in them.
-        'saveallbranches': False,     # if False then only selected branches which is done in thecpp file will be saved
-        'nrootfiles': 1,              #How many input files?
+            'saveallbranches': False,     # if False then only selected branches which is done in thecpp file will be saved
+            'nrootfiles': 1,              #How many input files?
         }
 
-        #input directory where your input root tree resides
-        #output directory wheere your output should go
-        #dump of stderr/stdout to file
+        # input directory where your input root tree resides && output directory wheere your output should go && dump of stderr/stdout to file
 
-        nanoaod_inputdir_outputdir_pairs = [
-            ['testinputdata/MC/2018','analyzed/test_nano_v1.root', 'stderrout.out' ],
-        ]
+            nanoaod_inputdir_outputdir_pairs = [
+                    ['testinputdata/MC/2018','analyzed/test_nano_v1.root', 'stderrout.out' ],
+            ]
 
