@@ -8,7 +8,7 @@ def tdrGrid( gridOn):
 def fixOverlay(): gPad.RedrawAxis()
 
 def setTDRStyle():
-  tdrStyle = rt.TStyle("tdrStyle","Style for P-TDR")
+  tdrStyle =  rt.TStyle("tdrStyle","Style for P-TDR")
 
    #for the canvas:
   tdrStyle.SetCanvasBorderMode(0)
@@ -49,7 +49,8 @@ def setTDRStyle():
 
   tdrStyle.SetEndErrorSize(2)
   #tdrStyle.SetErrorMarker(20)
-  tdrStyle.SetErrorX(0.)
+  #tdrStyle.SetErrorX(0.)
+  
   tdrStyle.SetMarkerStyle(20)
   
 #For the fit/function:
@@ -115,7 +116,7 @@ def setTDRStyle():
 
   tdrStyle.SetLabelColor(1, "XYZ")
   tdrStyle.SetLabelFont(42, "XYZ")
-  tdrStyle.SetLabelOffset(0.01, "XYZ")
+  tdrStyle.SetLabelOffset(0.007, "XYZ")
   tdrStyle.SetLabelSize(0.05, "XYZ")
 
 # For the axis:
@@ -149,11 +150,4 @@ def setTDRStyle():
   tdrStyle.SetHatchesLineWidth(5)
   tdrStyle.SetHatchesSpacing(0.05)
 
-# Legend options:
-  tdrStyle.SetLegendTextSize(0.036)
-  tdrStyle.SetLegendBorderSize(0)
-  tdrStyle.SetLegendFillColor(0)
-
   tdrStyle.cd()
-
-  return tdrStyle

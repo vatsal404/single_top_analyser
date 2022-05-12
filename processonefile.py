@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Sep 14 11:01:46 2018
@@ -11,41 +11,49 @@ This script applies nanoaod processing to one file
 import sys
 import cppyy
 import ROOT
-ROOT.gInterpreter.Declare('#include "src/BaseAnalyser.h"')
+
+from importlib import import_module
+from argparse import ArgumentParser
 
 if __name__=='__main__':
-    from optparse import OptionParser
-    parser = OptionParser(usage="%prog [options] inputDir outputDir")
-    parser.add_option("-Y", "--year",          dest="year",                 type="string",             default="",         help="Select 2016, 2017, 2018 year of runs")
-    parser.add_option("-R", "--runtype",      dest="runtype",                 type="string",             default="",         help="Select run type: UL or ReReco") # dest is Json or runtype?
-    parser.add_option("-D",    "--isDATA",     dest="isDATA",                 type=int,                 default=-1,         help="Select DATA or MC")
-    parser.add_option("--split",                 dest="split",                 type=int,                 default=1,             help="How many jobs to split into")
-    parser.add_option("-S", "--syst",          dest="syst",                 type="string",             default="",         help="Systematic sources")
-    parser.add_option("-J", "--json",          dest="json",                 type="string",             default="",         help="Select events using this JSON file, meaningful only for data")
-    parser.add_option("--saveallbranches",     dest="saveallbranches",     action="store_true",     default=False,         help="Save all branches. False by default")
-    parser.add_option("--globaltag",         dest="globaltag",             type="string",             default="",         help="Global tag to be used in JetMET corrections")
+    parser = ArgumentParser(usage="%prog inputfile outputfile jobconfmod")
+    parser.add_argument("infile")
+    parser.add_argument("outfile")
+    parser.add_argument("jobconfmod")
+    args = parser.parse_args()
+    infile = args.infile
+    outfile = args.outfile
+    jobconfmod = args.jobconfmod
 
-    (options, args) = parser.parse_args()
-    if len(args) < 1:
-        print("number of args")
-        print(len(args))
-        parser.print_help()
-        sys.exit(1)
-    infile = args[0]
-    outfile = args[1]
-    intreename = args[2]
-    outtreename = args[3]
+    # load job configuration python module and get bjects
+    mod = import_module(jobconfmod)
+    config = getattr(mod, 'config')
+    procflags = getattr(mod, 'procflags')
+    print(config)
 
-    print (infile, outfile,options.year,options.runtype, options.syst, options.json, options.globaltag,1,options.isDATA)
+    intreename = config['intreename']
+    outtreename = config['outtreename']
+    saveallbranches = procflags['saveallbranches']
+
 
     # load compiled C++ library into ROOT/python
+    cppyy.load_reflection_info("libcorrectionlib.so")
+    cppyy.load_reflection_info("libMathMore.so")
     cppyy.load_reflection_info("libnanoadrdframe.so")
     t = ROOT.TChain(intreename)
     t.Add(infile)
     print("Inside process one file..!!")
 
-    aproc = ROOT.BaseAnalyser(t, outfile, options.year,options.runtype,options.syst, options.json, options.globaltag, options.isDATA)
-    print("Called")
-    aproc.setupAnalysis()
-    aproc.run(options.saveallbranches, outtreename)
+    #aproc = ROOT.FourtopAnalyzer(t, outfile)
+    aproc = ROOT.BaseAnalyser(t, outfile)
+    aproc.setParams(config['year'], config['runtype'],config['datatype'])
 
+    #aproc.setParams(config[year])
+    # setup JSONS for corrections
+    #aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
+    #    , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+    # prepare for processing
+    aproc.setupObjects()
+    aproc.setupAnalysis()
+    aproc.run(saveallbranches, outtreename)
+    

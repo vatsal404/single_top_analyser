@@ -4,9 +4,7 @@
  *  Created on: Oct 16, 2018
  *      Author: suyong
  */
-
-#ifndef LINKDEF_H_
-#define LINKDEF_H_
+#if defined(__CLING__)
 
 #pragma link C++ class std::vector<ROOT::Math::PtEtaPhiMVector>+;
 #pragma link C++ class NanoAODAnalyzerrdframe +;
