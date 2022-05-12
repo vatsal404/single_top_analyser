@@ -1,9 +1,11 @@
 # Ignore Mac system files
 .DS_store
 # Ignore root files
-#*.root
+*.root
 # Ignore all .pcm and .o files
 *.png
+*.pdf
+*.pyc
 *.o
 *.so
 *.out

@@ -13,21 +13,19 @@ writeExtraText = True
 extraText   = "Preliminary"
 extraTextFont = 52 
 
-lumiTextSize     = 0.45
+lumiTextSize     = 0.6
 lumiTextOffset   = 0.2
 
-cmsTextSize      = 0.6
+cmsTextSize      = 0.75
 cmsTextOffset    = 0.1
 
 relPosX    = 0.045
 relPosY    = 0.035
 relExtraDY = 1.2
 
-extraOverCmsTextSize  = 0.6
+extraOverCmsTextSize  = 0.76
 
-#lumi_13TeV = "35.92 fb^{-1}"
-#lumi_13TeV = "41.53 fb^{-1}"
-lumi_13TeV = "59.74 fb^{-1}"
+lumi_13TeV = "35.9 fb^{-1}"
 lumi_8TeV  = "19.7 fb^{-1}" 
 lumi_7TeV  = "5.1 fb^{-1}"
 lumi_sqrtS = ""
@@ -90,7 +88,7 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
     elif ( iPeriod==0 ):
         lumiText += lumi_sqrtS
             
-    print lumiText
+    print (lumiText)
 
     latex = rt.TLatex()
     latex.SetNDC()
@@ -109,7 +107,7 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
         latex.SetTextFont(cmsTextFont)
         latex.SetTextAlign(11) 
         latex.SetTextSize(cmsTextSize*t)    
-        latex.DrawLatex(l+0.01,1-t+lumiTextOffset*t,cmsText)
+        latex.DrawLatex(l,1-t+lumiTextOffset*t,cmsText)
   
     pad.cd()
 
@@ -150,8 +148,7 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
                 latex.DrawLatex(posX_, posY_- relExtraDY*cmsTextSize*t, extraText)
     elif( writeExtraText ):
         if( iPosX==0):
-            posX_ =  l + 0.22*(1-l-r)
-            #posX_ =   l +  relPosX*(1-l-r)
+            posX_ =   l +  relPosX*(1-l-r)
             posY_ =   1-t+lumiTextOffset*t
 
         latex.SetTextFont(extraTextFont)

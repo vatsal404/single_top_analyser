@@ -1,8 +1,9 @@
 /*
  * BaseAnalyser.h
  *
- *  Created on: 14 December, 2021
- *      Author: cdozen 
+ *  Created on: May 6, 2022
+ *      Author: suyong
+ *		Developper: cdozen
  */
 
 #ifndef BASEANALYSER_H_
@@ -12,25 +13,23 @@
 
 class BaseAnalyser: public NanoAODAnalyzerrdframe
 {
-    public:
-        BaseAnalyser(TTree *t, std::string outfilename, std::string year="",std::string runtype="",std::string syst="",  std::string jsonfname="", string globaltag="", int nthreads=1,int isDATA=-1 );
-        void defineCuts();
-        void defineMoreVars();
-        void bookHists();
-        void setTree(TTree *t, std::string outfilename);
-        void setupAnalysis();
-        void selectElectrons();
-        void selectMuons();
-        void selectJets();
-        void removeOverlaps();
-        void selectFatJets();
-        void calculateEvWeight();
-        bool debug = true;
+	public:
+		BaseAnalyser(TTree *t, std::string outfilename);
+		void defineCuts();		//define a series of cuts from defined variables only. you must implement this in your subclassed analysis 
+		void defineMoreVars(); 	//define higher-level variables from basic ones, you must implement this in your subclassed analysis code
+		void bookHists(); 		//book histograms, you must implement this in your subclassed analysis code
 
-        private:
-            std::string year;
-            std::string runtype;
-            std::string syst;
+		void setTree(TTree *t, std::string outfilename);
+		void setupObjects();
+		void setupAnalysis();
+		// object selectors
+		void selectElectrons();
+		void selectMuons();
+		void selectJets();
+		//void removeOverlaps();
+
+
+		bool debug = true;
 
 };
 
