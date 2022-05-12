@@ -756,14 +756,14 @@ std::string NanoAODAnalyzerrdframe::ElectronID(int cutbasedID){
     }
     //double Electron_eta;
     //double Electron_pt;
-    if (cutbasedID==1)std::cout<< " VETO Electron ID requested as == " << cutbasedID <<std::endl;
-    if (cutbasedID==2)std::cout<< " LOOSE Electron ID requested as == " << cutbasedID <<std::endl;
-    if (cutbasedID==3)std::cout<< " MEDIUM Electron ID requested as == " << cutbasedID <<std::endl;
-    if (cutbasedID==4)std::cout<< " TIGHT Electron ID requested as == " << cutbasedID <<std::endl;
+    if (cutbasedID==1)std::cout<< " VETO Electron ID requested    == " << cutbasedID <<std::endl;
+    if (cutbasedID==2)std::cout<< " LOOSE Electron ID requested   == " << cutbasedID <<std::endl;
+    if (cutbasedID==3)std::cout<< " MEDIUM Electron ID requested  == " << cutbasedID <<std::endl;
+    if (cutbasedID==4)std::cout<< " TIGHT Electron ID requested   == " << cutbasedID <<std::endl;
     std::cout<< "-------------------------------------------------------------------" << std::endl;
 
     if (cutbasedID<0 || cutbasedID>4){
-        std::cout<< "ERROR!! Wrong Electron ID requested as == " << cutbasedID << "!! Can't be applied" <<std::endl;
+        std::cout<< "ERROR!! Wrong Electron ID requested  == " << cutbasedID << "!! Can't be applied" <<std::endl;
         std::cout<< "Please select ElectronID from 1 to 4 " <<std::endl;
         std::cout<< "-------------------------------------------------------------------" << std::endl;
         std::cout<< "EXITING PROGRAM!!" << std::endl;
@@ -787,32 +787,22 @@ return output;
 }
 
 std::string NanoAODAnalyzerrdframe::MuonID(int cutbasedID){
-  
-    string newcutbasedID = "null";
     
-    //if (debug){
-    //std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;}
-
-    if (cutbasedID==1){
-      newcutbasedID = "Muon_looseId";
-      std::cout<< " VETO Muon ID requested == " << cutbasedID <<", but it doesn't exist in the nanoAOD branches. It is moved to loose MuonID. " << cutbasedID <<std::endl;
+    if(debug){
+        std::cout<< "================================//=================================" << std::endl;
+        std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
+        std::cout<< "================================//=================================" << std::endl;
     }
-    if (cutbasedID==2){
-      newcutbasedID = "Muon_looseId";
-      std::cout<< " LOOSE Muon ID requested == " << cutbasedID <<std::endl;
-    }
-    if (cutbasedID==3){
-      newcutbasedID = "Muon_mediumId";
-      std::cout<< " MEDIUM Muon ID requested == " << cutbasedID <<std::endl;
-    }
-    if (cutbasedID==4){
-      newcutbasedID = "Muon_tightId";
-      std::cout<< " TIGHT Muon ID requested == " << cutbasedID <<std::endl;
-    }
+    
+    //  cut-based ID Fall17 V2 (0:fail, 1:veto, 2:loose, 3:medium, 4:tight)
+    if (cutbasedID==1)std::cout<< " Veto Muon ID requested   == " << cutbasedID <<std::endl;
+    if (cutbasedID==2)std::cout<< " LOOSE Muon ID requested  == " << cutbasedID <<std::endl;
+    if (cutbasedID==3)std::cout<< " MEDIUM Muon ID requested == " << cutbasedID <<std::endl;
+    if (cutbasedID==4)std::cout<< " TIGHT Muon ID requested as == " << cutbasedID <<std::endl;
     std::cout<< "-------------------------------------------------------------------" << std::endl;
 
     if (cutbasedID<1 || cutbasedID>4){
-        std::cout<< "ERROR!! Wrong Muon ID requested as == " << cutbasedID << "!! Can't be applied" <<std::endl;
+        std::cout<< "ERROR!! Wrong Muon ID requested  == " << cutbasedID << "!! Can't be applied" <<std::endl;
         std::cout<< "Please select Muon ID from 2 to 4 " <<std::endl;
         std::cout<< "-------------------------------------------------------------------" << std::endl;
         std::cout<< "EXITING PROGRAM!!" << std::endl;
@@ -820,25 +810,26 @@ std::string NanoAODAnalyzerrdframe::MuonID(int cutbasedID){
         exit(1);
     }
 
-    std::cout<<"newcutbasedID = "<<newcutbasedID<<endl;
-    std::string output = Form("%s==true", &newcutbasedID[0]);
+    string Muon_cutBased_ID;
+    
+    if (cutbasedID==1){
+        Muon_cutBased_ID = "Muon_looseId";
+        std::cout<< " VETO Muon ID requested == " << cutbasedID <<", but it doesn't exist in the nanoAOD branches. It is moved to loose MuonID. " << cutbasedID <<std::endl;
+    }
+    if (cutbasedID == 2){
+        Muon_cutBased_ID = "Muon_looseId";
+    
+    }else if(cutbasedID == 3){
+        Muon_cutBased_ID = "Muon_mediumId";
 
+    }else if(cutbasedID == 4){
+        Muon_cutBased_ID = "Muon_tightId";
+    }
+    string output;
+    output = Form ("%s==true",Muon_cutBased_ID.c_str());
     return output;
 }
 
-
-}else if(cutbasedID == 3){
-    Muon_cutBased_ID = "Muon_mediumId";
-
-}else if(cutbasedID == 4){
-    Muon_cutBased_ID = "Muon_tightId";
-}
-
-string output;
-output = Form ("%s==true",Muon_cutBased_ID.c_str());
-//output = Form ("%s==true",&Muon_cutBased_ID[0]);
-return output;
-}
 
 std::string NanoAODAnalyzerrdframe::JetID(int cutbasedID){
 
@@ -848,15 +839,15 @@ std::string NanoAODAnalyzerrdframe::JetID(int cutbasedID){
         std::cout<< "================================//=================================" << std::endl;
     }
 
-if(cutbasedID<1 || cutbasedID>7){
-    std::cout<< "Error Wrong JET ID requested == " << cutbasedID << "!! Can't be applied" <<std::endl;
-    std::cout<< "Please select number from 1 to 7 " <<std::endl;
+    if(cutbasedID<1 || cutbasedID>7){
+        std::cout<< "Error Wrong JET ID requested == " << cutbasedID << "!! Can't be applied" <<std::endl;
+        std::cout<< "Please select number from 1 to 7 " <<std::endl;
 
-}else{
-	std::cout<< " JET ID requested as == " << cutbasedID <<std::endl;
-}
+    }else{
+	    std::cout<< " JET ID requested  == " << cutbasedID <<std::endl;
+    }
 
-string output;
-output = Form ("Jet_jetId==%d",cutbasedID);
-return output;
+    string output;
+    output = Form ("Jet_jetId==%d",cutbasedID);
+    return output;
 }
