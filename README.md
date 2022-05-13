@@ -1,4 +1,5 @@
 # fly_project nanoaodrdframework 
+
 Analysis of CMS experiment Nano AOD format using ROOT RDataFrame
 
 The package shows how to analyze using the data frame concept.
@@ -45,22 +46,30 @@ The class has several methods:
 
 ## III. Clone Repository 
 
-  * Setup CMSSW
+if using standalone:
+* ROOT >= 6.24
+* correctionlib >=2.0.0 (https://github.com/cms-nanoAOD/correctionlib)
+* rapidjson (https://github.com/Tencent/rapidjson)
+* nlohman/json (https://github.com/nlohmann/json)
 
-  You must use CMSSW 12.3.X or higher since correctionlib 2 is available there.
+if CMSSW is available: the package doesn't depend on any CMSSW libraries, but some of the dependent libraries are available, so this makes it easier to compile.
+
+* Setup CMSSW
 
       > cmsrel CMSSW_12_3_X
+
       > cd CMSSW_12_3_X/src
+
+CMSSW 12.3 has ROOT 6.22 but there are run time errors when using this. So you must setup ROOT 6.24.
+
+      > source /cvmfs/cms.cern.ch/slc7_amd64_gcc900/lcg/root/6.24.07-db9b7135424812ed5b8723a7a77f4016/bin/thisroot.(c)sh  
 
   * Clone with SSH :
       > git clone ssh://git@gitlab.cern.ch:7999/fly/fly.git
 
   * Clone with HTTPS:
       > git clone https://gitlab.cern.ch/fly/fly.git
-
-  You must use ROOT 6.24. (ROOT 6.22 is the default for CMSSW 12.3)
-
-      > source /cvmfs/cms.cern.ch/slc7_amd64_gcc900/lcg/root/6.24.07-db9b7135424812ed5b8723a7a77f4016/bin/thisroot.(c)sh
+  
 
 ## IV. Compiling
 
@@ -111,3 +120,4 @@ The class has several methods:
                     ['testinputdata/MC/2018','analyzed/test_nano_v1.root', 'stderrout.out' ],
             ]
 
+Ref.:https://github.com/suyong-choi/nanoaodrdframe
