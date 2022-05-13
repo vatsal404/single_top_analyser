@@ -73,26 +73,28 @@ The class has several methods:
 
       > ./submitanalysisjob.py jobconfiganalysis.py
 
-  * "submitanalysisjob.py" script loop over the directories and submit jobs over the configuation python module (processnanoad.py)
+  * "submitanalysisjob.py" script loop over the directories and submit jobs over the configuation python module (e.g: processnanoad.py)
       > os.system('./processnanoaod.py '+ indir + ' ' + outdir + ' ' + jobconfmod  + ' > ' + outfile + ' 2>&1 &')
 
-  * "processnanoaod.py" script can automatically run over all ROOT files in an input directory and run over the subclass (BaseAnalyser.cpp)
+  * "processnanoaod.py" script can automatically run over all ROOT files in an input directory and run over the subclass (e.g: BaseAnalyser.cpp)
       > aproc = ROOT.BaseAnalyser(t, outputroot)
 
-  * "jobconfiganalysis.py" script consists of options for Nanoaodrdframe (config) + processing options (proflags) to enter your parameters and input/output directories.
-
-        # options for Nanoaodrdframe
-        
+  * "jobconfiganalysis.py" script contatins all the options are to be set. It contains 3 python directories:
+    * one for configurations for datatype, data year, runtype, various POG corrections, golden JSON, input and output root tree names, etc. ( The correction is an optional argument. As a default no corrections are applied on this step. User should modify processnanoaod.py if one wishes to do so (search for skipcorrections in that file).)
+       
+            # options for Nanoaodrdframe
             config = {
             'intreename': "Events",       # tree name of input file(s)
             'outtreename': "outputTree2", # tree name of output file(s) it cannot be the same as thinput tree name or it'll crash
             'year': 2018,                 #data year (2016,2017,2018)
             'runtype': 'UL',              # is ReReco or Ultra Legacy
             'datatype': -1,               # -1: checking "gen" branch if it's exist run over MC. 1: Data0:MC
-        }
-        # processing options
-        
-          procflags = {
+            }
+
+    * The second dictionary contains processing options, to split processing into multiple jobs, produce one output file per input file, skip files already processed, whether to dive into subdirectories recursively and process the files there. 
+       
+            #processing options
+            procflags = {
             'split': 1,                   # how many jobs?
             'allinone': True,             # if "False" one output file per input file, if True then onoutput file for everything
             'skipold': True,              # if "True" then skip existing analyzed files
@@ -100,10 +102,11 @@ The class has several methods:
                                       # be careful not to mix   MC and real DATA in them.
             'saveallbranches': False,     # if False then only selected branches which is done in thecpp file will be saved
             'nrootfiles': 1,              #How many input files?
-        }
+            }
+    
+    * The third dictionary contains input directory where your input files are, output directory, and text output file for any print out or error messages.
 
-        # input directory where your input root tree resides && output directory wheere your output should go && dump of stderr/stdout to file
-
+            #input directory where your input root tree resides && output directory wheere your output should go && dump of stderr/stdout to file
             nanoaod_inputdir_outputdir_pairs = [
                     ['testinputdata/MC/2018','analyzed/test_nano_v1.root', 'stderrout.out' ],
             ]
