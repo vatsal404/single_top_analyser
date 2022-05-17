@@ -1,38 +1,8 @@
-# fly_project nanoaodrdframework 
+# FLY for Lyon CMS top group 
+#### Lyon CMS top group workspace on trello: https://trello.com/b/GgwYpR0T/topgroup
+#### fly project nanoaodframework tutorial: https://codimd.web.cern.ch/fIIXNRDmQqqQhgpKPNnlqg?view
 
-Analysis of CMS experiment Nano AOD format using ROOT RDataFrame
-
-The package shows how to analyze using the data frame concept.
-In a data frame concept, the operations on data should be defined
-in terms of functions, which means that result of applying
-a function should produce outputs and no internal states are allowed.
-In ROOT, RDataFrame allows us to borrow the concept for analysis.
-
-This package code implements a hadronic channel analysis using NanoAOD format.
-However, it can be adapted for any flat ROOT trees.
-
-## I. Introduction
-
-- The advantage of using RDataFrame is that you don't have to
-worry about looping, filling of histograms at the right place,
-writing out trees. In some sense you can concentrate more on
-thinking about data analysis.
-
-- Draw back is that you have to think of a new way of doing old things.
-This could getting used to. Alos complicated algorithms may not
-be so easy to implement with RDataFrame
-
-- Purely data frame concept is not ideal for HEP data since
-we have to treat real data and simulated data differently.
-We must apply different operations depending on the input data,
-   such as scale factors and corrections.
-Therefore, some form of global state should be stored. 
-In this package, the data frame concept is used together
-with object oriented concept for this purpose.
-
-
-## II. Code
-
+# I. Code
 - The code consists of a main class NanoAODAnalyzerrdframe. 
 There is one.h header file and one .cpp source file for it.
 The class has several methods:
@@ -44,7 +14,7 @@ The class has several methods:
 
 - Users should modify: object definitions, define additional variables, histogram definitions, selections.
 
-## III. Clone Repository 
+## II. Clone Repository 
 
 if using standalone:
 * ROOT >= 6.24
@@ -71,14 +41,14 @@ CMSSW 12.3 has ROOT 6.22 but there are run time errors when using this. So you m
       > git clone https://gitlab.cern.ch/fly/fly.git
   
 
-## IV. Compiling
+## III. Compiling
 
         > make -j(24)
 
   this will compile and create a libnanoaodrdframe.so shared library that can be loaded in a ROOT session or macro:  gSystem->Load("libnanoadrdframe.so");
 
 
-## V. Running over large dataset
+## IV. Running over large dataset
 
       > ./submitanalysisjob.py jobconfiganalysis.py
 
