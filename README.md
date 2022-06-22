@@ -30,10 +30,6 @@ if CMSSW is available: the package doesn't depend on any CMSSW libraries, but so
 
       > cd CMSSW_12_3_X/src
 
-CMSSW 12.3 has ROOT 6.22 but there are run time errors when using this. So you must setup ROOT 6.24.
-
-      > source /cvmfs/cms.cern.ch/slc7_amd64_gcc900/lcg/root/6.24.07-db9b7135424812ed5b8723a7a77f4016/bin/thisroot.(c)sh  
-
   * Clone with SSH :
       > git clone ssh://git@gitlab.cern.ch:7999/fly/fly.git
 
