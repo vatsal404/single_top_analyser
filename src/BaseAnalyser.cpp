@@ -157,17 +157,13 @@ void BaseAnalyser::selectJets()
 void BaseAnalyser::removeOverlaps()
 {
 	// lambda function
-	// for checking overlapped jets with electrons
+	// for checking overlapped jets with leptons
     auto checkoverlap = [](FourVectorVec &goodjets, FourVectorVec &goodlep)
 		{
 			doubles mindrlepton;
-			//cout << "selected jets size" << goodjets.size() << endl;
-			//cout << "selected lepton size" << goodmuons.size() << endl;
-
 			for (auto ajet: goodjets)
 			{
                 auto mindr = 6.0;
-				//std::vector<double> drlepjet(goodmuons.size());
 				for (auto alepton: goodlep)
 				{
 					auto dr = ROOT::Math::VectorUtil::DeltaR(ajet, alepton);
@@ -176,16 +172,10 @@ void BaseAnalyser::removeOverlaps()
                 int out = mindr > 0.4 ? 1 : 0;
                 mindrlepton.emplace_back(out);
 
-					//drlepjet.emplace_back(dr);
 			}
             return mindrlepton;
-				//auto mindr = goodmuons.size()==0 ? 6.0 : *std::min_element(drlepjet.begin(), drlepjet.end());
-				//mindrlepton.emplace_back(mindr);
 	    };
 	//cout << "overlap removal" << endl;
-	//_rlm = _rlm.Define("mindrlepton", checkoverlap, {"goodJets_4vecs","goodMuons_4vecs"});
-	//cout << "redefine cleaned jets" << endl;
-	//_rlm = _rlm.Define("overlapcheck", "mindrlepton>0.6");
     _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodMuons_4vecs"});
 	_rlm =	_rlm.Define("Selected_jetpt", "goodJets_pt[muonjetoverlap]")
 		.Define("Selected_jeteta", "goodJets_eta[muonjetoverlap]")
@@ -195,7 +185,6 @@ void BaseAnalyser::removeOverlaps()
 		.Define("ncleanjetspass", "int(Selected_jetpt.size())")
 		.Define("cleanjet4vecs", ::generate_4vec, {"Selected_jetpt", "Selected_jeteta", "Selected_jetphi", "Selected_jetmass"})
 		.Define("Selected_jetHT", "Sum(Selected_jetpt)");
-		//.Define("Selected_jetweight", "std::vector<double>(ncleanjetspass, evWeight)"); //
 
 
 	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>0.8")
