@@ -42,9 +42,10 @@ void BaseAnalyser::defineCuts()
 	std::cout<< "-------------------------------------------------------------------" << std::endl;
 
 	//MinimalSelection to filter events
-    addCuts("nMuon > 2 && nElectron > 0", "0");
-    addCuts("nJet>0","00");
-	addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
+    addCuts("nMuon > 2 && nElectron > 0 && nJet>0", "0");
+    //addCuts("nJet>0","00");
+    addCuts("ncleanjetspass>0","00");
+	//addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
 
 }
 //===============================Find Good Electrons===========================================//
@@ -153,6 +154,61 @@ void BaseAnalyser::selectJets()
 
 
 }
+void BaseAnalyser::removeOverlaps()
+{
+	// lambda function
+	// for checking overlapped jets with electrons
+    auto checkoverlap = [](FourVectorVec &goodjets, FourVectorVec &goodlep)
+		{
+			doubles mindrlepton;
+			//cout << "selected jets size" << goodjets.size() << endl;
+			//cout << "selected lepton size" << goodmuons.size() << endl;
+
+			for (auto ajet: goodjets)
+			{
+                auto mindr = 6.0;
+				//std::vector<double> drlepjet(goodmuons.size());
+				for (auto alepton: goodlep)
+				{
+					auto dr = ROOT::Math::VectorUtil::DeltaR(ajet, alepton);
+                    if (dr < mindr) mindr = dr;
+                }
+                int out = mindr > 0.4 ? 1 : 0;
+                mindrlepton.emplace_back(out);
+
+					//drlepjet.emplace_back(dr);
+			}
+            return mindrlepton;
+				//auto mindr = goodmuons.size()==0 ? 6.0 : *std::min_element(drlepjet.begin(), drlepjet.end());
+				//mindrlepton.emplace_back(mindr);
+	    };
+	//cout << "overlap removal" << endl;
+	//_rlm = _rlm.Define("mindrlepton", checkoverlap, {"goodJets_4vecs","goodMuons_4vecs"});
+	//cout << "redefine cleaned jets" << endl;
+	//_rlm = _rlm.Define("overlapcheck", "mindrlepton>0.6");
+    _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodMuons_4vecs"});
+	_rlm =	_rlm.Define("Selected_jetpt", "goodJets_pt[muonjetoverlap]")
+		.Define("Selected_jeteta", "goodJets_eta[muonjetoverlap]")
+		.Define("Selected_jetphi", "goodJets_phi[muonjetoverlap]")
+		.Define("Selected_jetmass", "goodJets_mass[muonjetoverlap]")
+		.Define("Selected_jetbtag", "goodJets_btag[muonjetoverlap]")
+		.Define("ncleanjetspass", "int(Selected_jetpt.size())")
+		.Define("cleanjet4vecs", ::generate_4vec, {"Selected_jetpt", "Selected_jeteta", "Selected_jetphi", "Selected_jetmass"})
+		.Define("Selected_jetHT", "Sum(Selected_jetpt)");
+		//.Define("Selected_jetweight", "std::vector<double>(ncleanjetspass, evWeight)"); //
+
+
+	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>0.8")
+			.Define("Selected_bjetpt", "Selected_jetpt[btagcuts2]")
+			.Define("Selected_bjeteta", "Selected_jeteta[btagcuts2]")
+			.Define("Selected_bjetphi", "Selected_jetphi[btagcuts2]")
+			.Define("Selected_bjetmass", "Selected_jetmass[btagcuts2]")
+			.Define("ncleanbjetspass", "int(Selected_bjetpt.size())")
+			.Define("Selected_bjetHT", "Sum(Selected_bjetpt)")
+			.Define("cleanbjet4vecs", ::generate_4vec, {"Selected_bjetpt", "Selected_bjeteta", "Selected_bjetphi", "Selected_bjetmass"});
+
+}
+
 
 //=============================define variables==================================================//
 void BaseAnalyser::defineMoreVars()
@@ -168,7 +224,7 @@ void BaseAnalyser::defineMoreVars()
 
     //selected jet candidates
     addVar({"good_jet1pt", "(goodJets_pt.size()>0) ? goodJets_pt[0] : -1", ""});
-    //addVar({"Selected_jet1pt", "Selected_jetpt[0]", ""});
+    addVar({"Selected_jet1pt", "(Selected_jetpt.size()>0) ? Selected_jetpt[0] : -1", ""});
     addVar({"good_jet1eta", "goodJets_eta[0]", ""});
     addVar({"good_jet1mass", "goodJets_mass[0]", ""});
 
@@ -196,6 +252,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("Jet_pt");
     addVartoStore("NgoodJets");
     addVartoStore("goodJets_pt");
+    addVartoStore("Selected_jetpt");
 
 }
 void BaseAnalyser::bookHists()
@@ -213,7 +270,11 @@ void BaseAnalyser::bookHists()
     //add1DHist( {"hgoodelectron1_pt", "good electron1_pt; #electron p_{T}; Entries / after ", 18, -2.7, 2.7}, "good_electron1pt", "evWeight", "0");
 
     add1DHist( {"hNgoodMuons", "# of good Muons", 5, 0.0, 5.0}, "NgoodMuons", "evWeight", "");
-    add1DHist( {"hgood_jet1pt", "Good Jet_1 pt after cut0" , 100, 0, 1000} , "good_jet1pt", "evWeight", "0");
+    add1DHist( {"hgood_jetpt", "Good Jet pt after " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
+    add1DHist( {"hgood_jet1pt", "Good Jet_1 pt after " , 100, 0, 1000} , "good_jet1pt", "evWeight", "");
+
+    add1DHist( {"hselected_jet1pt", "SelectedJet_1 pt after" , 100, 0, 1000} , "Selected_jet1pt", "evWeight", "");
+    add1DHist( {"hselected_jetpt", "No overlap muon-Jets after" , 100, 0, 1000} , "Selected_jetpt", "evWeight", "");
 }
 void BaseAnalyser::setTree(TTree *t, std::string outfilename)
 {
@@ -243,7 +304,7 @@ void BaseAnalyser::setupObjects()
 	selectElectrons();
 	selectMuons();
 	selectJets();
-	//removeOverlaps();
+	removeOverlaps();
 
 }
 void BaseAnalyser::setupAnalysis()

@@ -26,7 +26,7 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		void selectElectrons();
 		void selectMuons();
 		void selectJets();
-		//void removeOverlaps();
+		void removeOverlaps();
 
 
 		bool debug = true;

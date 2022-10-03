@@ -54,7 +54,6 @@ public:
 
 	void applyJetMETCorrections();
 	void selectFatJets();
-	void removeOverlaps();
 
 	void addVar(varinfo v);
 

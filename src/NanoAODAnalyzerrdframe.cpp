@@ -101,7 +101,7 @@ void NanoAODAnalyzerrdframe::setupObjects()
 	// Object selection will be defined in sequence.
 	// Selected objects will be stored in new vectors.
 	//selectJets();
-	removeOverlaps();
+	//removeOverlaps();
 	selectFatJets();
 }
 
@@ -333,57 +333,6 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
 }*/
 
-void NanoAODAnalyzerrdframe::removeOverlaps()
-{
-	// lambda function
-	// for checking overlapped jets with electrons
-	auto checkoverlap = [](FourVectorVec &seljets, FourVectorVec &selele)
-		{
-			doubles mindrlepton;
-			//cout << "selected jets size" << seljets.size() << endl;
-			//cout << "selected electrons size" << selele.size() << endl;
-
-			for (auto ajet: seljets)
-			{
-				std::vector<double> drelejet(selele.size());
-				for (auto alepton: selele)
-				{
-					auto dr = ROOT::Math::VectorUtil::DeltaR(ajet, alepton);
-					drelejet.emplace_back(dr);
-				}
-				auto mindr = selele.size()==0 ? 6.0 : *std::min_element(drelejet.begin(), drelejet.end());
-				mindrlepton.emplace_back(mindr);
-			}
-
-			return mindrlepton;
-		};
-	//cout << "overlap removal" << endl;
-	_rlm = _rlm.Define("mindrlepton", checkoverlap, {"jet4vecs","ele4vecs"});
-
-	//cout << "redefine cleaned jets" << endl;
-	_rlm = _rlm.Define("overlapcheck", "mindrlepton>0.4");
-
-	_rlm =	_rlm.Define("Sel2_jetpt", "Sel_jetpt[overlapcheck]")
-		.Define("Sel2_jeteta", "Sel_jeteta[overlapcheck]")
-		.Define("Sel2_jetphi", "Sel_jetphi[overlapcheck]")
-		.Define("Sel2_jetmass", "Sel_jetmass[overlapcheck]")
-		.Define("Sel2_jetbtag", "Sel_jetbtag[overlapcheck]")
-		.Define("ncleanjetspass", "int(Sel2_jetpt.size())")
-		.Define("cleanjet4vecs", ::generate_4vec, {"Sel2_jetpt", "Sel2_jeteta", "Sel2_jetphi", "Sel2_jetmass"})
-		.Define("Sel2_jetHT", "Sum(Sel2_jetpt)")
-		.Define("Sel2_jetweight", "std::vector<double>(ncleanjetspass, evWeight)"); //
-
-
-	_rlm = _rlm.Define("btagcuts2", "Sel2_jetbtag>0.8")
-			.Define("Sel2_bjetpt", "Sel2_jetpt[btagcuts2]")
-			.Define("Sel2_bjeteta", "Sel2_jeteta[btagcuts2]")
-			.Define("Sel2_bjetphi", "Sel2_jetphi[btagcuts2]")
-			.Define("Sel2_bjetmass", "Sel2_jetmass[btagcuts2]")
-			.Define("ncleanbjetspass", "int(Sel2_bjetpt.size())")
-			.Define("Sel2_bjetHT", "Sum(Sel2_bjetpt)")
-			.Define("cleanbjet4vecs", ::generate_4vec, {"Sel2_bjetpt", "Sel2_bjeteta", "Sel2_bjetphi", "Sel2_bjetmass"});
-
-}
 
 void NanoAODAnalyzerrdframe::selectFatJets()
 {
