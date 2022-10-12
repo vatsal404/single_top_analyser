@@ -19,8 +19,8 @@ BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename)
                     "HLT_PFHT330PT30_QuadPFJet_75_60_45_40_TriplePFBTagDeepCSV_4p5",
                     "HLT_PFJet550","HLT_PFHT400_FivePFJet_100_100_60_30_30_DoublePFBTagDeepCSV_4p5",
                     "HLT_PFHT400_FivePFJet_120_120_60_30_30_DoublePFBTagDeepCSV_4p5"};
-	HLT2016Names= {"Name1","Name2"};
 	HLT2017Names= {"Name1","Name2"};
+    HLT2016Names= {"Name1","Name2"};
 }
 
 // Define your cuts here
@@ -154,6 +154,7 @@ void BaseAnalyser::selectJets()
 
 
 }
+//=================================Overlap function=================================================//
 void BaseAnalyser::removeOverlaps()
 {
 	// lambda function
@@ -176,6 +177,7 @@ void BaseAnalyser::removeOverlaps()
             return mindrlepton;
 	    };
 	//cout << "overlap removal" << endl;
+    //==============================Clean Jets==============================================//
     _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodMuons_4vecs"});
 	_rlm =	_rlm.Define("Selected_jetpt", "goodJets_pt[muonjetoverlap]")
 		.Define("Selected_jeteta", "goodJets_eta[muonjetoverlap]")
@@ -185,8 +187,8 @@ void BaseAnalyser::removeOverlaps()
 		.Define("ncleanjetspass", "int(Selected_jetpt.size())")
 		.Define("cleanjet4vecs", ::generate_4vec, {"Selected_jetpt", "Selected_jeteta", "Selected_jetphi", "Selected_jetmass"})
 		.Define("Selected_jetHT", "Sum(Selected_jetpt)");
-
-
+        
+     //==============================Clean b-Jets==============================================//  
 	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>0.8")
 			.Define("Selected_bjetpt", "Selected_jetpt[btagcuts2]")
 			.Define("Selected_bjeteta", "Selected_jeteta[btagcuts2]")
@@ -194,7 +196,7 @@ void BaseAnalyser::removeOverlaps()
 			.Define("Selected_bjetmass", "Selected_jetmass[btagcuts2]")
 			.Define("ncleanbjetspass", "int(Selected_bjetpt.size())")
 			.Define("Selected_bjetHT", "Sum(Selected_bjetpt)")
-			.Define("cleanbjet4vecs", ::generate_4vec, {"Selected_bjetpt", "Selected_bjeteta", "Selected_bjetphi", "Selected_bjetmass"});
+			.Define("cleanbjet4vecs", ::generate_4vec, {"Selected_bjetpt", "Selected_bjeteta", "Selected_bjetphi", "Selected_bjetmass"});           
 
 }
 
@@ -224,6 +226,8 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("luminosityBlock");
     addVartoStore("event");
     addVartoStore("evWeight.*");
+    addVartoStore("genWeight");
+    addVartoStore("genEventSumw");
 
     //electron
     addVartoStore("nElectron");
@@ -246,24 +250,38 @@ void BaseAnalyser::defineMoreVars()
 }
 void BaseAnalyser::bookHists()
 {
+    //=================================structure of histograms==============================================//
+    //add1DHist( {"hnevents", "hist_title; x_axis title; y_axis title", 2, -0.5, 1.5}, "one", "evWeight", "");
+    //add1DHist( {"hgoodelectron1_pt", "good electron1_pt; #electron p_{T}; Entries / after ", 18, -2.7, 2.7}, "good_electron1pt", "evWeight", "0");
+    //======================================================================================================//
+    
     if (debug){
         std::cout<< "================================//=================================" << std::endl;
         std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
         std::cout<< "================================//=================================" << std::endl;
     }
-    //add x and y axis title: add1DHist( {"hnevents", "hist_title; x_axis title; y_axis title", 2, -0.5, 1.5}, "one", "evWeight", "");
+    
+    //================================gen/LHE weights======================================================//
+    if(isDefined("genWeight")){
+        add1DHist({"hgenWeight", "genWeight", 1001, -100, 100}, "genWeight", "one", "");
+    }
+    /*if(isDefined("LHEWeight_originalXWGTUP")){
+        add1DHist({"hLHEweight", "LHEweight", 1001, -100, 100}, "LHEWeight_originalXWGTUP", "one", "");
+    }*/
+    add1DHist({"hgenEventSumw","Sum of gen Weights",1001,-0.5e+07,8e+07},"genEventSumw","one","");
+    //====================================================================================================//
+    
     add1DHist( {"hnevents", "Number of Events", 2, -0.5, 1.5}, "one", "evWeight", "");
+   
     add1DHist( {"hNgoodElectrons", "NumberofGoodElectrons", 5, 0.0, 5.0}, "NgoodElectrons", "evWeight", "");
-
-    //===minimum cut step:0 : defined in defineCuts() function =====//
-    //add1DHist( {"hgoodelectron1_pt", "good electron1_pt; #electron p_{T}; Entries / after ", 18, -2.7, 2.7}, "good_electron1pt", "evWeight", "0");
-
+    
     add1DHist( {"hNgoodMuons", "# of good Muons", 5, 0.0, 5.0}, "NgoodMuons", "evWeight", "");
+    
     add1DHist( {"hgood_jetpt", "Good Jet pt after " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
     add1DHist( {"hgood_jet1pt", "Good Jet_1 pt after " , 100, 0, 1000} , "good_jet1pt", "evWeight", "");
-
     add1DHist( {"hselected_jet1pt", "SelectedJet_1 pt after" , 100, 0, 1000} , "Selected_jet1pt", "evWeight", "");
     add1DHist( {"hselected_jetpt", "No overlap muon-Jets after" , 100, 0, 1000} , "Selected_jetpt", "evWeight", "");
+
 }
 void BaseAnalyser::setTree(TTree *t, std::string outfilename)
 {
@@ -279,7 +297,7 @@ void BaseAnalyser::setTree(TTree *t, std::string outfilename)
 	_hist1dinfovector.clear();
 	_th1dhistos.clear();
 	_varstostore.clear();
-	_hist1dinfovector.clear();
+	//_hist1dinfovector.clear();
 	_selections.clear();
 
 	this->setupAnalysis();
@@ -303,23 +321,49 @@ void BaseAnalyser::setupAnalysis()
         std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
         std::cout<< "================================//=================================" << std::endl;
     }
-	// Event weight for data it's always one. For MC, it depends on the sign
- 	//cout<<"year===="<< _year<< "==runtype=== " <<  _runtype <<endl;
-	_rlm = _rlm.Define("one", "1.0");
-    _rlm = _rlm.Define("evWeight","one");
+	
+ 	cout<<"year===="<< _year<< "==runtype=== " <<  _runtype <<endl;
 
-    //for correction define evWeights as fallows
-    /*if(_isData){
-        _rlm = _rlm.Define("unitGenWeight","one")
-                .Define("pugenWeight","one"); // if setupcorrection in processnanoad.py then don't define here. 
-        _rlm = _rlm.Define("evWeight","one");
-    }*/
-	//if (_isData && !isDefined("evWeight"))
-	//{
-	//	_rlm = _rlm.Define("evWeight", [](){
-	//			return 1.0;
-	//		}, {} );
-	//}
+    //==========================================event/gen/ weights==========================================//
+    // Event weight for data it's always one. For MC, it depends on the sign
+    //=====================================================================================================//
+    _rlm = _rlm.Define("one", "1.0");
+    if(_isData){
+         _rlm = _rlm.Define("evWeight","one");
+    }
+    if(!_isData){
+        if(isDefined("genWeight")){
+         _rlm = _rlm.Define("evWeight","genWeight");
+         std::cout<<"Not Data! Using genWeight"<<std::endl;
+
+        }
+        else{ _rlm = _rlm.Define("evWeight","one");}
+    }
+    
+    //==========================================sum of gen weight==========================================//
+    // store sum of gen weight in outputtree. 
+    //PS:"genweight" stored in "Events" tree and "genEventSumw" stored in "Runs" tree in the inputfile
+    //=====================================================================================================//   
+    
+    auto sumgenweight = _rd.Sum("genWeight");
+    cout<<"sum of gen weight "<< *sumgenweight <<endl;
+    string sumofgenweight = Form("%f",*sumgenweight);
+    _rlm = _rlm.Define("genEventSumw",sumofgenweight.c_str());
+   
+   
+    /*---------for correction define evWeights as fallows------*//*
+        if(_isData){
+            _rlm = _rlm.Define("unitGenWeight","one")
+                        .Define("pugenWeight","one") // if setupcorrection in processnanoad.py then don't define here. 
+                        .Define("evWeight","one");
+        }
+	    if (_isData && !isDefined("evWeight"))
+	    {
+		    _rlm = _rlm.Define("evWeight", [](){
+				return 1.0;
+			}, {} );
+	    }
+    *//*--------------------------------------------------------*/
 
 	defineCuts();
 	defineMoreVars();

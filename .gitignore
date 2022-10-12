@@ -15,5 +15,10 @@ __pycache__/
 .vscode/
 *.sw*
 .nfs*
+.idea/
 18/
 boktanstack/
+processed/
+12Oct_stack_dev/
+plot_ratio_150.0/
+*.root
