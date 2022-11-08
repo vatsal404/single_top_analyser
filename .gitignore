@@ -10,15 +10,18 @@
 *.so
 *.out
 *.pcm
-__pycache__/
+*__pycache__/
+*.pytest_cache
 # Ignore IDE specific files
 .vscode/
 *.sw*
 .nfs*
 .idea/
-18/
+18/*.root
 boktanstack/
 processed/
 12Oct_stack_dev/
+8Nov/
 plot_ratio_150.0/
 *.root
+

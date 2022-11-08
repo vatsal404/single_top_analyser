@@ -43,8 +43,8 @@ void BaseAnalyser::defineCuts()
 
 	//MinimalSelection to filter events
     addCuts("nMuon > 2 && nElectron > 0 && nJet>0", "0");
-    //addCuts("nJet>0","00");
-    addCuts("ncleanjetspass>0","00");
+    addCuts("nJet>0","00");
+    //addCuts("ncleanjetspass>0","00");
 	//addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
 
 }
@@ -178,6 +178,9 @@ void BaseAnalyser::removeOverlaps()
 	    };
 	//cout << "overlap removal" << endl;
     //==============================Clean Jets==============================================//
+    //Use clean jets/bjets for object selections
+    //=====================================================================================//
+
     _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodMuons_4vecs"});
 	_rlm =	_rlm.Define("Selected_jetpt", "goodJets_pt[muonjetoverlap]")
 		.Define("Selected_jeteta", "goodJets_eta[muonjetoverlap]")
@@ -226,8 +229,8 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("luminosityBlock");
     addVartoStore("event");
     addVartoStore("evWeight.*");
-    addVartoStore("genWeight");
-    addVartoStore("genEventSumw");
+    //addVartoStore("genWeight");
+    //addVartoStore("genEventSumw");
 
     //electron
     addVartoStore("nElectron");
@@ -268,7 +271,7 @@ void BaseAnalyser::bookHists()
     /*if(isDefined("LHEWeight_originalXWGTUP")){
         add1DHist({"hLHEweight", "LHEweight", 1001, -100, 100}, "LHEWeight_originalXWGTUP", "one", "");
     }*/
-    add1DHist({"hgenEventSumw","Sum of gen Weights",1001,-0.5e+07,8e+07},"genEventSumw","one","");
+    add1DHist({"hgenEventSumw","Sum of gen Weights",1001,-8e+09,8e+09},"genEventSumw","one","");
     //====================================================================================================//
     
     add1DHist( {"hnevents", "Number of Events", 2, -0.5, 1.5}, "one", "evWeight", "");

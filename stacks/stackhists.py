@@ -93,41 +93,33 @@ class StackHists:
             t_file_mc = self.ROOT.TFile(mc_file)
             if mc_cntr_hist_file == "":
                 mc_cntr_hist_file = mc_file
-            t_file_mc_cntr_hist = self.ROOT.TFile(mc_cntr_hist_file)
-            a_hist = t_file_mc_cntr_hist.Get("hnevents_nocut") # this should contain all entries before cuts to UseHistIntegral
-            #a_hist = t_file_mc_cntr_hist.Get("hgenWeight_nocut")
-        
             
-            UseHistIntegral=True
-            if a_hist is None:
+            t_file_mc_cntr_hist = self.ROOT.TFile(mc_cntr_hist_file)
+            #a_hist=None
+            a_hist = t_file_mc_cntr_hist.Get("hgenEventSumw_nocut")# this should contain all entries before cuts to UseHistIntegral
+            if a_hist == None:
                 print("Counter histogram does not exist, will proceed with histintegaral=1. "
                       "Be sure to put 1/histintegral in the scalefactor!")
-                self.sf_list[range_id] *= xsec * self.integer_lumi / event_num
-                #self.sf_list[range_id] *= xsec * self.integer_lumi/SoW
-                print(" scale with event_num: ", self.sf_list[range_id])
-            
+            #    self.sf_list[range_id] *= xsec * self.integer_lumi
             else:
-                if UseHistIntegral:
-                    hist_integral = a_hist.Integral()
-                    print("hist integral==", hist_integral)
-                    self.sf_list[range_id] *= xsec * self.integer_lumi / hist_integral
-                    print(str(mc_file.split('/')[-1]) + " scaling with hist integral: ", self.sf_list[range_id])
-                else:
-                    dataFrame = RDataFrame('outputTree2',mc_cntr_hist_file)
-                    print (dataFrame.GetColumnNames())
-                    sumOfWeights = (dataFrame.Max("genEventSumw"))
-                    #SoW = float(sumOfWeights.GetValue())
-                    SoW = sumOfWeights.GetValue()
-                    #print("sum of gen weight ==", sumOfWeights.GetValue())
-                    print("sum of weights ==", sumOfWeights.GetValue())
-                    self.sf_list[range_id] *= xsec * self.integer_lumi / SoW
-                    print(str(mc_file.split('/')[-1]) + " scaling with Sum of gen Weight: ", self.sf_list[range_id])
+                hist_integral = a_hist.Integral()
+                print("hist integral==", hist_integral)
+                self.sf_list[range_id] *= xsec * self.integer_lumi / hist_integral
+                print(str(mc_file.split('/')[-1]) + " scaling with hist integral: ", self.sf_list[range_id])
+    
+            '''    dataFrame = RDataFrame('Runs',mc_cntr_hist_file)
+                print (dataFrame.GetColumnNames())
+                sumOfWeights = (dataFrame.Sum("genEventSumw"))
+                SoW = sumOfWeights.GetValue()
+                print("sum of gen weight ==", sumOfWeights.GetValue())
+                self.sf_list[range_id] *=xsec * self.integer_lumi / SoW'''
+            
 
     def setupStyle(self, color_list=None, pattern_list=None, alpha=1.0):
         """Setup style
         """
         self.fill_alpha = alpha
-        if color_list is None:
+        if color_list == None:
             self.color_list = [self.ROOT.TColor.GetColor('#cc0000'), self.ROOT.TColor.GetColor('#ff6666'),
                                self.ROOT.TColor.GetColor('#660000'), self.ROOT.TColor.GetColor('#ff9933'),
                                self.ROOT.TColor.GetColor('#000099'), self.ROOT.TColor.GetColor('#990099'),
@@ -140,7 +132,7 @@ class StackHists:
         else:
             self.color_list = color_list
 
-        if pattern_list is None:
+        if pattern_list == None:
             for i in range(10):
                 self.pattern_list.append(1001)
         else:
@@ -193,7 +185,7 @@ class StackHists:
         n_bins = BG_hist_stack.GetNbinsX()
         BG_peak_bin = BG_hist_stack.GetMaximumBin()
         cut_info = "x<cut"
-        if below is None:
+        if below == None:
             if S_peak_bin < BG_peak_bin or S_peak_bin < n_bins / 2:
                 below = True
             else:
@@ -223,7 +215,7 @@ class StackHists:
             s_over_b.SetBinContent(ix, val)
 
         return s_over_b, cut_info
-    
+
     def MakeCumulative(self, hist, low, high, below):
         out = hist.Clone(hist.GetName() + '_cumul')
         out.Reset()
@@ -244,6 +236,7 @@ class StackHists:
 
         self.c1 = self.ROOT.TCanvas("c1", "c1", 600, 700)
         self.c1.Print("plots.pdf[")
+        
         for hist_name, x_title, y_title, mode, draw_option, is_logy, ymin, ymax, binlist in zip(self.histogram_list,
                                                                                                 self.x_titles,
                                                                                                 self.y_titles,
@@ -256,6 +249,7 @@ class StackHists:
             self.createStacks(hist_name, x_title, y_title, mode, draw_option, is_logy, ymin, ymax, binlist, subplot)
 
         self.c1.Print("plots.pdf]")
+        #self.c1.SaveAs("plots.C")
         self.c1.Close()
 
     def createStacks(self, hist_name, x_title, y_title, mode, option="", is_logy=False, ymin=-1111, ymax=-1111,
@@ -271,12 +265,11 @@ class StackHists:
         tl.SetColumnSeparation(0.01)
         hist_group = dict()
         label_list = []
-
         # =============================================================================================================
         # Iterate over files and organize hist files
         # =============================================================================================================
         # adding signal contribution
-        signal_hist = None
+        #signal_hist = None
         signal_hist_list = []
         mc_hist_sum = None
 
@@ -285,26 +278,24 @@ class StackHists:
         if len(binlist) > 0:
             xbins = array.array('d', binlist)
             nrebins = len(binlist) - 1
-
+        
+        
         for ifile in range(len(self.mc_file_list)):
-
             ahist = self.mc_root_files[ifile].Get(hist_name)
-            print(self.mc_file_list[ifile])
+            print("MC root files===",self.mc_file_list[ifile])
             print(f"hist: {hist_name}, entries={ahist.GetEntries()}")
 
+            if nrebins > 0: 
+                ahist = ahist.Rebin(nrebins, hist_name + 'rebinned_mc' + str(ifile), xbins)
+            ahist.SetBinContent(ahist.GetNbinsX(),ahist.GetBinContent(ahist.GetNbinsX()) + ahist.GetBinContent(ahist.GetNbinsX() + 1))
 
-            if nrebins > 0: ahist = ahist.Rebin(nrebins, hist_name + 'rebinned_mc' + str(ifile), xbins)
-            # print("histogram mc files rebinned:", ahist)
-            ahist.SetBinContent(ahist.GetNbinsX(),
-                                ahist.GetBinContent(ahist.GetNbinsX()) + ahist.GetBinContent(ahist.GetNbinsX() + 1))
-
-            if ahist is None:
+            if ahist == None:
                 print(f"histogram {hist_name} not found in {self.mc_file_list[ifile]}")
                 print("quitting...")
                 sys.exit(-1)
             else:
                 ahist.Scale(self.sf_list[ifile])
-                
+                print("scale value per file", self.sf_list[ifile])
 
                 # group by labels
                 label = self.mc_label_list[ifile]
@@ -315,19 +306,21 @@ class StackHists:
                     hist_group[label].Add(ahist)
 
                 if 'MC_Sig' not in label:
-                    if mc_hist_sum is None:
+                    if mc_hist_sum == None:
                         mc_hist_sum = ahist.Clone("mchistsum")
+                        
                     else:
                         mc_hist_sum.Add(ahist)
                     ahist.SetFillColorAlpha(self.color_list[self.mc_color_list[ifile]], self.fill_alpha)
                     ahist.SetLineColor(self.color_list[self.mc_color_list[ifile]])
                     ahist.SetFillStyle(self.pattern_list[self.mc_pattern_list[ifile]])
+                    #print("mchistsum==",mc_hist_sum.GetEntries())
                     # ahist.UseCurrentStyle()
                 else:
                     signal_hist = ahist
                     ahist.SetLineColor(self.color_list[self.mc_color_list[ifile]])
                     signal_hist_list.append(ahist)
-
+            
         # =============================================================================================================
         # Organize for MC_Sig
         # =============================================================================================================
@@ -337,14 +330,14 @@ class StackHists:
                 normevts[label] = hist_group[label].Integral()
         renormevts_list = sorted(normevts.items(), key=lambda x: x[1], reverse=True)
         reordered_labellist = [i[0] for i in renormevts_list]
+        
 
         if is_logy:
             reordered_labellist.reverse()
 
         for label in reordered_labellist:
             ahist = hist_group[label]
-            print(label, ":", float(ahist.Integral()))
-
+            #print(label, ":", float(ahist.Integral()))
             # print(label+" : %f"%ahist.GetEntries())
 
             if 'MC_Sig' not in label:
@@ -354,39 +347,44 @@ class StackHists:
                     print('normscale_label=', normscale)
                     ahistcopy.Scale(1.0 / normscale)
                     hs.Add(ahistcopy)
-                    # tl.AddEntry(ahistcopy, label, "F")
+                    #tl.AddEntry(ahistcopy, label, "F")
                 else:
                     hs.Add(ahist)
+                    #tl.AddEntry(ahistcopy, label, "F")
     
+
         # =============================================================================================================
         # Organize final_data_hist
         # =============================================================================================================
         final_data_hist = None
         if self.data_file_list:
+            print("DATA FILE LIST", self.data_file_list)
             for ifile in self.data_file_list:
                 t_file_mc = self.ROOT.TFile(ifile)
+                #print("datafile===", t_file_mc)
                 ahist = t_file_mc.Get(hist_name)
-                print("histogram datafile names:", ahist)
-
+                #print("histogram datafile names:", ahist)
+                #print("nbins===", nrebins)
                 if nrebins > 0:
                     ahist = ahist.Rebin(nrebins, hist_name + 'rebinned_data', xbins)
 
                 ahist.SetBinContent(ahist.GetNbinsX(),
                                     ahist.GetBinContent(ahist.GetNbinsX()) + ahist.GetBinContent(ahist.GetNbinsX() + 1))
 
-                if ahist is None:
+                if ahist == None:
                     print(f"histogram {hist_name} not found in {self.data_file_list[ifile]}")
                     print("exiting...")
-                    sys.exit(-1)
+                    sys.exit(-1) 
                 else:
-                    if final_data_hist is None:
-                        final_data_hist = ahist.Clone("finaldata")
+                    if final_data_hist == None:
+                        final_data_hist = ahist.Clone("final_data_hist")
                     else:
                         final_data_hist.Add(ahist)
-                # print("Data : %i"%finaldatahist.Integral())
+            print("Data hist Integral : %i"%final_data_hist.Integral())
             if mode == NORMALIZED:
                 normscale = final_data_hist.Integral()
                 final_data_hist.Scale(1.0 / normscale)
+            
 
             # Legend add entry
             tl.AddEntry(final_data_hist, "Data", "P")
@@ -446,14 +444,19 @@ class StackHists:
 
         if self.data_file_list:
             max2 = final_data_hist.GetMaximum()
+           
         if ymin != -1111:
             hs.SetMinimum(ymin)
+           
         if ymax != -1111:
             hs.SetMaximum(ymax)
+            
         elif is_logy:
             hs.SetMaximum(total_max ** 1.65)
+           
         else:
             hs.SetMaximum(total_max * 1.65)
+            #hs.SetMaximum(max1)
 
 
         for sighist in signal_hist_list:
@@ -483,10 +486,14 @@ class StackHists:
             if subplot == "R":
                 hstackhist = mc_hist_sum
                 ratiohist = final_data_hist.Clone("ratiohist")
+                
                 ratiohist.Divide(hstackhist)
                 for n in range(final_data_hist.GetNbinsX()):
+                    #print("finaldatahist NbinX",final_data_hist.GetNbinsX() )
+                    #print("finaldatahist bincontent",final_data_hist.GetBinContent(n) )
                     if final_data_hist.GetBinContent(n) != 0:
                         new_error = ratiohist.GetBinContent(n) / math.sqrt(final_data_hist.GetBinContent(n))
+                        #print("error==", new_error)
                     else:
                         new_error = 0
                     ratiohist.SetBinError(n, new_error)
@@ -495,10 +502,10 @@ class StackHists:
 
                 tl.Draw()
                 c1_top.Modified()
+                c1_top.Update()
                 # CMS_lumi.CMS_lumi(c1_top, 4, 11)
                 CMS_lumi.CMS_lumi(self.ROOT, c1_top, 4, 0)
-                c1_top.cd()
-                c1_top.Update()
+                c1_top.cd() 
                 c1_top.RedrawAxis()
 
                 self.c1.cd()
@@ -535,10 +542,11 @@ class StackHists:
                     if 'MC_Sig' in label:
                         sighist = hist_group[label]
                         soverbhist, cutinfo = self.MakeSoverB(mc_hist_sum, sighist, label, S_peak_bin)
+                        #print("cutinfo=======", cutinfo)
                         soverbhistlist.append(soverbhist)
                         tempM = soverbhist.GetMaximum()
                         if M < tempM: M = tempM
-
+            
                 tl.Draw()
                 c1_top.Modified()
                 # CMS_lumi.CMS_lumi(c1_top, 4, 11)
@@ -546,7 +554,7 @@ class StackHists:
                 c1_top.cd()
                 c1_top.Update()
                 c1_top.RedrawAxis()
-
+                
                 self.c1.cd()
                 c1_bottom = self.ROOT.TPad("c1_bottom", "bottom", 0.01, 0.01, 0.99, 0.32)
                 c1_bottom.Draw()
@@ -578,19 +586,20 @@ class StackHists:
                         soverbh.GetYaxis().SetLabelSize(0.08)
                         soverbh.GetYaxis().SetTitleOffset(0.7)
                         soverbh.GetYaxis().SetLabelOffset(0.007)
-                        
+                       
 
             c1_bottom.Modified()
+            c1_bottom.Update()
             c1_bottom.RedrawAxis()
         else:
             hstackhist = mc_hist_sum
 
             tl.Draw()
             c1_top.Modified()
+            c1_top.Update()
             # CMS_lumi.CMS_lumi(c1_top, 4, 11)
             CMS_lumi.CMS_lumi(self.ROOT, c1_top, 4, 0)
             c1_top.cd()
-            c1_top.Update()
             c1_top.RedrawAxis()
         # =============================================================================================================
 
@@ -631,6 +640,7 @@ class StackHists:
             tmphist_copy = hist_group[key].Clone(hist_name+"_"+pname)
             tmphist_copy.Write()
         if final_data_hist:
+            print("finaldatahist====",final_data_hist)
             final_data_hist_copy = final_data_hist.Clone("hstacked_data_"+hist_name)
             final_data_hist_copy.Write()
         else:

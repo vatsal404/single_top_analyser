@@ -17,25 +17,25 @@ config = {
 
         #for correction
         # good json file
-        'goodjson': 'data/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt',
+        #'goodjson': 'data/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt',
         # pileup weight for MC
-        'pileupfname': 'data/LUM/2016postVFP_UL/puWeights.json',
+        #'pileupfname': 'data/LUM/2016postVFP_UL/puWeights.json',
         #'pileupfname': 'data/LUM/2017_UL/puWeights.json',
-        'pileuptag': 'Collisions16_UltraLegacy_goldenJSON',
+        #'pileuptag': 'Collisions16_UltraLegacy_goldenJSON',
         #'pileuptag': 'Collisions17_UltraLegacy_goldenJSON',
         # json filename for BTV correction
-        'btvfname': 'data/BTV/2016postVFP_UL/btagging.json',
+        #'btvfname': 'data/BTV/2016postVFP_UL/btagging.json',
         #'btvfname': 'data/BTV/2017_UL/btagging.json',
         # BTV correction type
-        'btvtype': 'deepJet_shape',
+        #'btvtype': 'deepJet_shape',
         # json file name for JERC
-        'jercfname': 'data/JERC/UL16postVFP_jerc.json',
+        #'jercfname': 'data/JERC/UL16postVFP_jerc.json',
         #'jercfname': 'data/JERC/UL17_jerc.json',
         # conbined correction type for jets
-        'jerctag': 'Summer19UL16_V7_MC_L1L2L3Res_AK4PFchs', 
+        #'jerctag': 'Summer19UL16_V7_MC_L1L2L3Res_AK4PFchs', 
         #'jerctag': 'Summer19UL17_V5_MC_L1L2L3Res_AK4PFchs', 
         # jet uncertainty 
-        'jercunctag': 'Summer19UL16_V7_MC_Total_AK4PFchs', 
+        #'jercunctag': 'Summer19UL16_V7_MC_Total_AK4PFchs', 
         #'jercunctag': 'Summer19UL17_V5_MC_Total_AK4PFchs', 
         
         }
@@ -56,12 +56,8 @@ procflags = {
         #How many input files?
         'nrootfiles': 1,
         }
-
-# input directory where your input root tree resides
-# output directory wheere your output should go
-# dump of stderr/stdout to file
 nanoaod_inputdir_outputdir_pairs = [
-        ['testinputdata/MC/2018/BG','analyzed/test_nano_v1.root', 'stderrout.out' ],
-        #['processed/2016','analyzed/t_test_nan0v1.root', 'stderrout.out' ],
+        ['testinputdata/MC/2018/Signal/','analyzed/testsignal.root', 'stderrout.out' ],
+        #['/eos/lyoeos.in2p3.fr/grid/cms/store/data/Run2017B/SingleElectron/NANOAOD/UL2017_MiniAODv2_NanoAODv9-v1/70000/AA0215EC-9E53-5D4C-A655-D54C667A38C1.root','analyzed/Chris_data.root', 'stdertest.out' ]
 ]
 
