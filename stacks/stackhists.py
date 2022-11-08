@@ -112,7 +112,8 @@ class StackHists:
                 sumOfWeights = (dataFrame.Sum("genEventSumw"))
                 SoW = sumOfWeights.GetValue()
                 print("sum of gen weight ==", sumOfWeights.GetValue())
-                self.sf_list[range_id] *=xsec * self.integer_lumi / SoW'''
+                self.sf_list[range_id] *=xsec * self.integer_lumi / SoW 
+            '''
             
 
     def setupStyle(self, color_list=None, pattern_list=None, alpha=1.0):
