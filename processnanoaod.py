@@ -228,18 +228,17 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
     #if your input root file already has good json, various corrections applied with
     #object clean up, you should skip the corrections step
     #
-    #skipcorrections = True
-    #if not skipcorrections:
-    #aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
-    #    , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
-
+    skipcorrections = False
+    if not skipcorrections:
+        print("correction step is on play")
+        aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
+            , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+    else:
+        print("Skipping corrections step")
+    #time.sleep(3)
+    print("Starting setupanalysis")
     sys.stdout.flush() #to force printout in right order 
     aproc.setupObjects()
-    #else:
-    #    print("Skipping corrections step")
-    #time.sleep(3)
-    #print("Starting setupanalysis")
-
     aproc.setupAnalysis()
     aproc.run(saveallbranches, outtreename)
 

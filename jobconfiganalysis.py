@@ -16,21 +16,27 @@ config = {
 
 
         #for correction
-        # good json file
-        'goodjson': 'data/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt',
-        # pileup weight for MC
-        'pileupfname': 'data/LUM/2018_UL/puWeights.json',#https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/tree/master/POG/LUM/2018_UL
+        # good json file 
+        'goodjson': 'data/Legacy_RunII/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt', #UL_2018
+        #'goodjson': 'data/Legacy_RunII/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt', #UL_2017
+
+        # pileup weight for MC 
+        'pileupfname': 'data/LUM/2018_UL/puWeights.json',
         #'pileupfname': 'data/LUM/2017_UL/puWeights.json',
+
         'pileuptag': 'Collisions18_UltraLegacy_goldenJSON',
         #'pileuptag': 'Collisions17_UltraLegacy_goldenJSON',
-        # json filename for BTV correction
-        'btvfname': 'data/BTV/2018_UL/btagging.json', #https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/tree/master/POG/BTV/2018_UL
+
+        # json filename for BTV correction 
+        'btvfname': 'data/BTV/2018_UL/btagging.json', 
         #'btvfname': 'data/BTV/2017_UL/btagging.json',
         # BTV correction type
         'btvtype': 'deepJet_shape',
+
         # json file name for JERC
-        'jercfname': 'data/JERC/jetUL18_jerc.json', #https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/tree/master/POG/JME/2018_UL
+        'jercfname': 'data/JERC/jetUL18_jerc.json',
         #'jercfname': 'data/JERC/UL17_jerc.json',
+
         # conbined correction type for jets
         'jerctag': 'Summer19UL18_V5_MC_L1L2L3Res_AK4PFchs', 
         #'jerctag': 'Summer19UL17_V5_MC_L1L2L3Res_AK4PFchs', 
@@ -54,11 +60,13 @@ procflags = {
         # if False then only selected branches which is done in the .cpp file will be saved
         'saveallbranches': False,
         #How many input files?
-        'nrootfiles': 1,
+        'nrootfiles': 2,
         }
 nanoaod_inputdir_outputdir_pairs = [
-        ['testinputdata/MC/2018/BG/TTbarBKGMC.root','analyzed/testcorrection.root', 'stderrout.out' ],
+        ['testinputdata/MC/2018/BG/','analyzed/testcorrection.root', 'stderrout.out' ],
+        #for process one file:
         #['testinputdata/data/JetHT_2017C_DA05CA1A-3265-EE47-84F9-10CB09D22BDA.root','analyzed/testcorrection_data.root', 'stderrout.out' ],
-        #['/eos/lyoeos.in2p3.fr/grid/cms/store/data/Run2017B/SingleElectron/NANOAOD/UL2017_MiniAODv2_NanoAODv9-v1/70000/AA0215EC-9E53-5D4C-A655-D54C667A38C1.root','analyzed/coorectiontest_data.root', 'stdertest.out' ]
+        #for data
+        #['/eos/lyoeos.in2p3.fr/grid/cms/store/data/Run2017B/SingleElectron/NANOAOD/UL2017_MiniAODv2_NanoAODv9-v1/70000/','analyzed/coorectiontest_data.root', 'stdertest.out' ]
 ]
 

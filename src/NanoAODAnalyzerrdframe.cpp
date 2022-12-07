@@ -28,8 +28,6 @@ NanoAODAnalyzerrdframe::NanoAODAnalyzerrdframe(TTree *atree, std::string outfile
 	_atree=atree;
 	//cout<< " run year=====" << _year <<endl;
 
-
-
 }
 
 NanoAODAnalyzerrdframe::~NanoAODAnalyzerrdframe() {
@@ -58,50 +56,10 @@ void NanoAODAnalyzerrdframe::setTree(TTree *t, std::string outfilename)
 }
 
 
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag)
-{
-	if (_isData) _jsonOK = readgoodjson(goodjsonfname); // read golden json file
-
-	if (!_isData) {
-		// using correctionlib
-		// btag corrections
-		_correction_btag1 = correction::CorrectionSet::from_file(btvfname);
-		_btvtype = btvtype;
-		assert(_correction_btag1->validate());
-
-		// pile up weights
-		_correction_pu = correction::CorrectionSet::from_file(pufname);
-		assert(_correction_pu->validate());
-		_putag = putag;
-		auto punominal = [this](float x) { return pucorrection(_correction_pu, _putag, "nominal", x); };
-		auto puplus = [this](float x) { return pucorrection(_correction_pu, _putag, "up", x); };
-		auto puminus = [this](float x) { return pucorrection(_correction_pu, _putag, "down", x); };
-
-		if (!isDefined("puWeight")) _rlm = _rlm.Define("puWeight", punominal, {"Pileup_nTrueInt"});
-		if (!isDefined("puWeight_plus")) _rlm = _rlm.Define("puWeight_plus", puplus, {"Pileup_nTrueInt"});
-		if (!isDefined("puWeight_minus")) _rlm = _rlm.Define("puWeight_minus", puminus, {"Pileup_nTrueInt"});
-
-
-		if (!isDefined("pugenWeight"))
-		{
-			_rlm = _rlm.Define("pugenWeight", [this](float x, float y){
-					return (x > 0 ? 1.0 : -1.0) *y;
-				}, {"genWeight", "puWeight"});
-		}
-	}
-	_jerctag = jerctag;
-	_jercunctag = jercunctag;
-
-	setupJetMETCorrection(jercfname, _jerctag);
-	applyJetMETCorrections();
-}
-
 void NanoAODAnalyzerrdframe::setupObjects()
 {
 	// Object selection will be defined in sequence.
 	// Selected objects will be stored in new vectors.
-	//selectJets();
-	//removeOverlaps();
 	selectFatJets();
 }
 
@@ -123,10 +81,6 @@ void NanoAODAnalyzerrdframe::setupAnalysis()
 			}, {} );
 	}*/
 
-
-	//defineMoreVars();
-	//defineCuts();
-	//bookHists();
 	setupCuts_and_Hists();
 	setupTree();
 }
@@ -180,159 +134,6 @@ bool NanoAODAnalyzerrdframe::readgoodjson(string goodjsonfname)
 		return true;
 	}
 }
-
-void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag)
-{
-	// read from file 
-	_correction_jerc = correction::CorrectionSet::from_file(fname);
-	assert(_correction_jerc->validate());
-	// correction type(jobconfiganalysis.py)
-	_jetCorrector = _correction_jerc->compound().at(jettag);
-	_jetCorrectionUnc = _correction_jerc->at(_jercunctag);
-}
-
-
-// Adapted from https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/modules/jme/jetRecalib.py
-// and https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/modules/jme/JetRecalibrator.py
-void NanoAODAnalyzerrdframe::applyJetMETCorrections()
-{
-
-	auto appcorrlambdaf = [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
-	{
-		floats corrfactors;
-		corrfactors.reserve(jetpts.size());
-		for (auto i =0; i<jetpts.size(); i++)
-		{
-			float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
-			float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho});
-			corrfactors.emplace_back(rawjetpt * corrfactor);
-
-		}
-		return corrfactors;
-	};
-
-	auto jecuncertaintylambdaf= [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
-		{
-			floats uncertainties;
-			uncertainties.reserve(jetpts.size());
-			for (auto i =0; i<jetpts.size(); i++)
-			{
-				float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
-				float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho});
-				float unc = _jetCorrectionUnc->evaluate({corrfactor*rawjetpt, jetetas[i]});
-				uncertainties.emplace_back(unc);
-
-			}
-			return uncertainties;
-		};
-
-	auto metcorrlambdaf = [](float met, float metphi, floats jetptsbefore, floats jetptsafter, floats jetphis)->float
-	{
-		auto metx = met * cos(metphi);
-		auto mety = met * sin(metphi);
-		for (auto i=0; i<jetphis.size(); i++)
-		{
-			if (jetptsafter[i]>15.0)
-			{
-				metx -= (jetptsafter[i] - jetptsbefore[i])*cos(jetphis[i]);
-				mety -= (jetptsafter[i] - jetptsbefore[i])*sin(jetphis[i]);
-			}
-		}
-		return float(sqrt(metx*metx + mety*mety));
-	};
-
-	auto metphicorrlambdaf = [](float met, float metphi, floats jetptsbefore, floats jetptsafter, floats jetphis)->float
-	{
-		auto metx = met * cos(metphi);
-		auto mety = met * sin(metphi);
-		for (auto i=0; i<jetphis.size(); i++)
-		{
-			if (jetptsafter[i]>15.0)
-			{
-				metx -= (jetptsafter[i] - jetptsbefore[i])*cos(jetphis[i]);
-				mety -= (jetptsafter[i] - jetptsbefore[i])*sin(jetphis[i]);
-			}
-		}
-		return float(atan2(mety, metx));
-	};
-
-	if (_jetCorrector != 0)
-	{
-		_rlm = _rlm.Define("Jet_pt_corr", appcorrlambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
-		_rlm = _rlm.Define("Jet_pt_relerror", jecuncertaintylambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
-		_rlm = _rlm.Define("Jet_pt_corr_up", "Jet_pt_corr*(1.0f + Jet_pt_relerror)");
-		_rlm = _rlm.Define("Jet_pt_corr_down", "Jet_pt_corr*(1.0f - Jet_pt_relerror)");
-		_rlm = _rlm.Define("MET_pt_corr", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr", "Jet_phi"});
-		_rlm = _rlm.Define("MET_pt_corr_up", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_up", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr_up", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_up", "Jet_phi"});
-		_rlm = _rlm.Define("MET_pt_corr_down", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_down", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr_down", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_down", "Jet_phi"});
-	}
-
-}
-
-/*void NanoAODAnalyzerrdframe::selectJets()
-{
-	// apparently size() returns long int, which ROOT doesn't recognized for branch types
-	// , so it must be cast into int if you want to save them later into a TTree
-	_rlm = _rlm.Define("jetcuts", "Jet_pt>30.0 && abs(Jet_eta)<2.4 && Jet_jetId>0")
-			.Define("Sel_jetpt", "Jet_pt[jetcuts]")
-			.Define("Sel_jeteta", "Jet_eta[jetcuts]")
-			.Define("Sel_jetphi", "Jet_phi[jetcuts]")
-			.Define("Sel_jetmass", "Jet_mass[jetcuts]")
-			.Define("Sel_jetbtag", "Jet_btagCSVV2[jetcuts]")
-			.Define("njetspass", "int(Sel_jetpt.size())")
-			.Define("jet4vecs", ::generate_4vec, {"Sel_jetpt", "Sel_jeteta", "Sel_jetphi", "Sel_jetmass"});
-
-
-	_rlm = _rlm.Define("btagcuts", "Sel_jetbtag>0.8")
-			.Define("Sel_bjetpt", "Sel_jetpt[btagcuts]")
-			.Define("Sel_bjeteta", "Sel_jeteta[btagcuts]")
-			.Define("Sel_bjetphi", "Sel_jetphi[btagcuts]")
-			.Define("Sel_bjetm", "Sel_jetmass[btagcuts]")
-			.Define("bnjetspass", "int(Sel_bjetpt.size())")
-			.Define("bjet4vecs", ::generate_4vec, {"Sel_bjetpt", "Sel_bjeteta", "Sel_bjetphi", "Sel_bjetm"});
-			;
-
-			// calculate event weight for MC only
-	if (!_isData && !isDefined("evWeight"))
-	{
-		_rlm = _rlm.Define("jetcutsforsf", "Jet_pt>25.0 && abs(Jet_eta)<2.4 ")
-				.Define("Sel_jetforsfpt", "Jet_pt[jetcutsforsf]")
-				.Define("Sel_jetforsfeta", "Jet_eta[jetcutsforsf]")
-				.Define("Sel_jetforsfhad", "Jet_hadronFlavour[jetcutsforsf]")
-				.Define("Sel_jetcsvv2", "Jet_btagCSVV2[jetcutsforsf]")
-				.Define("Sel_jetdeepb", "Jet_btagDeepB[jetcutsforsf]");
-
-		auto btvcentral = [this](floats &pts, floats &etas, ints &hadflav, floats &btags)->floats
-		{
-			return ::btvcorrection(_correction_btag1, _btvtype, "central", pts, etas, hadflav, btags); // defined in utility.cpp
-		};
-
-
-		_rlm = _rlm.Define("Sel_jet_deepJet_shape_central", btvcentral, {"Sel_jetforsfpt", "Sel_jetforsfeta", "Sel_jetforsfhad", "Sel_jetdeepb"});
-		//_rlm = _rlm.Define("Sel_jet_deepJet_shape_central",[this](floats &pts, floats &etas, ints &hadflav, floats &btags){return ::btvcorrection(_correction_btag1, "deepJet_shape", "central", pts, etas, hadflav, btags);}
-			//				, {"Sel_jetforsfpt", "Sel_jetforsfeta", "Sel_jetforsfhad", "Sel_jetdeepb"});
-
-		// function to calculate event weight for MC events based on DeepCSV algorithm
-		auto btagweightgenerator3= [this](floats &pts, floats &etas, ints &hadflav, floats &btags)->float
-		{
-			double bweight=1.0;
-
-			for (auto i=0; i<pts.size(); i++)
-			{
-				double w = _correction_btag1->at(_btvtype)->evaluate({"central", int(hadflav[i]), fabs(float(etas[i])), float(pts[i]), float(btags[i])});
-				bweight *= w;
-			}
-			return bweight;
-		};
-		_rlm = _rlm.Define("btagWeight_DeepJetrecalc", btagweightgenerator3, {"Sel_jetforsfpt", "Sel_jetforsfeta", "Sel_jetforsfhad", "Sel_jetdeepb"});
-		_rlm = _rlm.Define("evWeight", "pugenWeight * btagWeight_DeepJetrecalc");
-	}
-
-}*/
-
 
 void NanoAODAnalyzerrdframe::selectFatJets()
 {

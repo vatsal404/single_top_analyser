@@ -73,6 +73,7 @@ FourVector select_leadingvec( FourVectorVec &v );
 floats PrintVector(floats myvector);
 floats w_reconstruction (FourVectorVec &jets);
 floats compute_DR (FourVectorVec &muons, ints goodMuons_charge);
+float calculate_MT( FourVectorVec &muons, float met, float metphi);
 
 
 #endif /* UTILITY_H_ */

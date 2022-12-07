@@ -43,7 +43,7 @@ public:
 	NanoAODAnalyzerrdframe(TTree *t, string outfilename);
 	virtual ~NanoAODAnalyzerrdframe();
 
-	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag);
+	//virtual void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag);
 	virtual void setupObjects();
 	virtual void setupAnalysis();
 	virtual void setTree(TTree *t, string outfilename);
@@ -52,7 +52,7 @@ public:
 	// RNode is in namespace ROOT::RDF
 	bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON
 
-	void applyJetMETCorrections();
+	//virtual void applyJetMETCorrections();
 	void selectFatJets();
 
 	void addVar(varinfo v);
@@ -151,7 +151,7 @@ public:
 	bool isDefined(string v);
 
 	// Jet MET corrections
-	void setupJetMETCorrection(string fname, string jettag);
+	//virtual void setupJetMETCorrection(string fname, string jettag);
 
 };
 
