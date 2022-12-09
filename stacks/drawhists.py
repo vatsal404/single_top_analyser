@@ -40,7 +40,7 @@ def get_prep_stack_hist(year, initial_tdrStyle, rlumi, verbose):
         runs = ["16post"]
     
     elif year == "17":
-        CMS_lumi.lumi_13TeV = "41480 fb^{-1}"
+        CMS_lumi.lumi_13TeV = "41.48 fb^{-1}"
         s = stackhists.StackHists(ROOT, initial_tdrStyle, 41480, verbose)
         runs = ["17"]
     
@@ -104,9 +104,7 @@ def main(ratio, significance,logstyle, verbose, year):
         
         elif run == "17":
             print("Run2017")
-            #s.addChannel(run+"/WJetsToLNu_inclHT100.root", "W+jets", 3, isMC=True, xsec=rlumi[run]*61526700*0.9645, counterhistogramroot=run+"/WJetsToLNu_inclHT100.root")
-            
-
+           
             s.addChannel("/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-11-30/otherMC/PROC_ST_t-channel_top.root", "t-channel", 0, isMC=True, xsec=136.02, counter_histogram_root="/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_ST_t-channel_top.root")
             s.addChannel("/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_ST_t-channel_antitop.root", "t-channel", 0, isMC=True, xsec=80.95, counter_histogram_root="/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_ST_t-channel_antitop.root")
             # s-channel+tW
@@ -127,7 +125,7 @@ def main(ratio, significance,logstyle, verbose, year):
 
             s.addChannel("/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_WJetsToLNu.root", " W-Jets", 4, isMC=True, xsec=61334.9, counter_histogram_root="/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_WJetsToLNu.root")
 
-            s.addChannel("/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_WW.root", "Diboson", 6, isMC=True, xsec=118.7, counter_histogram_root="/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_WW.root")
+            s.addChannel("/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_WW.root", "Diboson", 5, isMC=True, xsec=118.7, counter_histogram_root="/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_WW.root")
 
             s.addChannel("/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_WZ.root", "Diboson", 5, isMC=True, xsec=47.13, counter_histogram_root="/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/PROC_WZ.root")
             
@@ -172,24 +170,7 @@ def main(ratio, significance,logstyle, verbose, year):
         elif run == "18":
             print("Run2018")
 
-            #MC_Signal test in local
-            s.addChannel("/home/cms/dozen-altuntas/FLY_project/CMSSW_12_3_2/src/fly/analyzed/Chris_test.root","MC_1",1,isMC=True, xsec=137,  counter_histogram_root="/home/cms/dozen-altuntas/FLY_project/CMSSW_12_3_2/src/fly/analyzed/Chris_test.root")
-            s.addChannel("/home/cms/dozen-altuntas/FLY_project/CMSSW_12_3_2/src/fly/analyzed/Chris_test2.root","MC_2",2,isMC=True, xsec=137,  counter_histogram_root="/home/cms/dozen-altuntas/FLY_project/CMSSW_12_3_2/src/fly/analyzed/Chris_test2.root")
-            s.addChannel("/home/cms/dozen-altuntas/FLY_project/CMSSW_12_3_2/src/fly/analyzed/Chris_test3.root","MC_3",3,isMC=True, xsec=137,  counter_histogram_root="/home/cms/dozen-altuntas/FLY_project/CMSSW_12_3_2/src/fly/analyzed/Chris_test3.root")
-            s.addChannel("/home/cms/dozen-altuntas/FLY_project/CMSSW_12_3_2/src/fly/analyzed/Chris_test4.root","MC_4",4,isMC=True, xsec=137,  counter_histogram_root="/home/cms/dozen-altuntas/FLY_project/CMSSW_12_3_2/src/fly/analyzed/Chris_test4.root")
-
-            
-            
-            
-    # Muon Histograms
-    #s.addHistogram('tightMuon_leading_pt_cut1', 'tight muon p_{T} [GeV]', 'Entries', draw_mode=stackhists.STACKED, draw_option='hist')
-    #s.addHistogram('tightMuon_leading_pt_cut10', 'tight muon p_{T} [GeV]', 'Entries', draw_mode=stackhists.STACKED, draw_option='hist')
-
-    # Jet Histograms
-    #s.addHistogram("hgood_jetpt_nocut", "good1 jet p_{T} [GeV]", "Entries", draw_mode=stackhists.STACKED, draw_option="hist",is_logy=logstyle, ymin=0.1)
-    #s.addHistogram("hgood_jetpt_cut0", "good2 jet p_{T} [GeV]", "Entries", draw_mode=stackhists.STACKED, draw_option="hist",is_logy=logstyle,ymin=0.1)
-    #s.addHistogram("hgood_jetpt_cut00", "good3 jet p_{T} [GeV]", "Entries", draw_mode=stackhists.STACKED, draw_option="hist",is_logy=logstyle,ymin=0.1)
-
+    ##Add Histograms
     s.addHistogram("tightMuon_leading_eta_cut1002", "tleadmueta", "Entries", draw_mode=stackhists.STACKED, draw_option="hist", is_logy=False)
     s.addHistogram("tightMuon_leading_pt_cut1002", "tmuonl_pt [GeV]", "Entries", draw_mode=stackhists.STACKED, draw_option="hist", is_logy=False)
     #s.addHistogram("tightMuon_leading_pt_cut1003", "tmuonl_pt [GeV]", "Entries", draw_mode=stackhists.STACKED, draw_option="hist", is_logy=False)

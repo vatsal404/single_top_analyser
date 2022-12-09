@@ -121,10 +121,10 @@ class StackHists:
         """
         self.fill_alpha = alpha
         if color_list == None:
-            self.color_list = [self.ROOT.TColor.GetColor('#cc0000'), self.ROOT.TColor.GetColor('#ff6666'),
-                               self.ROOT.TColor.GetColor('#660000'), self.ROOT.TColor.GetColor('#ff9933'),
-                               self.ROOT.TColor.GetColor('#000099'), self.ROOT.TColor.GetColor('#990099'),
-                               self.ROOT.TColor.GetColor('#00cccc'), self.ROOT.TColor.GetColor('#ff66ff'),
+            self.color_list = [self.ROOT.TColor.GetColor('#cc0000'), self.ROOT.TColor.GetColor('#000099'),
+                               self.ROOT.TColor.GetColor('#660000'), self.ROOT.TColor.GetColor('#990099'),
+                               self.ROOT.TColor.GetColor('#99CC66'), self.ROOT.TColor.GetColor('#02edf5'),
+                               self.ROOT.TColor.GetColor('#4F4D80'), self.ROOT.TColor.GetColor('#d0cfd4'),
                                self.ROOT.TColor.GetColor('#d0cfd4'), self.ROOT.TColor.GetColor('#000000'),
                                self.ROOT.TColor.GetColor('#99CC66'), self.ROOT.TColor.GetColor('#6B8551'),
                                self.ROOT.TColor.GetColor('#908DCC'), self.ROOT.TColor.GetColor('#4F4D80')]
@@ -403,8 +403,10 @@ class StackHists:
 
         if not self.data_file_list:
             c1_top = self.ROOT.TPad("c1_top", "top", 0.01, 0.01, 0.99, 0.99)
+            #c1_top = self.ROOT.TPad("c1_top", "top", 0., 0.33333, 1, 1)
         else:
             c1_top = self.ROOT.TPad("c1_top", "top", 0.01, 0.33, 0.99, 0.99)
+            #c1_top = self.ROOT.TPad("c1_top", "top", 0., 0.33333, 1, 1)
 
         c1_top.Draw()
         c1_top.cd()
@@ -515,24 +517,28 @@ class StackHists:
 
                 self.c1.cd()
                 c1_bottom = self.ROOT.TPad("c1_bottom", "bottom", 0.01, 0.01, 0.99, 0.32)
+                #c1_bottom = self.ROOT.TPad("c1_bottom", "bottom", 0., 0., 1, 0.33333)
                 c1_bottom.Draw()
                 c1_bottom.cd()
-                c1_bottom.SetTopMargin(0.02)
+                c1_bottom.SetTopMargin(1.)
                 c1_bottom.SetBottomMargin(0.3)
                 c1_bottom.SetRightMargin(0.1)
                 c1_bottom.SetGridx(1)
                 c1_bottom.SetGridy(1)
+                #c1_bottom.SetTickx(1)
                 ratiohist.Draw("err")
 
                 ratiohist.GetXaxis().SetTitle(x_title)
                 ratiohist.GetXaxis().SetNdivisions(6, 5, 0)
                 ratiohist.GetXaxis().SetTitleSize(0.12)
                 ratiohist.GetXaxis().SetLabelSize(0.10)
+                ratiohist.GetXaxis().SetTickLength(0.07)
                 
                 
                 ratiohist.GetYaxis().SetTitle("Data/Exp.")
                 #ratiohist.GetYaxis ().SetRangeUser (0.5 ,1.5)
                 ratiohist.GetYaxis().SetNdivisions(207)
+                ratiohist.GetYaxis().SetTickLength(0.04)
                 ratiohist.GetYaxis().SetTitleSize(0.1)
                 ratiohist.GetYaxis().SetLabelSize(0.08)
                 ratiohist.GetYaxis().SetTitleOffset(0.7)
@@ -566,6 +572,7 @@ class StackHists:
                 
                 self.c1.cd()
                 c1_bottom = self.ROOT.TPad("c1_bottom", "bottom", 0.01, 0.01, 0.99, 0.32)
+                #c1_bottom = self.ROOT.TPad("c1_bottom", "bottom", 0., 0., 1, 0.33333)
                 c1_bottom.Draw()
                 c1_bottom.cd()
                 c1_bottom.SetTopMargin(0.02)
