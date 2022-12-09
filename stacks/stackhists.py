@@ -96,7 +96,7 @@ class StackHists:
             
             t_file_mc_cntr_hist = self.ROOT.TFile(mc_cntr_hist_file)
             #a_hist=None
-            a_hist = t_file_mc_cntr_hist.Get("hgenEventSumw_nocut")# this should contain all entries before cuts to UseHistIntegral
+            a_hist = t_file_mc_cntr_hist.Get("genweight_sumOf_cut1")# this should contain all entries before cuts to UseHistIntegral
             if a_hist == None:
                 print("Counter histogram does not exist, will proceed with histintegaral=1. "
                       "Be sure to put 1/histintegral in the scalefactor!")
@@ -454,10 +454,14 @@ class StackHists:
             
         elif is_logy:
             hs.SetMaximum(total_max ** 1.65)
+            #hs.SetMaximum(total_max ** 1000)
            
         else:
-            hs.SetMaximum(total_max * 1.65)
-            #hs.SetMaximum(max1)
+            
+            #hs.SetMaximum(total_max*1.65 )
+            hs.SetMaximum(total_max*1.65)
+            
+         
 
 
         for sighist in signal_hist_list:
@@ -525,12 +529,16 @@ class StackHists:
                 ratiohist.GetXaxis().SetTitleSize(0.12)
                 ratiohist.GetXaxis().SetLabelSize(0.10)
                 
+                
                 ratiohist.GetYaxis().SetTitle("Data/Exp.")
-                ratiohist.GetYaxis().SetNdivisions(6, 5, 0)
+                #ratiohist.GetYaxis ().SetRangeUser (0.5 ,1.5)
+                ratiohist.GetYaxis().SetNdivisions(207)
                 ratiohist.GetYaxis().SetTitleSize(0.1)
                 ratiohist.GetYaxis().SetLabelSize(0.08)
                 ratiohist.GetYaxis().SetTitleOffset(0.7)
                 ratiohist.GetYaxis().SetLabelOffset(0.007)
+
+                
                 
 
             # Significance plot (SoverB hist)
