@@ -358,13 +358,15 @@ class StackHists:
         # Organize final_data_hist
         # =============================================================================================================
         final_data_hist = None
+        #print("candann final data hist 1 ", final_data_hist)
         if self.data_file_list:
             print("DATA FILE LIST", self.data_file_list)
             for ifile in self.data_file_list:
                 t_file_mc = self.ROOT.TFile(ifile)
-                #print("datafile===", t_file_mc)
+                print("datafile===", t_file_mc)
                 ahist = t_file_mc.Get(hist_name)
-                #print("histogram datafile names:", ahist)
+                #print("histogram data file names candannn:", ahist)
+                #print("candann final data hist 2 ", final_data_hist)
                 #print("nbins===", nrebins)
                 if nrebins > 0:
                     ahist = ahist.Rebin(nrebins, hist_name + 'rebinned_data', xbins)
@@ -376,11 +378,17 @@ class StackHists:
                     print(f"histogram {hist_name} not found in {self.data_file_list[ifile]}")
                     print("exiting...")
                     sys.exit(-1) 
+                
                 else:
+                    print("final data hist #########################===============",final_data_hist )
                     if final_data_hist == None:
                         final_data_hist = ahist.Clone("final_data_hist")
+                        final_data_hist.Add(ahist)
+                        #print("candann final data hist 3 ", final_data_hist)
+                        #print("candann ahist 1111 ", ahist)
                     else:
                         final_data_hist.Add(ahist)
+                    
             print("Data hist Integral : %i"%final_data_hist.Integral())
             if mode == NORMALIZED:
                 normscale = final_data_hist.Integral()

@@ -164,8 +164,14 @@ def main(ratio, significance,logstyle, verbose, year):
 
 #
             #s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-11-30/otherMC/Run2017E_SingleMuon.root', 'data', 9, isMC=False)
-            s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/DATA17_SingleMuon.root', 'data', 9, isMC=False)
+            #s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/DATA17_SingleMuon.root', 'data', 9, isMC=False)
             #s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-11-30/otherMC/Run2017D_SingleMuon.root', 'data', 9, isMC=False)
+            #s.addChannel('test17B.root', 'data', 9, isMC=False)
+            s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/Run2017B_SingleMuon.root', 'Data', 999, isMC=False)
+            s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/Run2017C_SingleMuon.root', 'Data', 999, isMC=False)
+            s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/Run2017D_SingleMuon.root', 'Data', 999, isMC=False)
+            s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/Run2017E_SingleMuon.root', 'Data', 999, isMC=False)
+            s.addChannel('/gridgroup/cms/greenberg/analysis/CMSSW_12_3_0/src/fly/results/2022-12-08/genWeight/Run2017F_SingleMuon.root', 'Data', 999, isMC=False)
 
         elif run == "18":
             print("Run2018")
