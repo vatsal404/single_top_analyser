@@ -35,25 +35,25 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		bool debug = true;
 		bool _jsonOK;
 		string _outfilename;
-		//string _jsonfname;
-		//string _jerctag;
-		//string _jercunctag;
-		//string _putag;
-		//string _btvtype;
+		string _jsonfname;
+		string _jerctag;
+		string _jercunctag;
+		string _putag;
+		string _btvtype;
 
 
 		TFile *_outrootfile;
 		vector<string> _outrootfilenames;
 
 		// JERC scale factors
-		//std::unique_ptr<correction::CorrectionSet> _correction_jerc; // json containing all forms of corrections and uncertainties
-		//std::shared_ptr<const correction::CompoundCorrection> _jetCorrector; // just the combined L1L2L3 correction
-		//std::shared_ptr<const correction::Correction> _jetCorrectionUnc; // for uncertainty corresponding to the jet corrector
+		std::unique_ptr<correction::CorrectionSet> _correction_jerc; // json containing all forms of corrections and uncertainties
+		std::shared_ptr<const correction::CompoundCorrection> _jetCorrector; // just the combined L1L2L3 correction
+		std::shared_ptr<const correction::Correction> _jetCorrectionUnc; // for uncertainty corresponding to the jet corrector
 
 		// btag correction
-		//std::unique_ptr<correction::CorrectionSet> _correction_btag1;
+		std::unique_ptr<correction::CorrectionSet> _correction_btag1;
 		// pile up weights
-		//std::unique_ptr<correction::CorrectionSet> _correction_pu;
+		std::unique_ptr<correction::CorrectionSet> _correction_pu;
 
 
 		bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON

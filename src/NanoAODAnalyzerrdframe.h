@@ -43,8 +43,7 @@ public:
 	NanoAODAnalyzerrdframe(TTree *t, string outfilename);
 	virtual ~NanoAODAnalyzerrdframe();
 
-	//virtual void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag);
-	virtual void setupObjects();
+
 	virtual void setupAnalysis();
 	virtual void setTree(TTree *t, string outfilename);
 
@@ -52,8 +51,6 @@ public:
 	// RNode is in namespace ROOT::RDF
 	bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON
 
-	//virtual void applyJetMETCorrections();
-	void selectFatJets();
 
 	void addVar(varinfo v);
 
@@ -105,11 +102,6 @@ public:
 	//bool _isData;
 	bool _jsonOK;
 	string _outfilename;
-	string _jsonfname;
-	string _jerctag;
-	string _jercunctag;
-	string _putag;
-	string _btvtype;
 
 
 	TFile *_outrootfile;
@@ -128,30 +120,11 @@ public:
 	vector<string> _varstostore;
 	map<string, vector<std::string>> _varstostorepertree;
 
-	// using rapidjson
-	//for applying golden json to data
-	//rapidjson::Document jsonroot;
-
 	json jsonroot;
-
-	// pile up weights
-	std::unique_ptr<correction::CorrectionSet> _correction_pu;
-
-	// JERC scale factors
-	std::unique_ptr<correction::CorrectionSet> _correction_jerc; // json containing all forms of corrections and uncertainties
-	std::shared_ptr<const correction::CompoundCorrection> _jetCorrector; // just the combined L1L2L3 correction
-	std::shared_ptr<const correction::Correction> _jetCorrectionUnc; // for uncertainty corresponding to the jet corrector
-
-	// btag correction
-	std::unique_ptr<correction::CorrectionSet> _correction_btag1;
-
 
 	RNodeTree _rnt;
 
 	bool isDefined(string v);
-
-	// Jet MET corrections
-	//virtual void setupJetMETCorrection(string fname, string jettag);
 
 };
 

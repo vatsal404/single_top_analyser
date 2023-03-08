@@ -8,15 +8,10 @@
 
 #include "Math/GenVector/VectorUtil.h"
 #include "BaseAnalyser.h"
-#include "TCanvas.h"
 #include "utility.h"
 #include <fstream>
 #include "correction.h"
 using correction::CorrectionSet;
-
-using FourVectorRVec = ROOT::VecOps::RVec<FourVector>;
-using namespace ROOT::VecOps;
-using RNode = ROOT::RDF::RNode;
 
 BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename)
 :NanoAODAnalyzerrdframe(t, outfilename)
@@ -41,7 +36,7 @@ void BaseAnalyser::defineCuts()
     }
 	auto Nentry = _rlm.Count();
 	// This is how you can express a range of the first 100 entries
-    //_rlm = _rlm.Range(0, 100);
+    //_rlm = _rlm.Range(0, 1000);
     //auto Nentry_100 = _rlm.Count();
 	std::cout<< "-------------------------------------------------------------------" << std::endl;
     cout << "Usage of ranges:\n"
@@ -51,7 +46,7 @@ void BaseAnalyser::defineCuts()
 
 	//MinimalSelection to filter events
     addCuts("nMuon > 2 && nElectron > 0 && nJet>0", "0");
-    addCuts("nJet>0","00");
+    //addCuts("nJet>0","00");
     //addCuts("ncleanjetspass>0","00");
 	//addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
 
@@ -102,15 +97,12 @@ void BaseAnalyser::selectMuons()
     //_rlm = _rlm.Define("goodMuons", "Muon_pt>30.0 && abs(Muon_eta)<2.4 && Muon_pfRelIso03_all<0.15");
     _rlm = _rlm.Define("goodMuons", MuonID(4));
     _rlm = _rlm.Define("goodMuons_pt", "Muon_pt[goodMuons]") 
-				//.Define("goodMuons_pair_pt", "(goodMuons_pt.size()>0)? goodMuons_pt[0]+goodMuons_pt[1]:-100")
-				 //.Define("selectedMuon_pt",::ClearEmptyEvent,{"goodMuons_pt"});
                 .Define("goodMuons_eta", "Muon_eta[goodMuons]")
                 .Define("goodMuons_phi", "Muon_phi[goodMuons]")
                 .Define("goodMuons_mass", "Muon_mass[goodMuons]")
                 .Define("goodMuons_charge", "Muon_charge[goodMuons]")
                 .Define("goodMuons_idx", ::good_idx, {"goodMuons"})
                 .Define("NgoodMuons", "int(goodMuons_pt.size())");
-	
 
     //-------------------------------------------------------
     //generate muon 4vector from selected good Muons
@@ -144,74 +136,48 @@ void BaseAnalyser::selectJets()
     _rlm = _rlm.Define("goodJetsID", JetID(6)); //without pt-eta cuts
      _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
     _rlm = _rlm.Define("goodJets_pt", "Jet_pt[goodJets]")
-				//.Define("goodJets_HT", "Sum(goodJets_pt)")
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
-				//.Define("goodJets_hadflvr", "Jet_hadronFlavour[goodJets]")
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
                 .Define("goodJets_mass", "Jet_mass[goodJets]")
-                .Define("goodJets_idx", ::good_idx, {"goodJets"})
-                .Define("goodJets_btag", "Jet_btagCSVV2[goodJets]")
-                //.Define("Selected_jetbtag", "Jet_btagDeepFlavB[goodJets]") //select bjets within goodjets
-				.Define("goodJets_deepb", "Jet_btagDeepB[goodJets]")//AK4 b-tagging DeepCSV NanoAOD name #https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
+                .Define("goodJets_idx", ::good_idx, {"goodJets"});
+				if(!_isData){
+				_rlm = _rlm.Define("goodJets_hadflav", "Jet_hadronFlavour[goodJets]");
+				}
+                
+				_rlm = _rlm.Define("goodJets_jetdeepbtag", "Jet_btagDeepB[goodJets]")
+                .Define("goodJets_deepjetbtag", "Jet_btagDeepFlavB[goodJets]") 
                 .Define("NgoodJets", "int(goodJets_pt.size())")
                 .Define("goodJets_4vecs", ::generate_4vec, {"goodJets_pt", "goodJets_eta", "goodJets_phi", "goodJets_mass"});
-    
 
-	/*///combination among goodJets:
-    _rlm = _rlm.Define("dis_comb", ::distinct_comb, {"NgoodJets"})
-                .Define("goodJets_4Rvecs", ::generate_4Rvec, {"goodJets_pt", "goodJets_eta", "goodJets_phi", "goodJets_mass"})
-                //combination of good Jets 
-                .Define("Comb_goodJet1_phi", "ROOT::VecOps::Take(goodJets_phi, dis_comb[0])")
-                .Define("Comb_goodJet2_phi", "ROOT::VecOps::Take(goodJets_phi, dis_comb[1])")
-                .Define("Comb_goodJets_DeltaPhi", "ROOT::VecOps::abs(ROOT::VecOps::DeltaPhi(Comb_goodJet1_phi, Comb_goodJet2_phi))") 
-                .Define("Comb_goodJets_DeltaPhiMin", "ROOT::VecOps::Min(Comb_goodJets_DeltaPhi)")
-                //combination of good jetvec
-                .Define("Comb_goodJet1_vec", "ROOT::VecOps::Take(goodJets_4Rvecs, dis_comb[0])")
-                .Define("Comb_goodJet2_vec", "ROOT::VecOps::Take(goodJets_4Rvecs, dis_comb[1])")
-                .Define("Comb_goodjet12", "Comb_goodJet1_vec + Comb_goodJet2_vec");
-                //inv. mass J12 from combination 
-    _rlm = _rlm.Define("Comb_goodjet12_Mass", "ROOT::VecOps::Map(Comb_goodjet12, FourVecMass)") ;         
-	*/
-
-    //btagging
-    _rlm = _rlm.Define("btagcuts", "goodJets_btag>0.8")
+	//select b jest within goodjets
+    _rlm = _rlm.Define("btagcuts", "goodJets_deepjetbtag>0.8")
 			.Define("good_bjetpt", "goodJets_pt[btagcuts]")
 			.Define("good_bjeteta", "goodJets_eta[btagcuts]")
 			.Define("good_bjetphi", "goodJets_phi[btagcuts]")
 			.Define("good_bjetmass", "goodJets_mass[btagcuts]")
-			.Define("Ngood_bjets", "int(good_bjetpt.size())")
+			.Define("good_bjetdeepjet", "goodJets_deepjetbtag[btagcuts]");
+			if(!_isData){
+				_rlm = _rlm.Define("good_bjethadflav", "goodJets_hadflav[btagcuts]");
+				}
+			_rlm = _rlm.Define("Ngood_bjets", "int(good_bjetpt.size())")
 			.Define("good_bjet4vecs", ::generate_4vec, {"good_bjetpt", "good_bjeteta", "good_bjetphi", "good_bjetmass"});
 
 
-
 }
-void BaseAnalyser::calculateEvWeight()
-{
-    // calculate event weight for MC only
-    if (!_isData && !isDefined("evWeight")){
-
-		_rlm = _rlm.Define("jetcutsforsf", "Jet_pt>25.0 && abs(Jet_eta)<2.4 ")
-				.Define("Sel_jetforsfpt", "Jet_pt[jetcutsforsf]")
-				.Define("Sel_jetforsfeta", "Jet_eta[jetcutsforsf]")
-				.Define("Sel_jetforsfhad", "Jet_hadronFlavour[jetcutsforsf]")
-				.Define("Sel_jetcsvv2", "Jet_btagCSVV2[jetcutsforsf]")
-				.Define("Sel_jetdeepb", "Jet_btagDeepB[jetcutsforsf]");//AK4 b-tagging DeepCSV NanoAOD name #https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
-
-		//shape correction SF		
+void BaseAnalyser::calculateEvWeight(){
+	  //if (!_isData && !isDefined("evWeight")) {
+        if (!_isData) {
+            cout<<"B tagging SF for MC "<<endl;
 
 		auto btvcentral = [this](floats &pts, floats &etas, ints &hadflav, floats &btags)->floats
 		{
 			return ::btvcorrection(_correction_btag1, _btvtype, "central", pts, etas, hadflav, btags); // defined in utility.cpp
 		};
 
-
-		_rlm = _rlm.Define("Sel_jet_deepJet_shape_central", btvcentral, {"Sel_jetforsfpt", "Sel_jetforsfeta", "Sel_jetforsfhad", "Sel_jetdeepb"});
-
-		//_rlm = _rlm.Define("Goodjet_deepJet_shape_central", btvcentral, {"goodJets_pt", "goodJets_eta", "goodJets_hadflvr", "goodJets_deepb"});
-		//_rlm = _rlm.Define("Sel_jet_deepJet_shape_central",[this](floats &pts, floats &etas, ints &hadflav, floats &btags){return ::btvcorrection(_correction_btag1, "deepJet_shape", "central", pts, etas, hadflav, btags);}
-			//				, {"Sel_jetforsfpt", "Sel_jetforsfeta", "Sel_jetforsfhad", "Sel_jetdeepb"});
-
-		// function to calculate event weight for MC events 
+	
+		_rlm = _rlm.Define("Btv_correction_sfs", btvcentral, {"good_bjetpt", "good_bjeteta", "good_bjethadflav", "good_bjetdeepjet"});
+	
+		// function to calculate event weight for MC events based on DeepJet algorithm
 		auto btagweightgenerator3= [this](floats &pts, floats &etas, ints &hadflav, floats &btags)->float
 		{
 			double bweight=1.0;
@@ -223,15 +189,20 @@ void BaseAnalyser::calculateEvWeight()
 			}
 			return bweight;
 		};
-		_rlm = _rlm.Define("btagWeight_DeepJetrecalc", btagweightgenerator3, {"Sel_jetforsfpt", "Sel_jetforsfeta", "Sel_jetforsfhad", "Sel_jetdeepb"});
-		//_rlm = _rlm.Define("btagWeight_DeepJetrecalc", btagweightgenerator3, {"goodJets_pt", "goodJets_eta", "goodJets_hadflvr", "goodJets_deepb"});
+		cout<<"Generate b-tagging weight"<<endl;
+		if(!isDefined("evWeight")){
+		
+		_rlm = _rlm.Define("btagWeight_DeepJetrecalc", btagweightgenerator3, {"good_bjetpt", "good_bjeteta", "good_bjethadflav", "good_bjetdeepjet"});
+
 		//_rlm = _rlm.Define("evWeight", "genWeight * btagWeight_DeepJetrecalc");
         _rlm = _rlm.Define("evWeight", "pugenWeight * btagWeight_DeepJetrecalc");
-		
-	
-    }
+		}
+
+	}
 
 }
+//MET
+
 void BaseAnalyser::selectMET()
 {
     if (debug){
@@ -250,8 +221,6 @@ void BaseAnalyser::selectMET()
 
     
 }
-
-
 //=================================Overlap function=================================================//
 void BaseAnalyser::removeOverlaps()
 {
@@ -285,11 +254,11 @@ void BaseAnalyser::removeOverlaps()
 		.Define("Selected_jeteta", "goodJets_eta[muonjetoverlap]")
 		.Define("Selected_jetphi", "goodJets_phi[muonjetoverlap]")
 		.Define("Selected_jetmass", "goodJets_mass[muonjetoverlap]")
-		.Define("Selected_jetbtag", "goodJets_btag[muonjetoverlap]")
+		//.Define("Selected_jetbtag", "goodJets_btag[muonjetoverlap]") //goodJets_deepjetbtag
+		.Define("Selected_jetbtag", "goodJets_deepjetbtag[muonjetoverlap]") //
 		.Define("ncleanjetspass", "int(Selected_jetpt.size())")
 		.Define("cleanjet4vecs", ::generate_4vec, {"Selected_jetpt", "Selected_jeteta", "Selected_jetphi", "Selected_jetmass"})
-		.Define("Selected_jetHT", "Sum(Selected_jetpt)")
-		.Define("Selected_jetweight", "std::vector<double>(ncleanjetspass, evWeight)"); //selected jetpt weight //doesn't work for data
+		.Define("Selected_jetHT", "Sum(Selected_jetpt)");
         
      //==============================Clean b-Jets==============================================//  
 	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>0.8")
@@ -322,53 +291,45 @@ void BaseAnalyser::defineMoreVars()
     addVar({"good_jet1eta", "goodJets_eta[0]", ""});
     addVar({"good_jet1mass", "goodJets_mass[0]", ""});
 
-	//addVar({"Muon_pfRelIso03_all","Muon_pfRelIso03_all",""});
-    //addVar({"Muon_miniPFRelIso_all","Muon_miniPFRelIso_all",""});
-    //addVar({"Muon_pfRelIso04_all","Muon_pfRelIso04_all",""});
-	//addVar({"Muon_ip3d","Muon_ip3d",""});
-	
-
-
-
     //================================Store variables in tree=======================================//
     // define variables that you want to store
     //==============================================================================================//
     addVartoStore("run");
     addVartoStore("luminosityBlock");
     addVartoStore("event");
-    //addVartoStore("evWeight.*");
-
-	addVartoStore("evWeight");
-    addVartoStore("genWeight"); // doesn't work for data
-	addVartoStore("pugenWeight");// doesn't work for data
-	addVartoStore("puWeight");// doesn't work for data
-	addVartoStore("btagWeight_DeepJetrecalc");// doesn't work for data
-	addVartoStore("Selected_jetweight");
+    addVartoStore("evWeight.*");
+	if(!_isData ){
+		
+		addVartoStore("good_bjetdeepjet");
+		addVartoStore("good_bjethadflav");
+		addVartoStore("Btv_correction_sfs");
+		if(!isDefined("evWeight")){
+			addVartoStore("btagWeight_DeepJetrecalc");
+		}
+	}
+   
     
-	addVartoStore("Sel_jetforsfpt"); //Selected  jet pt Jet_pt_corr>30 Gev
-    addVartoStore("Sel_jetforsfeta"); //Selected  jet eta for Jet_pt_corr>30 Gev 
-	addVartoStore("Sel_jet_deepJet_shape_central");// selected jet shape after btv correction //// doesn't work for data
-	addVartoStore("Goodjet_deepJet_shape_central"); //// doesn't work for data
-    addVartoStore("Sel_jetcsvv2");//// doesn't work for data
-    addVartoStore("Sel_jetdeepb");// doesn't work for data
-    //addVartoStore("Sel_jet_deepJet_shape_central");
-    
-	addVartoStore("Jet_pt_corr"); //Jet_pt corrected
+	//Btv_correction_sfs
+	//addVartoStore("Btv_correction_sfs");
+	
+	
+	/*addVartoStore("Sel_jetforsfpt");
+    addVartoStore("Sel_jetforsfeta");
+    addVartoStore("Sel_jetcsvv2");
+    addVartoStore("Sel_jetdeepb");
+    */
+    addVartoStore("Jet_pt_corr");
 	addVartoStore("Jet_pt_corr_up");
 	addVartoStore("Jet_pt_corr_down");
 	addVartoStore("Jet_pt_relerror");
-    
-	addVartoStore("MET_pt_corr"); //MET_pt corrected
-	addVartoStore("MET_pt_corr_up"); 
-	addVartoStore("MET_pt_corr_down"); 
+    addVartoStore("MET_pt_corr");
     addVartoStore("MET_pt");
-	addVartoStore("MET_sumEt");
-    addVartoStore("MET_phi");
-	addVartoStore("MET_phi_corr"); 
-	addVartoStore("MET_phi_corr_up"); 
-	addVartoStore("MET_phi_corr_down"); 
-	
+    
 
+   
+
+    //addVartoStore("genWeight");
+    //addVartoStore("genEventSumw");
 
     //electron
     addVartoStore("nElectron");
@@ -380,10 +341,6 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("Muon_charge");
     addVartoStore("Muon_mass");
     addVartoStore("NgoodMuons");
-	addVartoStore("Muon_ip3d");//3D impact parameter wrt first PV, in cm
-	addVartoStore("Muon_pfRelIso03_all");
-    addVartoStore("Muon_miniPFRelIso_all");
-    addVartoStore("Muon_pfRelIso04_all");
 
     //jet
     addVartoStore("nJet");
@@ -391,7 +348,6 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("NgoodJets");
     addVartoStore("goodJets_pt");
     addVartoStore("Selected_jetpt");
-	//addVartoStore("goodJets_HT");
 
 }
 void BaseAnalyser::bookHists()
@@ -408,34 +364,30 @@ void BaseAnalyser::bookHists()
     }
     
     //================================gen/LHE weights======================================================//
-    if(!_isData && isDefined("genWeight")){
-		add1DHist({"hgenWeight", "genWeight", 1001, -100, 100}, "genWeight", "one", ""); //weight per event 
+    if(!_isData && !isDefined("genWeight")){
+        add1DHist({"hgenWeight", "genWeight", 1001, -100, 100}, "genWeight", "one", "");
     
-	add1DHist({"hgenEventSumw","Sum of gen Weights",1001,-8e+09,8e+09},"one","genEventSumw",""); //sum of gen weight
-	//LHE weight
-	//add1DHist( {"hnLHE", "LHE weight dist ", 100, 1e-4, 1e-6}, "LHEweight", "one", ""); //LHE weight per event: //x-axis: find LHE weight, increase with 1.
-    //totalLHEweight_nocut
-    //add1DHist( {"htotLHE", "total LHE weight dist ", 2, 0, 2}, "one", "LHEweight", ""); //increase the bin as LHE weight.
- 	//====================================================================================================//
-	}
-	//add1DHist( {"btagscalef", "btvcentral_sf " , 100, 0, 2} , "Sel_jet_deepJet_shape_central", "Sel_jetforsfpt", "");
-	add1DHist( {"hnevents_weighted", "Number of Events", 2, -0.5, 1.5}, "one", "evWeight", "");
-	add1DHist( {"hnevents", "Number of Events not weighted", 2, -0.5, 1.5}, "one", "one", "");
+    /*if(isDefined("LHEWeight_originalXWGTUP")){
+        add1DHist({"hLHEweight", "LHEweight", 1001, -100, 100}, "LHEWeight_originalXWGTUP", "one", "");
+    }*/
+    add1DHist({"hgenEventSumw","Sum of gen Weights",1001,-8e+09,8e+09},"one","genEventSumw","");
+    //====================================================================================================//
+    }
+    add1DHist( {"hnevents", "Number of Events", 2, -0.5, 1.5}, "one", "evWeight", "");
+	add1DHist( {"hnevents_wo", "Number of Events w/o", 2, -0.5, 1.5}, "one", "one", "");
    
-    add1DHist( {"hNgoodElectrons_weighted", "NumberofGoodElectrons", 5, 0.0, 5.0}, "NgoodElectrons", "evWeight", "");
+    add1DHist( {"hNgoodElectrons", "NumberofGoodElectrons", 5, 0.0, 5.0}, "NgoodElectrons", "evWeight", "");
     
-    add1DHist( {"hNgoodMuons_weighted", "# of good Muons ", 5, 0.0, 5.0}, "NgoodMuons", "evWeight", "");
+    add1DHist( {"hNgoodMuons", "# of good Muons ", 5, 0.0, 5.0}, "NgoodMuons", "evWeight", "");
     
-    add1DHist( {"hgood_jetpt_weighted", "Good Jet pt " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
-	add1DHist( {"hgood_jetpt", "Good Jet pt after not weighted " , 100, 0, 1000} , "goodJets_pt", "one", "");
-	
+    add1DHist( {"hgood_jetpt", "Good Jet pt after " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
+	add1DHist( {"hgood_jetptwo", "Good Jet pt after w/o " , 100, 0, 1000} , "goodJets_pt", "one", "");
 
-    add1DHist( {"hgood_jet1pt_weighted", "Good Jet_1 pt " , 100, 0, 1000} , "good_jet1pt", "evWeight", "");
-    add1DHist( {"hselected_jet1pt_weighted", "SelectedJet_1 pt" , 100, 0, 1000} , "Selected_jet1pt", "evWeight", "");
-    add1DHist( {"hselected_jetpt_weighted", "No overlap muon-Jets " , 100, 0, 1000} , "Selected_jetpt", "evWeight", "");
-	add1DHist( {"hselected_jetpt", "No overlap muon-Jets not weighted" , 100, 0, 1000} , "Selected_jetpt", "one", "");
+    add1DHist( {"hgood_jet1pt", "Good Jet_1 pt after " , 100, 0, 1000} , "good_jet1pt", "evWeight", "");
+    add1DHist( {"hselected_jet1pt", "SelectedJet_1 pt after" , 100, 0, 1000} , "Selected_jet1pt", "evWeight", "");
+    add1DHist( {"hselected_jetpt", "No overlap muon-Jets after" , 100, 0, 1000} , "Selected_jetpt", "evWeight", "");
+	add1DHist( {"hselected_jetptwo", "No overlap muon-Jets w/o weight" , 100, 0, 1000} , "Selected_jetpt", "one", "");
 	
-
 
 }
 void BaseAnalyser::setTree(TTree *t, std::string outfilename)
@@ -451,7 +403,6 @@ void BaseAnalyser::setTree(TTree *t, std::string outfilename)
 	_outfilename = outfilename;
 	_hist1dinfovector.clear();
 	_th1dhistos.clear();
-
 	_varstostore.clear();
 	//_hist1dinfovector.clear();
 	_selections.clear();
@@ -468,8 +419,8 @@ void BaseAnalyser::setupObjects()
 	selectMuons();
 	selectJets();
 	calculateEvWeight();
-	selectMET();
 	removeOverlaps();
+	selectMET();
 
 }
 bool BaseAnalyser::readgoodjson(string goodjsonfname)
@@ -530,16 +481,11 @@ void BaseAnalyser::setupJetMETCorrection(string fname, string jettag) //data
 	assert(_correction_jerc->validate()); //the assert functionality : check if the parameters passed to a function are valid =1:true
 	// correction type(jobconfiganalysis.py)
 	cout<<"json file=="<<fname<<endl;
-	printf("\n\nCompound JEC:\n===================");
 	_jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON (JEC,compound)compoundLevel="L1L2L3Res"
 	cout<<"jettag =="<<jettag<<endl;
-	//printf("jerc tag correction use count: %lu\n", deepcsv.use_count());
-	//printf("SF : %f", corrfactor);
-	//printf([input.name for input in sf.inputs]);
 	_jetCorrectionUnc = _correction_jerc->at(_jercunctag);
 }
 void BaseAnalyser::applyJetMETCorrections() //data
-	//For UL/NanoAofv9 :Jets are corrected to latest available JECs. No systematic variations of JECs are stored, but the quantities (ρ, area, pT, η) needed to recompute JECs or JEC systematic variations are available.
 {
     cout << "apply JETMET correction" << endl;
 
@@ -559,7 +505,7 @@ void BaseAnalyser::applyJetMETCorrections() //data
 			//std::cout<<"rawjetpt* corrfactor ===="<< rawjetpt * corrfactor <<std::endl;
 
 		}
-        //std::cout<<"SCALE Facsss===="<< corrfactors <<std::endl;
+        //std::cout<<"Facsss===="<< corrfactors <<std::endl;
 		return corrfactors;
 		
 	};
@@ -573,14 +519,13 @@ void BaseAnalyser::applyJetMETCorrections() //data
 				float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
                 
 				float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho});
-				//printf("\njet SF for shape correction:");
-				//printf("SF : %f", corrfactor);
+				//print("\njet SF for shape correction:")
+				//print(f"SF: {corrfactor}")
                 
 				float unc = _jetCorrectionUnc->evaluate({corrfactor*rawjetpt, jetetas[i]});
 				uncertainties.emplace_back(unc);
 
 			}
-			
 			return uncertainties;
 		};
 
@@ -620,7 +565,6 @@ void BaseAnalyser::applyJetMETCorrections() //data
 
 		_rlm = _rlm.Define("Jet_pt_corr", appcorrlambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
 		_rlm = _rlm.Define("Jet_pt_relerror", jecuncertaintylambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
-		//fixedGridRhoFastjetAll: rho from all PF Candidates, used e.g. for JECs"
 		_rlm = _rlm.Define("Jet_pt_corr_up", "Jet_pt_corr*(1.0f + Jet_pt_relerror)");
 		_rlm = _rlm.Define("Jet_pt_corr_down", "Jet_pt_corr*(1.0f - Jet_pt_relerror)");
 		_rlm = _rlm.Define("MET_pt_corr", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr", "Jet_phi"});
@@ -691,20 +635,25 @@ void BaseAnalyser::setupAnalysis()
     // Event weight for data it's always one. For MC, it depends on the sign
     //=====================================================================================================//
     _rlm = _rlm.Define("one", "1.0");
-
 	if (_isData && !isDefined("evWeight"))
 	{
 		_rlm = _rlm.Define("evWeight", [](){
 				return 1.0;
 			}, {} );
 	}
-    /*if(!_isData && isDefined("genWeight")) 
-	{
-		_rlm = _rlm.Define("evWeight","genWeight");
-        std::cout<<"Not Data! evweight== genWeight"<<std::endl;
+    
+    
+    /*if(!_isData){
+        if(isDefined("genWeight")){
+            _rlm = _rlm.Define("evWeight","genWeight");
+            std::cout<<"Not Data! Using genWeight"<<std::endl;
 
-	}*/
-            
+        }
+        else{ 
+            _rlm = _rlm.Define("evWeight","one");
+        }
+    }
+    */
     //==========================================sum of gen weight==========================================//
     // store sum of gen weight in outputtree. 
     //PS:"genweight" stored in "Events" tree and "genEventSumw" stored in "Runs" tree in the inputfile
@@ -714,9 +663,23 @@ void BaseAnalyser::setupAnalysis()
     cout<<"sum of gen weight "<< *sumgenweight <<endl;
     string sumofgenweight = Form("%f",*sumgenweight);
     _rlm = _rlm.Define("genEventSumw",sumofgenweight.c_str());
+    //_rlm = _rlm.Define("genWeight","genWeight");
+    std::cout<<"Not Data! Using genWeight"<<std::endl;
     }
    
-    /*--------------------------------------------------------*/
+    /*---------for correction define evWeights as fallows------*//*
+        if(_isData){
+            _rlm = _rlm.Define("unitGenWeight","one")
+                        .Define("pugenWeight","one") // if setupcorrection in processnanoad.py then don't define here. 
+                        .Define("evWeight","one");
+        }
+	    if (_isData && !isDefined("evWeight"))
+	    {
+		    _rlm = _rlm.Define("evWeight", [](){
+				return 1.0;
+			}, {} );
+	    }
+    *//*--------------------------------------------------------*/
 
 	defineCuts();
 	defineMoreVars();

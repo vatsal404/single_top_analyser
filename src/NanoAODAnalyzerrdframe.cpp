@@ -56,13 +56,6 @@ void NanoAODAnalyzerrdframe::setTree(TTree *t, std::string outfilename)
 }
 
 
-void NanoAODAnalyzerrdframe::setupObjects()
-{
-	// Object selection will be defined in sequence.
-	// Selected objects will be stored in new vectors.
-	selectFatJets();
-}
-
 void NanoAODAnalyzerrdframe::setupAnalysis()
 {
 	// Event weight for data it's always one. For MC, it depends on the sign
@@ -133,18 +126,6 @@ bool NanoAODAnalyzerrdframe::readgoodjson(string goodjsonfname)
 		cout << "no JSON file given" << endl;
 		return true;
 	}
-}
-
-void NanoAODAnalyzerrdframe::selectFatJets()
-{
-	_rlm = _rlm.Define("fatjetcuts", "FatJet_pt>400.0 && abs(FatJet_eta)<2.4 && FatJet_tau1>0.0 && FatJet_tau2>0.0 && FatJet_tau3>0.0 && FatJet_tau3/FatJet_tau2<0.5")
-				.Define("Sel_fatjetpt", "FatJet_pt[fatjetcuts]")
-				.Define("Sel_fatjeteta", "FatJet_eta[fatjetcuts]")
-				.Define("Sel_fatjetphi", "FatJet_phi[fatjetcuts]")
-				.Define("Sel_fatjetmass", "FatJet_mass[fatjetcuts]")
-				.Define("nfatjetspass", "int(Sel_fatjetpt.size())")
-				.Define("Sel_fatjetweight", "std::vector<double>(nfatjetspass, evWeight)")
-				.Define("Sel_fatjet4vecs", ::generate_4vec, {"Sel_fatjetpt", "Sel_fatjeteta", "Sel_fatjetphi", "Sel_fatjetmass"});
 }
 
 
