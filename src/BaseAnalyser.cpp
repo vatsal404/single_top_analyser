@@ -248,16 +248,7 @@ void BaseAnalyser::calculateEvWeight(){
 				double btagWeight = 1.0;
 				double sfb_weightup = 1.0;
 				double sfb_weightdown = 1.0;
-				/*double sfb_weightup_correlated = 1.0;
-				double sfb_weightdown_correlated = 1.0;
-				double sfb_weightup_uncorrelated = 1.0;
-				double sfb_weightdown_uncorrelated = 1.0;
-				double sfl_weightup = 1.0;
-				double sfl_weightdown = 1.0;
-				double sfl_weightup_correlated = 1.0;
-                double sfl_weightdown_correlated = 1.0;
-                double sfl_weightup_uncorrelated = 1.0;
-                double sfl_weightdown_uncorrelated = 1.0;*/
+
 
 				for (auto i=0; i<pts.size(); i++)
 				{
@@ -273,24 +264,6 @@ void BaseAnalyser::calculateEvWeight(){
 						//sfb_weightdown
 						btagWeight *=wb_down;
 						
-						/*// up/down correlated
-						double wb_up_corr = _correction_btag1->at("deepJet_mujets")->evaluate({"up_correlated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						//sfb_weightup_correlated*
-						//btagWeight *=wb_up_corr;
-						double wb_down_corr = _correction_btag1->at("deepJet_mujets")->evaluate({"down_correlated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						//sfb_weightdown_correlated*
-						//btagWeight *=wb_down_corr;
-
-						//cout<<"btag weight from b/c jets :  central  = " << wb  << "  btag weight up  = " << wb_up << "  btag weight down  = " << wb_down <<  " bweight up corr = "  << wb_up_corr << " bweight down corr = "  << wb_down_corr << endl;
-
-						//up/down uncorrelated
-						double wb_up_uncorr = _correction_btag1->at("deepJet_mujets")->evaluate({"up_correlated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						//sfb_weightup_uncorrelated*
-						//btagWeight *=wb_up_uncorr;
-						double wb_down_uncorr = _correction_btag1->at("deepJet_mujets")->evaluate({"down_correlated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						//sfb_weightdown_uncorrelated*
-						//btagWeight *=wb_down_uncorr;
-						//cout<<"btag weight from b/c jets :  central  = " << wb  << "  btag weight up  = " << wb_up << "  btag weight down  = " << wb_down <<  " total weight=== " << btagWeight << endl;*/
 
 
 					}else{
@@ -303,23 +276,7 @@ void BaseAnalyser::calculateEvWeight(){
 						double wl_down = _correction_btag1->at("deepJet_incl")->evaluate({"down","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
 						//sfl_weightdown*
 						btagWeight *=wl_down;
-						//cout<<"btag weight from light jets : central (light) = " <<  w2 << "  btag weight up (light) =  " << w2_up << " btag weight down (light) = " << w2_down << endl;
 						
-						/*//light jets // up/down correlated
-						double wl_up_corr = _correction_btag1->at("deepJet_incl")->evaluate({"up_uncorrelated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						//sfl_weightup_correlated*
-						//btagWeight *=wl_up_corr;
-						double wl_down_corr = _correction_btag1->at("deepJet_incl")->evaluate({"down_uncorrelated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						//sfl_weightdown_correlated*
-						//btagWeight *=wl_down_corr;
-
-						//light jets // up/down uncorrelated
-						double wl_up_uncorr = _correction_btag1->at("deepJet_incl")->evaluate({"up_uncorrelated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						//sfl_weightup_uncorrelated*
-						//btagWeight *=wl_up_uncorr;
-						double wl_down_uncorr = _correction_btag1->at("deepJet_incl")->evaluate({"down_uncorrelated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						//sfl_weightdown_uncorrelated*
-						//btagWeight *=wl_down_uncorr;*/
 						
 					}
 				}
