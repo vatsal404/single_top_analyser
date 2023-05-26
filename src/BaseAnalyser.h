@@ -40,6 +40,7 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		string _jercunctag;
 		string _putag;
 		string _btvtype;
+		string _muontype;
 
 
 		TFile *_outrootfile;
@@ -53,12 +54,15 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		std::unique_ptr<correction::CorrectionSet> _correction_btag1;
 		// pile up weights
 		std::unique_ptr<correction::CorrectionSet> _correction_pu;
+		//muon correction
+		std::unique_ptr<correction::CorrectionSet> _correction_muon ;
 
 
 		bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON
 		json jsonroot;
 		
-		void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag);
+		void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype,string muon_fname, string muontype, string jercfname, string jerctag, string jercunctag);
+
 		void setupJetMETCorrection(string fname, string jettag);
 		void applyJetMETCorrections();
 		

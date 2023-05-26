@@ -136,49 +136,18 @@ floats muoncorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::str
         if (fabs(float(etas[i])) > 2.5) {
             throw std::invalid_argument("Invalid value of eta detected!");
         }
-        if (pts[i] <15 || (fabs(float(etas[i])))>2.4 )continue;
+		//for muons pt<15 
+		/*if (pts[i] < 15 || fabs(float(etas[i])) > 2.4) {
+        sf_muon.emplace_back(-1);
+        continue;
+    	}*/	
         float sfm = cset->at(type)->evaluate({year, fabs(float(etas[i])), float(pts[i]), sys});
         sf_muon.emplace_back(sfm);
-        //cout<<"Medium Muon ID scale factor is  == "<< sfm << endl;
-		
+
     }
     return sf_muon;
 }
 
-floats electron_correction(std::unique_ptr<correction::CorrectionSet> &cset, std::string type, std::string year, floats &etas, floats &pts, std::string sys)
-{
-    floats sf_electron;
-    auto nvecs = pts.size();
-    //cout<<"NVECS====== == "<< nvecs << endl;
-    sf_electron.reserve(nvecs);
-    
-    if (etas.size() != nvecs) {
-        throw std::invalid_argument("etas and pts vectors must have the same size!");
-    }
-    
-    for (auto i=0; i<nvecs; i++)
-    {
-        std::cout << "year: " << year  << ", etas: " << fabs(float(etas[i])) << ", pts: " << float(pts[i]) << " sys : " << sys << '\n';
-        
-        if (pts[i] < 0 ) {
-            throw std::invalid_argument("Invalid value of pT detected!");
-        }
-        
-        if (fabs(float(etas[i])) > 2.5) {
-            throw std::invalid_argument("Invalid value of eta detected!");
-        }
-        if (pts[i] >10 || (fabs(float(etas[i])))>2.4 )continue;
-        float sfe = cset->at(type)->evaluate({year, fabs(float(etas[i])), float(pts[i]), sys});
-        sf_electron.emplace_back(sfe);
-        cout<<"Medium Electron ID scale factor is  == "<< sfe << endl;
-		
-    }
-    return sf_electron;
-}
-
-
-
-///
 // case 1: Evaluate central SFs 
 //fixedWP correction with mujets (here medium WP)
 // evaluate('systematic', 'working_point', 'flavor', 'abseta', 'pt')
@@ -217,8 +186,6 @@ floats btv_case1(std::unique_ptr<correction::CorrectionSet>& cset, std::string t
             //std::cout << "\njet SFs from deepJet_incl at medium WP\n";
             //std::cout << "SF light jets : " << bc_jets << '\n';
 		}
-			//const auto all_jets = bc_jets * l_jets; // combine the scale factors for both types
-        	//scalefactors_case1.emplace_back(all_jets);
         //
     }
 
@@ -269,83 +236,6 @@ floats btv_case2(std::unique_ptr<correction::CorrectionSet>& cset, std::string t
     return scalefactors_case2;
 
 }
-//test btvtype list:
-
-floats btv_casetest(std::unique_ptr<correction::CorrectionSet>& cset, std::string type1, std::string sys, std::string wp, ints& hadflav, floats& etas, floats& pts)
-{
-    floats scalefactors_b;
-    const auto nvecs = pts.size();
-    //cout << "NVECS======== " << nvecs << endl;
-    scalefactors_b.reserve(nvecs);
-    const auto abs_etas = [etas]() {
-        floats res;
-        res.reserve(etas.size());
-        std::transform(etas.begin(), etas.end(), std::back_inserter(res), [](const auto& e) { return std::fabs(e); });
-        return res;
-    }();
-    const auto cast_pts = [pts]() {
-        floats res;
-        res.reserve(pts.size());
-        std::transform(pts.begin(), pts.end(), std::back_inserter(res), [](const auto& p) { return static_cast<float>(p); });
-        return res;
-    }();
-    for (auto i = 0; i < nvecs; i++) {
-        const auto bc_jets_type1 = cset->at("deepJet_mujets")->evaluate({sys, wp, hadflav[i], abs_etas[i], cast_pts[i]});
-        const auto bc_jets_type2 = cset->at("deepJet_incl")->evaluate({sys, wp, hadflav[i], abs_etas[i], cast_pts[i]});
-        scalefactors_b.emplace_back(bc_jets_type1);
-        scalefactors_b.emplace_back(bc_jets_type2);
-		const auto bc_jets = bc_jets_type1 * bc_jets_type2; // combine the scale factors for both types
-        scalefactors_b.emplace_back(bc_jets);
-        //std::cout << "\njet SFs for mujets at medium WP\n";
-        //std::cout << "SF b/c : " << bc_jets_type1 << '\n';
-        //std::cout << "SF light : " << bc_jets_type2 << '\n';
-    }
-    return scalefactors_b;
-}
-
-
-
-/*floats btv_case1(std::unique_ptr<correction::CorrectionSet>& cset, std::string type1, std::string type2, std::string sys, std::string wp, ints& hadflav, floats& etas, floats& pts)/
-{
-    floats scalefactors_case1;
-    const auto nvecs = pts.size();
-    //cout << "NVECS======== " << nvecs << endl;
-    scalefactors_case1.reserve(nvecs);
-    const auto abs_etas = [etas]() {
-        floats res;
-        res.reserve(etas.size());
-        std::transform(etas.begin(), etas.end(), std::back_inserter(res), [](const auto& e) { return std::fabs(e); });
-        return res;
-    }();
-    const auto cast_pts = [pts]() {
-        floats res;
-        res.reserve(pts.size());
-        std::transform(pts.begin(), pts.end(), std::back_inserter(res), [](const auto& p) { return static_cast<float>(p); });
-        return res;
-    }();
-    for (auto i = 0; i < nvecs; i++) {
-        std::string flav;
-        switch (hadflav[i]) {
-            case 5:
-                flav = "b";
-                break;
-            case 4:
-                flav = "c";
-                break;
-            default:
-                flav = "udsg";
-                break;
-        }
-        const auto bc_jets_type1 = cset->at(type1)->evaluate({sys, wp, flav, abs_etas[i], cast_pts[i]});
-        const auto bc_jets_type2 = cset->at(type2)->evaluate({sys, wp, flav, abs_etas[i], cast_pts[i]});
-        const auto bc_jets = bc_jets_type1 * bc_jets_type2; // combine the scale factors for both types
-        scalefactors_case1.emplace_back(bc_jets);
-        std::cout << "\njet SFs for mujets at medium WP\n";
-        std::cout << "SF b/c : " << bc_jets << '\n';
-    }
-    return scalefactors_case1;
-}*/
-
 
 
 float pucorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::string name, std::string syst, float ntruepileup)

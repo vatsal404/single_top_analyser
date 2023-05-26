@@ -33,6 +33,10 @@ config = {
         # BTV correction type
         #'btvtype': 'deepJet_shape', #for central shape : case3
         'btvtype': 'deepJet_mujets', #for fixed wp : case1
+        
+        'muon_fname': 'data/MUON/2018_UL/muon_Z.json', 
+        'muontype': 'NUM_MediumID_DEN_TrackerMuons',#'Medium ID UL scale factor',
+        #'muontype': 'NUM_TightRelIso_DEN_MediumID',#'Medium ISO UL scale factor',
 
         # json file name for JERC
         'jercfname': 'data/JERC/jetUL18_jerc.json',

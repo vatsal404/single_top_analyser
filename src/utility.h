@@ -66,7 +66,6 @@ floats btv_case2(std::unique_ptr<correction::CorrectionSet> &cset, std::string t
 floats btv_casetest(std::unique_ptr<correction::CorrectionSet>& cset, std::string type1, std::string sys, std::string wp, ints& hadflav, floats& etas, floats& pts);
 
 floats muoncorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::string type, std::string year,floats &etas,floats &pts, std::string sys);
-floats electron_correction(std::unique_ptr<correction::CorrectionSet> &cset, std::string type, std::string year, floats &etas, floats &pts, std::string sys);
 
 float pucorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::string name, std::string syst, float ntruepileup);
 

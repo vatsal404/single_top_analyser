@@ -231,11 +231,10 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
     skipcorrections = False
     if not skipcorrections:
         print("correction step is on play")
-        
-        aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
-            , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
-        
 
+        aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
+            , config['btvfname'], config['btvtype'], config['muon_fname'], config['muontype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+        
 
     else:
         print("Skipping corrections step")

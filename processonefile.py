@@ -52,9 +52,8 @@ if __name__=='__main__':
     #skipcorrections = True
     #if not skipcorrections:
     print("setup corrections ")
-    
     aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
-        , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+            , config['btvfname'], config['btvtype'], config['muon_fname'], config['muontype'], config['jercfname'], config['jerctag'], config['jercunctag'])
     
     
     sys.stdout.flush() #to force printout in right order 

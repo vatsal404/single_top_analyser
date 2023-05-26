@@ -93,7 +93,7 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodMuonsID", MuonID(2)); //loose muons
-    _rlm = _rlm.Define("goodMuons","goodMuonsID && Muon_pt > 10 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.40");
+    _rlm = _rlm.Define("goodMuons","goodMuonsID && Muon_pt > 15 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.40");
     _rlm = _rlm.Define("goodMuons_pt", "Muon_pt[goodMuons]") 
                 .Define("goodMuons_eta", "Muon_eta[goodMuons]")
                 .Define("goodMuons_phi", "Muon_phi[goodMuons]")
@@ -329,7 +329,7 @@ void BaseAnalyser::calculateEvWeight(){
 			};
 		
 			_rlm = _rlm.Define("btagWeight_case1", btagweightgenerator_case1, {"Selected_jethadflav","Selected_jeteta",  "Selected_jetpt"});// jets after overlap
-			_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case1");
+			//_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case1");
 			
 		}else{
 			//for case 3 : use btvtype': 'deepJet_shape' in jobconfiganalysis.py
@@ -356,8 +356,73 @@ void BaseAnalyser::calculateEvWeight(){
 
 			cout<<"Generate b-tagging weight"<<endl;
 			_rlm = _rlm.Define("btagWeight_case3", btagweightgenerator3, {"Selected_jethadflav", "Selected_jeteta",  "Selected_jetpt", "Selected_jetbtag"});
-			_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case3");
+			//_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case3");
 		}
+	
+	//Muon ID SF and eventweight
+		cout<<"muonID SF for MC "<<endl;
+	
+			auto muonid_sf = [this](floats &etas, floats &pts)->floats
+			{
+				return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
+
+			};
+			
+			_rlm = _rlm.Define("muonID_SF",muonid_sf, {"goodMuons_eta","goodMuons_pt"});
+			// function to calculate event weight for MC events based on DeepJet algorithm
+			
+			auto muonid_weightgenerator= [this](floats &etas, floats &pts)->float
+			{
+				double muonId_w=1.0;
+
+						for (auto i=0; i<pts.size(); i++)
+						{ //muontype=NUM_MediumID_DEN_TrackerMuons
+							//if (pts[i] < 15 || (fabs(float(etas[i])))>2.4 )continue; //  for muons pts<15 -- testing purpose
+							double w = _correction_muon->at(_muontype)->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
+							muonId_w *= w;
+							cout<<"muonID weight ==  "<< w <<endl;
+						}
+						return muonId_w;
+			};
+			_rlm = _rlm.Define("muon_id_weight", muonid_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
+			
+			_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * muon_id_weight");
+	
+
+//////MUON ISO SF--> need to be updated into the muoncorrection
+/*			cout<<"muon ISO SF for MC "<<endl;
+
+			auto muonid_iso = [this](floats &etas, floats &pts)->floats
+			{
+				return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
+
+			};
+
+			_rlm = _rlm.Define("muonISO_SF",muonid_iso, {"goodMuons_eta","goodMuons_pt"});
+
+			auto muonIso_weightgenerator= [this](floats &etas, floats &pts)->float
+			{
+				double muonIso_w=1.	
+				for (auto i=0; i<pts.size(); i++)
+				{
+					 if (pts[i] <15 || (fabs(float(etas[i])))>2.4 )continue;
+					//float sfm = cset->at(type)->evaluate({year, fabs(float(etas[i])), float(pts[i]), sys});
+					double w = _correction_muon->at("NUM_TightRelIso_DEN_MediumID")->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
+					muonIso_w *= w;
+					//cout<<"muon ISO  weight ==  "<< w <<endl;
+				}
+				return muonIso_w;
+			};
+
+			_rlm = _rlm.Define("muon_iso_weight", muonIso_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
+
+	
+		//MuonID+ISO SF:
+		//_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight * muon_iso_weight");
+		//evWeight:
+		//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * evWeight_MuonIDISO");
+		*/
+	
 	}
 
 }
@@ -451,6 +516,14 @@ void BaseAnalyser::defineMoreVars()
 	//case3 shape correction
 	addVartoStore("btag_SF_case3");
 	addVartoStore("btagWeight_case3");
+
+
+	//MUONID - ISO SF & WEIGHT	
+	addVartoStore("muonID_SF");
+	addVartoStore("muon_id_weight");
+	//addVartoStore("muonISO_SF");
+	//addVartoStore("muon_iso_weight");
+	//addVartoStore("evWeight_MuonIDISO");
    
 
 }
@@ -683,13 +756,23 @@ void BaseAnalyser::applyJetMETCorrections() //data
 
 
 
-void BaseAnalyser::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag)
-
+//void BaseAnalyser::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag)
+void BaseAnalyser::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype,string muon_fname, string muontype, string jercfname, string jerctag, string jercunctag)
 {
     cout << "set up Corrections!" << endl;
 	if (_isData) _jsonOK = readgoodjson(goodjsonfname); // read golden json file
 
 	if (!_isData) {
+
+		// using correctionlib
+
+        //Muon corrections
+		_correction_muon = correction::CorrectionSet::from_file(muon_fname);
+		_muontype = muontype;
+		cout<< "MUON FNAME====="<<muon_fname << endl;
+		cout<< "MUON type====="<<_muontype << endl;
+       	assert(_correction_muon->validate());
+
 		
 		// btag corrections
 		_correction_btag1 = correction::CorrectionSet::from_file(btvfname);
