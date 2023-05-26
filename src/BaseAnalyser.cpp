@@ -343,7 +343,7 @@ void BaseAnalyser::calculateEvWeight(){
 			};
 			_rlm = _rlm.Define("muon_id_weight", muonid_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
 			
-			_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * muon_id_weight");
+			//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * muon_id_weight");
 	
 
 //////MUON ISO SF--> need to be updated into the muoncorrection
@@ -356,17 +356,17 @@ void BaseAnalyser::calculateEvWeight(){
 			};
 
 			_rlm = _rlm.Define("muonISO_SF",muonid_iso, {"goodMuons_eta","goodMuons_pt"});
-
+*/
 			auto muonIso_weightgenerator= [this](floats &etas, floats &pts)->float
 			{
-				double muonIso_w=1.	
+				double muonIso_w=1;
 				for (auto i=0; i<pts.size(); i++)
 				{
 					 if (pts[i] <15 || (fabs(float(etas[i])))>2.4 )continue;
-					//float sfm = cset->at(type)->evaluate({year, fabs(float(etas[i])), float(pts[i]), sys});
+					//Muon MediumID ISO UL type: NUM_TightRelIso_DEN_MediumID
 					double w = _correction_muon->at("NUM_TightRelIso_DEN_MediumID")->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
 					muonIso_w *= w;
-					//cout<<"muon ISO  weight ==  "<< w <<endl;
+					cout<<"muon ISO  weight ==  "<< w <<endl;
 				}
 				return muonIso_w;
 			};
@@ -374,11 +374,11 @@ void BaseAnalyser::calculateEvWeight(){
 			_rlm = _rlm.Define("muon_iso_weight", muonIso_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
 
 	
-		//MuonID+ISO SF:
-		//_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight * muon_iso_weight");
+		//MuonID+ISO:
+		_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight * muon_iso_weight");
 		//evWeight:
-		//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * evWeight_MuonIDISO");
-		*/
+		_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * evWeight_MuonIDISO");
+		
 	
 	}
 
@@ -479,8 +479,8 @@ void BaseAnalyser::defineMoreVars()
 	addVartoStore("muonID_SF");
 	addVartoStore("muon_id_weight");
 	//addVartoStore("muonISO_SF");
-	//addVartoStore("muon_iso_weight");
-	//addVartoStore("evWeight_MuonIDISO");
+	addVartoStore("muon_iso_weight");
+	addVartoStore("evWeight_MuonIDISO");
    
 
 }
