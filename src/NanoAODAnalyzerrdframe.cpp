@@ -9,6 +9,7 @@
 #include <iostream>
 #include <algorithm>
 #include <typeinfo>
+#include <random>
 
 #include "TCanvas.h"
 #include "Math/GenVector/VectorUtil.h"
@@ -23,10 +24,12 @@ using namespace std;
 NanoAODAnalyzerrdframe::NanoAODAnalyzerrdframe(TTree *atree, std::string outfilename)
 :_rd(*atree), _jsonOK(false),_outfilename(outfilename)
 	, _outrootfile(0), _rlm(_rd)
-	, _rnt(&_rlm)
+	, _rnt(&_rlm) //PDFWeights(103, 0.0) 
 {
 	_atree=atree;
 	//cout<< " run year=====" << _year <<endl;
+	// if genWeight column exists, then it is not real data
+	//
 
 }
 
@@ -67,12 +70,23 @@ void NanoAODAnalyzerrdframe::setupAnalysis()
 				return 1.0;
 			}, {} );
 	}
-	/*if (_isData && !isDefined("pugenWeight"))
-	{
-		_rlm = _rlm.Define("pugenWeight", [](){
-				return 1.0;
-			}, {} );
+	// Store PDF sum of weights
+   /*if(!_isData){
+            auto storeWeights = [this](floats weights)->floats {
+
+                for (unsigned int i=0; i<weights.size(); i++)
+                    PDFWeights[i] += weights[i];
+
+                return PDFWeights;
+            };
+            try {
+                _rlm.Foreach(storeWeights, {"LHEPdfWeight"});
+            } catch (exception& e) {
+                cout << e.what() << endl;
+                cout << "No PDF weight in this root file!" << endl;
+            }
 	}*/
+	
 
 	setupCuts_and_Hists();
 	setupTree();
@@ -260,32 +274,24 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 
 	vector<RNodeTree *> rntends;
 	_rnt.getRNodeLeafs(rntends);
+	_rnt.Print();
+    cout << rntends.size() << endl;
 
-	//_rnt.Print();
-	//cout << rntends.size() << endl;
-   // std::cout<< "-------------------------------------------------------------------" << std::endl;
-	// on master, regex_replace doesn't work somehow
-	//std::regex rootextension("\\.root");
 
 	for (auto arnt: rntends)
 	{
 		string nodename = arnt->getIndex();
-		//string outname = std::regex_replace(_outfilename, rootextension, "_"+nodename+".root");
 		string outname = _outfilename;
-		// if producing many root files due to branched selection criteria,  each root file will get a different name
 		if (rntends.size()>1) outname.replace(outname.find(".root"), 5, "_"+nodename+".root");
 		_outrootfilenames.push_back(outname);
 		RNode *arnode = arnt->getRNode();
 		std::cout<< "-------------------------------------------------------------------" << std::endl;
                 cout<<"cut : " ;
                 cout << arnt->getIndex();
-		//cout << ROOT::RDF::SaveGraph(_rlm) << endl;
 		if (saveAll) {
 			arnode->Snapshot(outtreename, outname);
 		}
 		else {
-			// use the following if you want to store only a few variables
-			//arnode->Snapshot(outtreename, outname, _varstostore);
             cout << " --writing branches" << endl;
 			std::cout<< "-------------------------------------------------------------------" << std::endl;
 			for (auto bname: _varstostorepertree[nodename])
@@ -309,7 +315,10 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 				h.second.GetPtr()->Write();
 			}
 		}
-
+		/*TH1F* hPDFWeights = new TH1F("LHEPdfWeightSum", "LHEPdfWeightSum", 103, 0, 1);
+        for (size_t i=0; i<PDFWeights.size(); i++){
+            hPDFWeights->SetBinContent(i+1, PDFWeights[i]);
+		}*/
 		_outrootfile->Write(0, TObject::kOverwrite);
 		_outrootfile->Close();
 	}

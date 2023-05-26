@@ -36,8 +36,8 @@ void BaseAnalyser::defineCuts()
     }
 	auto Nentry = _rlm.Count();
 	// This is how you can express a range of the first 100 entries
-    //_rlm = _rlm.Range(0, 1000);
-    //auto Nentry_100 = _rlm.Count();
+    _rlm = _rlm.Range(0, 10000);
+    auto Nentry_100 = _rlm.Count();
 	std::cout<< "-------------------------------------------------------------------" << std::endl;
     cout << "Usage of ranges:\n"
         << " - All entries: " << *Nentry << endl;
@@ -63,11 +63,9 @@ void BaseAnalyser::selectElectrons()
     std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
     std::cout<< "================================//=================================" << std::endl;
     }
-    //string veto_electron_str = Form ("Electron_pt>%f && abs(Electron_eta)<%f && %s",cutdb->Md_Electron_pT,cutdb->Md_Electron_eta, ElectronID(2).c_str());
-    //_rlm = _rlm.Define("goodElectrons", veto_electron_str.c_str());
-
-    _rlm = _rlm.Define("goodElectrons", ElectronID(2)); //without pt-eta cuts
-	//_rlm = _rlm.Define("goodElectrons", "Electron_pt>30.0 && abs(Electron_eta)<2.4 && Electron_pfRelIso03_all<0.15");
+   
+    _rlm = _rlm.Define("goodElectronsID", ElectronID(2)); //without pt-eta cuts
+	_rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>30.0 && abs(Electron_eta)<2.4 && Electron_pfRelIso03_all<0.15");
     _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt[goodElectrons]")
                 .Define("goodElectrons_eta", "Electron_eta[goodElectrons]")
                 .Define("goodElectrons_phi", "Electron_phi[goodElectrons]")
@@ -94,8 +92,8 @@ void BaseAnalyser::selectMuons()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-    //_rlm = _rlm.Define("goodMuons", "Muon_pt>30.0 && abs(Muon_eta)<2.4 && Muon_pfRelIso03_all<0.15");
-    _rlm = _rlm.Define("goodMuons", MuonID(4));
+    _rlm = _rlm.Define("goodMuonsID", MuonID(2)); //loose muons
+    _rlm = _rlm.Define("goodMuons","goodMuonsID && Muon_pt > 10 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.40");
     _rlm = _rlm.Define("goodMuons_pt", "Muon_pt[goodMuons]") 
                 .Define("goodMuons_eta", "Muon_eta[goodMuons]")
                 .Define("goodMuons_phi", "Muon_phi[goodMuons]")
@@ -108,7 +106,7 @@ void BaseAnalyser::selectMuons()
     //generate muon 4vector from selected good Muons
     //-------------------------------------------------------
     _rlm = _rlm.Define("goodMuons_4vecs", ::generate_4vec, {"goodMuons_pt", "goodMuons_eta", "goodMuons_phi", "goodMuons_mass"});
-    //_rlm = _rlm.Define("goodMuons_4vecs", ::generate_4vec, {"goodMuons_pt", "goodMuons_eta", "goodMuons_phi", "goodMuons_mass"});
+   
 
 }
 
@@ -129,97 +127,34 @@ void BaseAnalyser::selectJets()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-    //string jetcuts_str = Form ("Jet_pt>%f && abs(Jet_eta)<%f && Jet_jetId >= %d",cutdb->Md_jet_pT,cutdb->Md_jet_eta,6 );
-    //_rlm = _rlm.Define("goodJets", jetcuts_str);
-
-   // _rlm = _rlm.Define("goodJets", "Jet_pt>30.0 && abs(Jet_eta)<2.4 && Jet_jetId >= 6");// 
     _rlm = _rlm.Define("goodJetsID", JetID(6)); //without pt-eta cuts
-     _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
+    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
     _rlm = _rlm.Define("goodJets_pt", "Jet_pt[goodJets]")
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
                 .Define("goodJets_mass", "Jet_mass[goodJets]")
                 .Define("goodJets_idx", ::good_idx, {"goodJets"});
-				if(!_isData){
 				_rlm = _rlm.Define("goodJets_hadflav", "Jet_hadronFlavour[goodJets]");
-				}
-                
-				_rlm = _rlm.Define("goodJets_jetdeepbtag", "Jet_btagDeepB[goodJets]")
+    //goot jets deep-b tag          
+	_rlm = _rlm.Define("goodJets_jetdeepbtag", "Jet_btagDeepB[goodJets]")
                 .Define("goodJets_deepjetbtag", "Jet_btagDeepFlavB[goodJets]") 
                 .Define("NgoodJets", "int(goodJets_pt.size())")
                 .Define("goodJets_4vecs", ::generate_4vec, {"goodJets_pt", "goodJets_eta", "goodJets_phi", "goodJets_mass"});
 
 	//select b jest within goodjets
-    _rlm = _rlm.Define("btagcuts", "goodJets_deepjetbtag>0.8")
+    _rlm = _rlm.Define("btagcuts", "goodJets_deepjetbtag>0.7")
 			.Define("good_bjetpt", "goodJets_pt[btagcuts]")
 			.Define("good_bjeteta", "goodJets_eta[btagcuts]")
 			.Define("good_bjetphi", "goodJets_phi[btagcuts]")
 			.Define("good_bjetmass", "goodJets_mass[btagcuts]")
 			.Define("good_bjetdeepjet", "goodJets_deepjetbtag[btagcuts]");
-			if(!_isData){
-				_rlm = _rlm.Define("good_bjethadflav", "goodJets_hadflav[btagcuts]");
-				}
-			_rlm = _rlm.Define("Ngood_bjets", "int(good_bjetpt.size())")
+	
+	_rlm = _rlm.Define("good_bjethadflav", "goodJets_hadflav[btagcuts]");
+			
+	_rlm = _rlm.Define("Ngood_bjets", "int(good_bjetpt.size())")
 			.Define("good_bjet4vecs", ::generate_4vec, {"good_bjetpt", "good_bjeteta", "good_bjetphi", "good_bjetmass"});
 
 
-}
-void BaseAnalyser::calculateEvWeight(){
-	  //if (!_isData && !isDefined("evWeight")) {
-        if (!_isData) {
-            cout<<"B tagging SF for MC "<<endl;
-
-		auto btvcentral = [this](floats &pts, floats &etas, ints &hadflav, floats &btags)->floats
-		{
-			return ::btvcorrection(_correction_btag1, _btvtype, "central", pts, etas, hadflav, btags); // defined in utility.cpp
-		};
-
-	
-		_rlm = _rlm.Define("Btv_correction_sfs", btvcentral, {"good_bjetpt", "good_bjeteta", "good_bjethadflav", "good_bjetdeepjet"});
-	
-		// function to calculate event weight for MC events based on DeepJet algorithm
-		auto btagweightgenerator3= [this](floats &pts, floats &etas, ints &hadflav, floats &btags)->float
-		{
-			double bweight=1.0;
-
-			for (auto i=0; i<pts.size(); i++)
-			{
-				double w = _correction_btag1->at(_btvtype)->evaluate({"central", int(hadflav[i]), fabs(float(etas[i])), float(pts[i]), float(btags[i])});
-				bweight *= w;
-			}
-			return bweight;
-		};
-		cout<<"Generate b-tagging weight"<<endl;
-		if(!isDefined("evWeight")){
-		
-		_rlm = _rlm.Define("btagWeight_DeepJetrecalc", btagweightgenerator3, {"good_bjetpt", "good_bjeteta", "good_bjethadflav", "good_bjetdeepjet"});
-
-		//_rlm = _rlm.Define("evWeight", "genWeight * btagWeight_DeepJetrecalc");
-        _rlm = _rlm.Define("evWeight", "pugenWeight * btagWeight_DeepJetrecalc");
-		}
-
-	}
-
-}
-//MET
-
-void BaseAnalyser::selectMET()
-{
-    if (debug){
-        std::cout<< "================================//=================================" << std::endl;
-        std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
-        std::cout<< "================================//=================================" << std::endl;
-    }
-
-    _rlm = _rlm.Define("goodMET_sumET","MET_sumEt>800")
-                .Define("goodMET_pt","MET_pt>5");
-                //.Define("goodMET_eta","MET_eta[goodMET]")
-                //.Define("goodMET_phi","MET_phi[goodMET]")
-                //.Define("NgoodMET","int(goodMET_pt.size())");
-    //_rlm = _rlm.Define("goodMet", "MET_sumEt>600 && MET_pt>5");
-    //_rlm = _rlm.Define("goodMet_pt", "MET_pt[goodMet]");
-
-    
 }
 //=================================Overlap function=================================================//
 void BaseAnalyser::removeOverlaps()
@@ -254,14 +189,15 @@ void BaseAnalyser::removeOverlaps()
 		.Define("Selected_jeteta", "goodJets_eta[muonjetoverlap]")
 		.Define("Selected_jetphi", "goodJets_phi[muonjetoverlap]")
 		.Define("Selected_jetmass", "goodJets_mass[muonjetoverlap]")
-		//.Define("Selected_jetbtag", "goodJets_btag[muonjetoverlap]") //goodJets_deepjetbtag
+	
 		.Define("Selected_jetbtag", "goodJets_deepjetbtag[muonjetoverlap]") //
+		.Define("Selected_jethadflav", "goodJets_hadflav[muonjetoverlap]") //
 		.Define("ncleanjetspass", "int(Selected_jetpt.size())")
 		.Define("cleanjet4vecs", ::generate_4vec, {"Selected_jetpt", "Selected_jeteta", "Selected_jetphi", "Selected_jetmass"})
 		.Define("Selected_jetHT", "Sum(Selected_jetpt)");
         
      //==============================Clean b-Jets==============================================//  
-	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>0.8")
+	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>0.7")
 			.Define("Selected_bjetpt", "Selected_jetpt[btagcuts2]")
 			.Define("Selected_bjeteta", "Selected_jeteta[btagcuts2]")
 			.Define("Selected_bjetphi", "Selected_jetphi[btagcuts2]")
@@ -272,6 +208,179 @@ void BaseAnalyser::removeOverlaps()
 
 }
 
+void BaseAnalyser::calculateEvWeight(){
+	
+	bool isCase1 = true; 
+	//case1 : fixedWP correction with mujets (here medium WP) # evaluate('systematic', 'working_point', 'flavor', 'abseta', 'pt')
+	//for case 1 you should use one of the btvtype = "deepJet_mujets , deepJet_incl"  in jobconfiganalysis.py
+    if (!_isData) {
+    	if(isCase1){
+
+			cout<<"Case 1 B tagging SF for MC "<<endl;
+
+			auto btv = [this](ints &hadflav,floats &etas, floats &pts)->floats
+			{
+			
+				return ::btv_case1(_correction_btag1, _btvtype, "central","M", hadflav, etas,  pts); // defined in utility.cpp
+			
+			};
+
+			auto btv_SF_up = [this](ints &hadflav,floats &etas, floats &pts)->floats
+			{
+				
+				return ::btv_case1(_correction_btag1, _btvtype, "up","M", hadflav, etas,  pts); 
+			
+			};
+			auto btv_SF_down = [this](ints &hadflav,floats &etas, floats &pts)->floats
+			{
+				
+				return ::btv_case1(_correction_btag1, _btvtype, "down","M", hadflav, etas,  pts); // 
+			
+			};
+
+			_rlm = _rlm.Define("btag_SF_case1",btv, {"Selected_jethadflav", "Selected_jeteta","Selected_jetpt"});
+			_rlm = _rlm.Define("btag_SF_up_case1",btv_SF_up, {"Selected_jethadflav", "Selected_jeteta","Selected_jetpt"});
+			_rlm = _rlm.Define("btag_SF_down_case1",btv_SF_down, {"Selected_jethadflav", "Selected_jeteta","Selected_jetpt"});
+	
+			// function to calculate event weight for MC events 
+			auto btagweightgenerator_case1= [this](ints &hadflav, floats &etas, floats &pts)->float
+			{
+				double btagWeight = 1.0;
+				double sfb_weightup = 1.0;
+				double sfb_weightdown = 1.0;
+				/*double sfb_weightup_correlated = 1.0;
+				double sfb_weightdown_correlated = 1.0;
+				double sfb_weightup_uncorrelated = 1.0;
+				double sfb_weightdown_uncorrelated = 1.0;
+				double sfl_weightup = 1.0;
+				double sfl_weightdown = 1.0;
+				double sfl_weightup_correlated = 1.0;
+                double sfl_weightdown_correlated = 1.0;
+                double sfl_weightup_uncorrelated = 1.0;
+                double sfl_weightdown_uncorrelated = 1.0;*/
+
+				for (auto i=0; i<pts.size(); i++)
+				{
+					if (hadflav[i] != 0){
+						double wb = _correction_btag1->at("deepJet_mujets")->evaluate({"central","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						btagWeight *= wb;
+						//cout<<"btag weight from b/c jets :  central (b/c) = " << w  << endl; 
+						//up/down
+						double wb_up = _correction_btag1->at("deepJet_mujets")->evaluate({"up","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfb_weightup*=wb_up;
+						btagWeight *=wb_up;
+						double wb_down = _correction_btag1->at("deepJet_mujets")->evaluate({"down","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfb_weightdown
+						btagWeight *=wb_down;
+						
+						/*// up/down correlated
+						double wb_up_corr = _correction_btag1->at("deepJet_mujets")->evaluate({"up_correlated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfb_weightup_correlated*
+						//btagWeight *=wb_up_corr;
+						double wb_down_corr = _correction_btag1->at("deepJet_mujets")->evaluate({"down_correlated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfb_weightdown_correlated*
+						//btagWeight *=wb_down_corr;
+
+						//cout<<"btag weight from b/c jets :  central  = " << wb  << "  btag weight up  = " << wb_up << "  btag weight down  = " << wb_down <<  " bweight up corr = "  << wb_up_corr << " bweight down corr = "  << wb_down_corr << endl;
+
+						//up/down uncorrelated
+						double wb_up_uncorr = _correction_btag1->at("deepJet_mujets")->evaluate({"up_correlated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfb_weightup_uncorrelated*
+						//btagWeight *=wb_up_uncorr;
+						double wb_down_uncorr = _correction_btag1->at("deepJet_mujets")->evaluate({"down_correlated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfb_weightdown_uncorrelated*
+						//btagWeight *=wb_down_uncorr;
+						//cout<<"btag weight from b/c jets :  central  = " << wb  << "  btag weight up  = " << wb_up << "  btag weight down  = " << wb_down <<  " total weight=== " << btagWeight << endl;*/
+
+
+					}else{
+						double wl = _correction_btag1->at("deepJet_incl")->evaluate({"central","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						btagWeight *= wl;
+						//cout<< "  btag weight from light jets : central (light) = " <<  w2 <<endl;
+						double wl_up = _correction_btag1->at("deepJet_incl")->evaluate({"up","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfl_weightup*
+						btagWeight *=wl_up;
+						double wl_down = _correction_btag1->at("deepJet_incl")->evaluate({"down","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfl_weightdown*
+						btagWeight *=wl_down;
+						//cout<<"btag weight from light jets : central (light) = " <<  w2 << "  btag weight up (light) =  " << w2_up << " btag weight down (light) = " << w2_down << endl;
+						
+						/*//light jets // up/down correlated
+						double wl_up_corr = _correction_btag1->at("deepJet_incl")->evaluate({"up_uncorrelated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfl_weightup_correlated*
+						//btagWeight *=wl_up_corr;
+						double wl_down_corr = _correction_btag1->at("deepJet_incl")->evaluate({"down_uncorrelated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfl_weightdown_correlated*
+						//btagWeight *=wl_down_corr;
+
+						//light jets // up/down uncorrelated
+						double wl_up_uncorr = _correction_btag1->at("deepJet_incl")->evaluate({"up_uncorrelated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfl_weightup_uncorrelated*
+						//btagWeight *=wl_up_uncorr;
+						double wl_down_uncorr = _correction_btag1->at("deepJet_incl")->evaluate({"down_uncorrelated","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+						//sfl_weightdown_uncorrelated*
+						//btagWeight *=wl_down_uncorr;*/
+						
+					}
+				}
+				
+				return btagWeight;
+				
+			};
+		
+			_rlm = _rlm.Define("btagWeight_case1", btagweightgenerator_case1, {"Selected_jethadflav","Selected_jeteta",  "Selected_jetpt"});// jets after overlap
+			_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case1");
+			
+		}else{
+			//for case 3 : use btvtype': 'deepJet_shape' in jobconfiganalysis.py
+			cout<<"case 3 Shape correction B tagging SF for MC "<<endl;
+			auto btvcentral = [this](ints &hadflav,floats &etas, floats &pts, floats &btags)->floats
+			//evaluate('systematic', 'flavor', 'eta', 'pt', 'discriminator')
+			{
+				return ::btvcorrection(_correction_btag1, _btvtype, "central",hadflav, etas,  pts, btags); // defined in utility.cpp
+			}; 
+			_rlm = _rlm.Define("btag_SF_case3", btvcentral, { "Selected_jethadflav", "Selected_jeteta", "Selected_jetpt", "Selected_jetbtag"}); 
+	
+			// function to calculate event weight for MC events based on DeepJet algorithm
+			auto btagweightgenerator3= [this](ints &hadflav, floats &etas, floats &pts, floats &btags)->float
+			{
+				double bweight=1.0;
+
+				for (auto i=0; i<pts.size(); i++)
+				{
+					double w = _correction_btag1->at(_btvtype)->evaluate({"central", int(hadflav[i]), fabs(float(etas[i])), float(pts[i]), float(btags[i])});
+					bweight *= w;
+				}
+				return bweight;
+			};
+
+			cout<<"Generate b-tagging weight"<<endl;
+			_rlm = _rlm.Define("btagWeight_case3", btagweightgenerator3, {"Selected_jethadflav", "Selected_jeteta",  "Selected_jetpt", "Selected_jetbtag"});
+			_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case3");
+		}
+	}
+
+}
+//MET
+
+void BaseAnalyser::selectMET()
+{
+    if (debug){
+        std::cout<< "================================//=================================" << std::endl;
+        std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
+        std::cout<< "================================//=================================" << std::endl;
+    }
+
+    _rlm = _rlm.Define("goodMET_sumET","MET_sumEt>800")
+                .Define("goodMET_pt","MET_pt>5");
+                //.Define("goodMET_eta","MET_eta[goodMET]")
+                //.Define("goodMET_phi","MET_phi[goodMET]")
+                //.Define("NgoodMET","int(goodMET_pt.size())");
+    //_rlm = _rlm.Define("goodMet", "MET_sumEt>600 && MET_pt>5");
+    //_rlm = _rlm.Define("goodMet_pt", "MET_pt[goodMet]");
+
+    
+}
 
 //=============================define variables==================================================//
 void BaseAnalyser::defineMoreVars()
@@ -282,7 +391,6 @@ void BaseAnalyser::defineMoreVars()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-	//addVar({"good_electron1pt", "goodElectrons_pt[0]", ""});
     addVar({"good_muon1pt", "goodMuons_pt[0]", ""});
 
     //selected jet candidates
@@ -297,36 +405,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("run");
     addVartoStore("luminosityBlock");
     addVartoStore("event");
-    addVartoStore("evWeight.*");
-	if(!_isData ){
-		
-		addVartoStore("good_bjetdeepjet");
-		addVartoStore("good_bjethadflav");
-		addVartoStore("Btv_correction_sfs");
-		if(!isDefined("evWeight")){
-			addVartoStore("btagWeight_DeepJetrecalc");
-		}
-	}
-   
-    
-	//Btv_correction_sfs
-	//addVartoStore("Btv_correction_sfs");
-	
-	
-	/*addVartoStore("Sel_jetforsfpt");
-    addVartoStore("Sel_jetforsfeta");
-    addVartoStore("Sel_jetcsvv2");
-    addVartoStore("Sel_jetdeepb");
-    */
-    addVartoStore("Jet_pt_corr");
-	addVartoStore("Jet_pt_corr_up");
-	addVartoStore("Jet_pt_corr_down");
-	addVartoStore("Jet_pt_relerror");
-    addVartoStore("MET_pt_corr");
-    addVartoStore("MET_pt");
-    
-
-   
+    addVartoStore("evWeight");
 
     //addVartoStore("genWeight");
     //addVartoStore("genEventSumw");
@@ -348,6 +427,31 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("NgoodJets");
     addVartoStore("goodJets_pt");
     addVartoStore("Selected_jetpt");
+	addVartoStore("Selected_jeteta");
+	addVartoStore("Selected_jetbtag");
+	addVartoStore("Selected_jethadflav");
+
+	addVartoStore("good_bjetdeepjet");
+	addVartoStore("good_bjethadflav");//>btagcut=0.7--tight
+	addVartoStore("goodJets_hadflav");
+	
+	//jetmet corr
+    addVartoStore("Jet_pt_corr");
+	addVartoStore("Jet_pt_corr_up");
+	addVartoStore("Jet_pt_corr_down");
+	addVartoStore("Jet_pt_relerror");
+    addVartoStore("MET_pt_corr");
+    addVartoStore("MET_pt");
+    
+	//case1 btag correction- fixed wp	
+	addVartoStore("btag_SF_case1");
+	addVartoStore("btag_SF_up_case1");
+	addVartoStore("btag_SF_down_case1");
+	addVartoStore("btagWeight_case1");
+	//case3 shape correction
+	addVartoStore("btag_SF_case3");
+	addVartoStore("btagWeight_case3");
+   
 
 }
 void BaseAnalyser::bookHists()
@@ -364,30 +468,30 @@ void BaseAnalyser::bookHists()
     }
     
     //================================gen/LHE weights======================================================//
-    if(!_isData && !isDefined("genWeight")){
-        add1DHist({"hgenWeight", "genWeight", 1001, -100, 100}, "genWeight", "one", "");
+   // if(!_isData && !isDefined("genWeight")){
+   //     add1DHist({"hgenWeight", "genWeight", 1001, -100, 100}, "genWeight", "one", "");
     
     /*if(isDefined("LHEWeight_originalXWGTUP")){
         add1DHist({"hLHEweight", "LHEweight", 1001, -100, 100}, "LHEWeight_originalXWGTUP", "one", "");
     }*/
-    add1DHist({"hgenEventSumw","Sum of gen Weights",1001,-8e+09,8e+09},"one","genEventSumw","");
+   // add1DHist({"hgenEventSumw","Sum of gen Weights",1001,-8e+09,8e+09},"one","genEventSumw","");
     //====================================================================================================//
-    }
+    //}
+	
     add1DHist( {"hnevents", "Number of Events", 2, -0.5, 1.5}, "one", "evWeight", "");
-	add1DHist( {"hnevents_wo", "Number of Events w/o", 2, -0.5, 1.5}, "one", "one", "");
+	add1DHist( {"hnevents_no_weight", "Number of Events w/o", 2, -0.5, 1.5}, "one", "one", "");
    
     add1DHist( {"hNgoodElectrons", "NumberofGoodElectrons", 5, 0.0, 5.0}, "NgoodElectrons", "evWeight", "");
     
     add1DHist( {"hNgoodMuons", "# of good Muons ", 5, 0.0, 5.0}, "NgoodMuons", "evWeight", "");
     
-    add1DHist( {"hgood_jetpt", "Good Jet pt after " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
-	add1DHist( {"hgood_jetptwo", "Good Jet pt after w/o " , 100, 0, 1000} , "goodJets_pt", "one", "");
+    add1DHist( {"hgood_jetpt_with weight", "Good Jet pt with weight " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
+	add1DHist( {"hgood_jetpt_NOWeight", "Good Jet pt no weihght " , 100, 0, 1000} , "goodJets_pt", "one", "");
 
-    add1DHist( {"hgood_jet1pt", "Good Jet_1 pt after " , 100, 0, 1000} , "good_jet1pt", "evWeight", "");
-    add1DHist( {"hselected_jet1pt", "SelectedJet_1 pt after" , 100, 0, 1000} , "Selected_jet1pt", "evWeight", "");
-    add1DHist( {"hselected_jetpt", "No overlap muon-Jets after" , 100, 0, 1000} , "Selected_jetpt", "evWeight", "");
-	add1DHist( {"hselected_jetptwo", "No overlap muon-Jets w/o weight" , 100, 0, 1000} , "Selected_jetpt", "one", "");
-	
+    add1DHist( {"hgood_jet1pt", "Good Jet_1 pt with weight " , 100, 0, 2500} , "good_jet1pt", "evWeight", "");
+    add1DHist( {"hselected_jet1pt", "SelectedJet_1 pt no weight" , 100, 0, 1000} , "Selected_jet1pt", "evWeight", "");
+    add1DHist( {"hselected_jetptWithweight", "clean-Jets with weight" , 100, 0, 2500} , "Selected_jetpt", "evWeight", "");
+	add1DHist( {"hselected_jetptNoweight", "clean-Jets w/o weight" , 100, 0, 2500} , "Selected_jetpt", "one", "");
 
 }
 void BaseAnalyser::setTree(TTree *t, std::string outfilename)
@@ -418,8 +522,8 @@ void BaseAnalyser::setupObjects()
 	selectElectrons();
 	selectMuons();
 	selectJets();
-	calculateEvWeight();
 	removeOverlaps();
+	calculateEvWeight();
 	selectMET();
 
 }
@@ -580,17 +684,18 @@ void BaseAnalyser::applyJetMETCorrections() //data
 
 
 void BaseAnalyser::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag)
-//In this function the correction is evaluated for each jet. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
-//void BaseAnalyser::setupCorrections(string goodjsonfname, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag)
+
 {
     cout << "set up Corrections!" << endl;
 	if (_isData) _jsonOK = readgoodjson(goodjsonfname); // read golden json file
 
 	if (!_isData) {
-		// using correctionlib
+		
 		// btag corrections
 		_correction_btag1 = correction::CorrectionSet::from_file(btvfname);
 		_btvtype = btvtype;
+		cout<< "btv FNAME====="<<btvfname << endl;
+		cout<< "btv type====="<<_btvtype << endl;
 		assert(_correction_btag1->validate());
 
 		// pile up weights
@@ -634,53 +739,27 @@ void BaseAnalyser::setupAnalysis()
     //==========================================event/gen/ weights==========================================//
     // Event weight for data it's always one. For MC, it depends on the sign
     //=====================================================================================================//
-    _rlm = _rlm.Define("one", "1.0");
+   
+	_rlm = _rlm.Define("one", "1.0");
+	
 	if (_isData && !isDefined("evWeight"))
 	{
 		_rlm = _rlm.Define("evWeight", [](){
 				return 1.0;
 			}, {} );
 	}
-    
-    
-    /*if(!_isData){
-        if(isDefined("genWeight")){
-            _rlm = _rlm.Define("evWeight","genWeight");
-            std::cout<<"Not Data! Using genWeight"<<std::endl;
+    if(!_isData ) // Only use genWeight
+    {
+        //_rlm = _rlm.Define("evWeight", "genWeight");
+        
+       //std::cout<<"Using evWeight = genWeight"<<std::endl;
 
-        }
-        else{ 
-            _rlm = _rlm.Define("evWeight","one");
-        }
-    }
-    */
-    //==========================================sum of gen weight==========================================//
-    // store sum of gen weight in outputtree. 
-    //PS:"genweight" stored in "Events" tree and "genEventSumw" stored in "Runs" tree in the inputfile
-    //=====================================================================================================//   
-    if(!_isData){
-    auto sumgenweight = _rd.Sum("genWeight");
-    cout<<"sum of gen weight "<< *sumgenweight <<endl;
-    string sumofgenweight = Form("%f",*sumgenweight);
-    _rlm = _rlm.Define("genEventSumw",sumofgenweight.c_str());
-    //_rlm = _rlm.Define("genWeight","genWeight");
-    std::cout<<"Not Data! Using genWeight"<<std::endl;
-    }
+        auto sumgenweight = _rd.Sum("genWeight");
+        string sumofgenweight = Form("%f",*sumgenweight);
+        _rlm = _rlm.Define("genEventSumw",sumofgenweight.c_str());
+        std::cout<<"Sum of genWeights = "<<sumofgenweight.c_str()<<std::endl;
+	}
    
-    /*---------for correction define evWeights as fallows------*//*
-        if(_isData){
-            _rlm = _rlm.Define("unitGenWeight","one")
-                        .Define("pugenWeight","one") // if setupcorrection in processnanoad.py then don't define here. 
-                        .Define("evWeight","one");
-        }
-	    if (_isData && !isDefined("evWeight"))
-	    {
-		    _rlm = _rlm.Define("evWeight", [](){
-				return 1.0;
-			}, {} );
-	    }
-    *//*--------------------------------------------------------*/
-
 	defineCuts();
 	defineMoreVars();
 	bookHists();

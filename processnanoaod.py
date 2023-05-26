@@ -231,8 +231,12 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
     skipcorrections = False
     if not skipcorrections:
         print("correction step is on play")
+        
         aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
             , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+        
+
+
     else:
         print("Skipping corrections step")
     #time.sleep(3)
@@ -242,29 +246,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
     aproc.setupAnalysis()
     aproc.run(saveallbranches, outtreename)
 
-    # process input rootfiles to sum up all the counterhistograms
-    #counterhistogramsum = None
-    #for arootfile in rootfilestoprocess:
-    #    intf = ROOT.TFile(arootfile)
-    #    counterhistogram = intf.Get("hcounter_nocut")
-    #    if counterhistogram != None:
-    #        if counterhistogramsum == None:
-    #            counterhistogramsum = counterhistogram.Clone()
-    #            counterhistogramsum.SetDirectory(0)
-    #        else:
-    #            counterhistogramsum.Add(counterhistogram)
-    #    intf.Close()
-    ## save the summed up counterhistogram to the outputfile
-    #if counterhistogramsum != None:
-    #    print("Updating with counter histogram")
-    #    outf = ROOT.TFile(outputroot, "UPDATE")
-    #    counterhistogramsum.Write()
-    #    outf.Write('', ROOT.TObject.kOverwrite)
-    #    outf.Close()
-    #    print("counter histogram updated")
-    #else:
-    #    print("counter histogram not found@")
-#
+    
     pass
 
 if __name__=='__main__':

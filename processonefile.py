@@ -48,16 +48,14 @@ if __name__=='__main__':
     aproc = ROOT.BaseAnalyser(t, outfile)
     aproc.setParams(config['year'], config['runtype'],config['datatype'])
 
-    #aproc.setParams(config[year])
-    # setup JSONS for corrections
-    #aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
-    #    , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+  
     #skipcorrections = True
     #if not skipcorrections:
     print("setup corrections ")
-    #aproc.setupCorrections(config['goodjson'], config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+    
     aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
         , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])
+    
     
     sys.stdout.flush() #to force printout in right order 
     # prepare for processing

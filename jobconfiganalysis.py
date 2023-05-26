@@ -28,10 +28,11 @@ config = {
         #'pileuptag': 'Collisions17_UltraLegacy_goldenJSON',
 
         # json filename for BTV correction 
-        'btvfname': 'data/BTV/2018_UL/btagging.json', 
+        'btvfname': 'data/BTV/2018_UL/btagging.json',
         #'btvfname': 'data/BTV/2017_UL/btagging.json',
         # BTV correction type
-        'btvtype': 'deepJet_shape',
+        #'btvtype': 'deepJet_shape', #for central shape : case3
+        'btvtype': 'deepJet_mujets', #for fixed wp : case1
 
         # json file name for JERC
         'jercfname': 'data/JERC/jetUL18_jerc.json',
@@ -39,10 +40,12 @@ config = {
 
         # conbined correction type for jets
         'jerctag': 'Summer19UL18_V5_MC_L1L2L3Res_AK4PFchs', 
+        # JER/jet resolution : Summer19UL18_JRV2_MC_PtResolution_AK4PFchs
         #'jerctag': 'Summer19UL17_V5_MC_L1L2L3Res_AK4PFchs', 
         # jet uncertainty 
         'jercunctag': 'Summer19UL18_V5_MC_Total_AK4PFchs', 
         #'jercunctag': 'Summer19UL17_V5_MC_Total_AK4PFchs', 
+        # JER/jetresolution scale factor: Summer19UL18_JRV2_MC_ScaleFactor_AK4PFchs
         
         }
 
@@ -63,10 +66,7 @@ procflags = {
         'nrootfiles': 2,
         }
 nanoaod_inputdir_outputdir_pairs = [
-        ['testinputdata/MC/2018/BG/','analyzed/testcorrection.root', 'stderrout.out' ],
-        #for process one file:
-        #['testinputdata/data/JetHT_2017C_DA05CA1A-3265-EE47-84F9-10CB09D22BDA.root','analyzed/testcorrection_data.root', 'stderrout.out' ],
-        #for data
-        #['/eos/lyoeos.in2p3.fr/grid/cms/store/data/Run2017B/SingleElectron/NANOAOD/UL2017_MiniAODv2_NanoAODv9-v1/70000/','analyzed/coorectiontest_data.root', 'stdertest.out' ]
+      
+        ['/eos/lyoeos.in2p3.fr/grid/cms/store/mc/RunIISummer20UL17NanoAODv9/ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v1/80000/','analyzed/testcorrection_muon.root', 'stderr_muontest.out' ],
 ]
 

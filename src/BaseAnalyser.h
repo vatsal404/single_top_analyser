@@ -49,7 +49,6 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		std::unique_ptr<correction::CorrectionSet> _correction_jerc; // json containing all forms of corrections and uncertainties
 		std::shared_ptr<const correction::CompoundCorrection> _jetCorrector; // just the combined L1L2L3 correction
 		std::shared_ptr<const correction::Correction> _jetCorrectionUnc; // for uncertainty corresponding to the jet corrector
-
 		// btag correction
 		std::unique_ptr<correction::CorrectionSet> _correction_btag1;
 		// pile up weights

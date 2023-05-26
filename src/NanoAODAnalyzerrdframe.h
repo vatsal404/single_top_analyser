@@ -81,6 +81,7 @@ public:
 	bool _isData;
 	TTree* _atree;
 	bool debug = true;
+	//floats PDFWeights;
 
 
 	//initialize HLT names
@@ -108,7 +109,7 @@ public:
 	vector<string> _outrootfilenames;
 	RNode _rlm;
 	map<string, RDF1DHist> _th1dhistos;
-	//bool helper_1DHistCreator(std::string hname, std::string title, const int nbins, const double xlow, const double xhi, std::string rdfvar, std::string evWeight);
+	
 	bool helper_1DHistCreator(string hname, string title, const int nbins, const double xlow, const double xhi, string rdfvar, string evWeight, RNode *anode);
 	vector<string> _originalvars;
 	vector<string> _selections;

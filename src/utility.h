@@ -58,7 +58,15 @@ floats sphericity(FourVectorVec &p);
 
 double foxwolframmoment(int l, FourVectorVec &p, int minj=0, int maxj=-1);
 
-floats btvcorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::string name, std::string syst, floats &pts, floats &etas, ints &hadflav, floats &btags);
+floats btvcorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::string name, std::string syst, ints &hadflav, floats &etas,floats &pts,  floats &btags);
+
+floats btv_case1(std::unique_ptr<correction::CorrectionSet> &cset, std::string type, std::string sys,std::string wp, ints &hadflav, floats &etas, floats &pts );
+floats btv_case2(std::unique_ptr<correction::CorrectionSet> &cset, std::string type, std::string sys,std::string wp, ints &hadflav, floats &etas, floats &pts );
+
+floats btv_casetest(std::unique_ptr<correction::CorrectionSet>& cset, std::string type1, std::string sys, std::string wp, ints& hadflav, floats& etas, floats& pts);
+
+floats muoncorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::string type, std::string year,floats &etas,floats &pts, std::string sys);
+floats electron_correction(std::unique_ptr<correction::CorrectionSet> &cset, std::string type, std::string year, floats &etas, floats &pts, std::string sys);
 
 float pucorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::string name, std::string syst, float ntruepileup);
 
