@@ -32,8 +32,8 @@ int main(void) {
 	string btvtype = "deepJet_shape";
 	string muon_fname = "data/MUON/2018_UL/muon_Z.json";
 	string muontype = "NUM_MediumID_DEN_TrackerMuons";
-	string electron_fname = "data/ELECTRON/2018_UL/electron_Z.json";
-	string electrontype = "UL-Electron-ID-SF";
+	//string electron_fname = "data/ELECTRON/2018_UL/electron_Z.json";
+	//string electrontype = "UL-Electron-ID-SF";
 	string jercfname = "data/JERC/UL18_jerc.json";
 	string jerctag = "Summer19UL18_V5_MC_L1L2L3Res_AK4PFchs";
 	string jercunctag = "Summer19UL18_V5_MC_Total_AK4PFchs";

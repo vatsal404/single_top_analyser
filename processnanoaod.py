@@ -187,7 +187,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
 
     fullnamelist =[]
     rootfilestoprocess = []
-    print("collecting root files in "+indir)
+    print("COLLECT root files in : \n"  + indir + "\n")
     if not procflags['recursive']:
         flist = os.listdir(indir)
         for fname in flist:
@@ -207,7 +207,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
             elif procflags['nrootfiles'] ==0 :
                 rootfilestoprocess.append(fname)
 
-    print("files to process")
+    print("FILES to PROCESS")
     print(rootfilestoprocess)
     intreename = config['intreename']
     outtreename = config['outtreename']
@@ -234,8 +234,6 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
 
         aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
             , config['btvfname'], config['btvtype'], config['muon_fname'], config['muontype'], config['jercfname'], config['jerctag'], config['jercunctag'])
-        
-
     else:
         print("Skipping corrections step")
     #time.sleep(3)

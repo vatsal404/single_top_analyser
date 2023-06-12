@@ -263,8 +263,6 @@ void BaseAnalyser::calculateEvWeight(){
 						double wb_down = _correction_btag1->at("deepJet_mujets")->evaluate({"down","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
 						//sfb_weightdown
 						btagWeight *=wb_down;
-						
-
 
 					}else{
 						double wl = _correction_btag1->at("deepJet_incl")->evaluate({"central","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
@@ -276,7 +274,6 @@ void BaseAnalyser::calculateEvWeight(){
 						double wl_down = _correction_btag1->at("deepJet_incl")->evaluate({"down","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
 						//sfl_weightdown*
 						btagWeight *=wl_down;
-						
 						
 					}
 				}
@@ -317,53 +314,51 @@ void BaseAnalyser::calculateEvWeight(){
 		}
 	
 	//Muon ID SF and eventweight
-		cout<<"muonID SF for MC "<<endl;
-	
+		//cout<<"muonID SF for MC "<<endl;
 			auto muonid_sf = [this](floats &etas, floats &pts)->floats
 			{
 				return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
-
 			};
-			
 			_rlm = _rlm.Define("muonID_SF",muonid_sf, {"goodMuons_eta","goodMuons_pt"});
-			// function to calculate event weight for MC events based on DeepJet algorithm
-			
+		
+		//cout<<"Generate MUONID weight"<<endl;
+		
 			auto muonid_weightgenerator= [this](floats &etas, floats &pts)->float
 			{
 				double muonId_w=1.0;
 
-						for (auto i=0; i<pts.size(); i++)
-						{ //muontype=NUM_MediumID_DEN_TrackerMuons
-							//if (pts[i] < 15 || (fabs(float(etas[i])))>2.4 )continue; //  for muons pts<15 -- testing purpose
-							double w = _correction_muon->at(_muontype)->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
-							muonId_w *= w;
-							cout<<"muonID weight ==  "<< w <<endl;
-						}
-						return muonId_w;
+				for (auto i=0; i<pts.size(); i++)
+				{ //muontype=NUM_MediumID_DEN_TrackerMuons
+					//if (pts[i] < 15 || (fabs(float(etas[i])))>2.4 )continue; //  for muons pts<15 -- testing purpose
+					double w = _correction_muon->at(_muontype)->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
+					muonId_w *= w;
+					cout<<"muonID weight ==  "<< w <<endl;
+				}
+				return muonId_w;
 			};
 			_rlm = _rlm.Define("muon_id_weight", muonid_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
 			
 			//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * muon_id_weight");
 	
 
-//////MUON ISO SF--> need to be updated into the muoncorrection
-/*			cout<<"muon ISO SF for MC "<<endl;
-
+			/////MUON ISO SF--> need to be updated into the muoncorrection
+			/*cout<<"muon ISO SF for MC "<<endl;
 			auto muonid_iso = [this](floats &etas, floats &pts)->floats
 			{
 				return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
-
 			};
-
 			_rlm = _rlm.Define("muonISO_SF",muonid_iso, {"goodMuons_eta","goodMuons_pt"});
-*/
+			*/
+
+		//cout<<"Generate MUON ISO weight"<<endl;
+
 			auto muonIso_weightgenerator= [this](floats &etas, floats &pts)->float
 			{
 				double muonIso_w=1;
 				for (auto i=0; i<pts.size(); i++)
 				{
-					 if (pts[i] <15 || (fabs(float(etas[i])))>2.4 )continue;
-					//Muon MediumID ISO UL type: NUM_TightRelIso_DEN_MediumID
+					//if (pts[i] <15 || (fabs(float(etas[i])))>2.4 )continue; //testing json file contents
+					//Muon MediumID ISO UL type: NUM_TightRelIso_DEN_MediumID --> find type in json
 					double w = _correction_muon->at("NUM_TightRelIso_DEN_MediumID")->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
 					muonIso_w *= w;
 					cout<<"muon ISO  weight ==  "<< w <<endl;
@@ -372,13 +367,10 @@ void BaseAnalyser::calculateEvWeight(){
 			};
 
 			_rlm = _rlm.Define("muon_iso_weight", muonIso_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
-
-	
-		//MuonID+ISO:
-		_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight * muon_iso_weight");
-		//evWeight:
-		_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * evWeight_MuonIDISO");
-		
+			//MuonID+ISO:
+			_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight * muon_iso_weight");
+			//evWeight:
+			_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * evWeight_MuonIDISO");
 	
 	}
 
@@ -480,8 +472,7 @@ void BaseAnalyser::defineMoreVars()
 	addVartoStore("muon_id_weight");
 	//addVartoStore("muonISO_SF");
 	addVartoStore("muon_iso_weight");
-	addVartoStore("evWeight_MuonIDISO");
-   
+	addVartoStore("evWeight_MuonIDISO");   
 
 }
 void BaseAnalyser::bookHists()
@@ -609,19 +600,21 @@ bool BaseAnalyser::readgoodjson(string goodjsonfname)
 void BaseAnalyser::setupJetMETCorrection(string fname, string jettag) //data
 {
 
-    cout << "setup JETMET correction" << endl;
+    cout << "SETUP JETMET correction" << endl;
 	// read from file 
 	_correction_jerc = correction::CorrectionSet::from_file(fname);//jercfname=json
 	assert(_correction_jerc->validate()); //the assert functionality : check if the parameters passed to a function are valid =1:true
 	// correction type(jobconfiganalysis.py)
-	cout<<"json file=="<<fname<<endl;
+	cout<<"JERC JSON file : " << fname<<endl;
 	_jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON (JEC,compound)compoundLevel="L1L2L3Res"
-	cout<<"jettag =="<<jettag<<endl;
+	cout<< "JET tag in JSON : " << jettag << endl;
 	_jetCorrectionUnc = _correction_jerc->at(_jercunctag);
+	cout<< "JET uncertainity tag in JSON  : " << _jercunctag << endl;
+	std::cout<< "================================//=================================" << std::endl;
 }
 void BaseAnalyser::applyJetMETCorrections() //data
 {
-    cout << "apply JETMET correction" << endl;
+    //cout << "apply JETMET correction" << endl;
 
 	auto appcorrlambdaf = [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
 	{
@@ -711,10 +704,8 @@ void BaseAnalyser::applyJetMETCorrections() //data
 
 }
 
-
-
-//void BaseAnalyser::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string jercfname, string jerctag, string jercunctag)
 void BaseAnalyser::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype,string muon_fname, string muontype, string jercfname, string jerctag, string jercunctag)
+
 {
     cout << "set up Corrections!" << endl;
 	if (_isData) _jsonOK = readgoodjson(goodjsonfname); // read golden json file
@@ -722,26 +713,29 @@ void BaseAnalyser::setupCorrections(string goodjsonfname, string pufname, string
 	if (!_isData) {
 
 		// using correctionlib
-
+		
         //Muon corrections
 		_correction_muon = correction::CorrectionSet::from_file(muon_fname);
 		_muontype = muontype;
-		cout<< "MUON FNAME====="<<muon_fname << endl;
-		cout<< "MUON type====="<<_muontype << endl;
+		std::cout<< "================================//=================================" << std::endl;
+		cout<< "MUON JSON FILE : " <<  muon_fname << endl;
+		cout<< "MUONID type in JSON  : " << _muontype << endl;
        	assert(_correction_muon->validate());
 
-		
 		// btag corrections
 		_correction_btag1 = correction::CorrectionSet::from_file(btvfname);
 		_btvtype = btvtype;
-		cout<< "btv FNAME====="<<btvfname << endl;
-		cout<< "btv type====="<<_btvtype << endl;
+		cout<< "BTV JSON FILE : "<< btvfname << endl;
+		cout<< "BTV type in JSON  :  " << _btvtype << endl;
 		assert(_correction_btag1->validate());
 
 		// pile up weights
 		_correction_pu = correction::CorrectionSet::from_file(pufname);
+		cout<< "PU JSON FILE : " << pufname << endl;
 		assert(_correction_pu->validate());
 		_putag = putag;
+		cout<< "PU tag in JSON : " << _putag << endl;
+		
 		auto punominal = [this](float x) { return pucorrection(_correction_pu, _putag, "nominal", x); };
 		auto puplus = [this](float x) { return pucorrection(_correction_pu, _putag, "up", x); };
 		auto puminus = [this](float x) { return pucorrection(_correction_pu, _putag, "down", x); };
