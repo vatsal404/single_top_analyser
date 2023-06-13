@@ -52,7 +52,9 @@ void NanoAODAnalyzerrdframe::setTree(TTree *t, std::string outfilename)
 	_hist1dinfovector.clear();
 	_th1dhistos.clear();
 	_varstostore.clear();
-	_hist1dinfovector.clear();
+	//_hist1dinfovector.clear();
+	_hist2dinfovector.clear();
+	_th2dhistos.clear();
 	_selections.clear();
 
 	this->setupAnalysis();
@@ -153,6 +155,16 @@ bool NanoAODAnalyzerrdframe::helper_1DHistCreator(std::string hname, std::string
 	return true;
 }
 
+//for 2D histograms//
+bool NanoAODAnalyzerrdframe::helper_2DHistCreator(std::string hname, std::string title, const int nbinsx, const double xlow, const double xhi, const int nbinsy, const double ylow, const double yhi,std::string rdfvarx,std::string rdfvary, std::string evWeight, RNode *anode)
+{
+	//cout << "1DHistCreator " << hname  << endl;
+
+	RDF2DHist histojets = anode->Histo2D({hname.c_str(), title.c_str(), nbinsx, xlow, xhi,nbinsy, ylow, yhi}, rdfvarx,rdfvary, evWeight); // Fill with weight given by evWeight
+	_th2dhistos[hname] = histojets;
+	histojets.GetPtr()->Print("all");
+	return true;
+}
 
 // Automatically loop to create
 void NanoAODAnalyzerrdframe::setupCuts_and_Hists()
@@ -173,6 +185,18 @@ void NanoAODAnalyzerrdframe::setupCuts_and_Hists()
 			helper_1DHistCreator(std::string(x.hmodel.fName)+hpost,  std::string(x.hmodel.fTitle)+hpost, x.hmodel.fNbinsX, x.hmodel.fXLow, x.hmodel.fXUp, x.varname, x.weightname, &_rlm);
 		}
 	}
+
+	//for 2D histograms
+	for (auto &x : _hist2dinfovector)
+	{
+		std::string hpost = "_nocut";
+
+		if (x.mincutstep.length()==0)
+		{
+			helper_2DHistCreator(std::string(x.hmodel.fName)+hpost,  std::string(x.hmodel.fTitle)+hpost, x.hmodel.fNbinsX, x.hmodel.fXLow, x.hmodel.fXUp, x.hmodel.fNbinsY, x.hmodel.fYLow, x.hmodel.fYUp, x.varname1, x.varname2, x.weightname, &_rlm);
+		}
+	}
+
 
 	_rnt.setRNode(&_rlm);
 
@@ -195,6 +219,15 @@ void NanoAODAnalyzerrdframe::setupCuts_and_Hists()
 				helper_1DHistCreator(std::string(x.hmodel.fName)+hpost,  std::string(x.hmodel.fTitle)+hpost, x.hmodel.fNbinsX, x.hmodel.fXLow, x.hmodel.fXUp, x.varname, x.weightname, rnext);
 			}
 		}
+
+			//for 2DHistograms
+		for (auto &x : _hist2dinfovector)
+		{
+			if (acut.idx.compare(0, x.mincutstep.length(), x.mincutstep)==0)
+			{
+				helper_2DHistCreator(std::string(x.hmodel.fName)+hpost,  std::string(x.hmodel.fTitle)+hpost, x.hmodel.fNbinsX, x.hmodel.fXLow, x.hmodel.fXUp, x.hmodel.fNbinsY, x.hmodel.fYLow, x.hmodel.fYUp, x.varname1, x.varname2, x.weightname, rnext);
+			}
+		}
 		_rnt.addDaughter(rnext, acut.idx);
 
 	}
@@ -203,6 +236,11 @@ void NanoAODAnalyzerrdframe::setupCuts_and_Hists()
 void NanoAODAnalyzerrdframe::add1DHist(TH1DModel histdef, std::string variable, std::string weight,string mincutstep)
 {
 	_hist1dinfovector.push_back({histdef, variable, weight, mincutstep});
+}
+//for 2DHistograms
+void NanoAODAnalyzerrdframe::add2DHist(TH2DModel histdef, std::string variable1,std::string variable2, std::string weight,string mincutstep)
+{
+	_hist2dinfovector.push_back({histdef, variable1,variable2, weight, mincutstep});
 }
 
 
@@ -274,8 +312,8 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 
 	vector<RNodeTree *> rntends;
 	_rnt.getRNodeLeafs(rntends);
-	_rnt.Print();
-    cout << rntends.size() << endl;
+	//_rnt.Print();
+    //cout << rntends.size() << endl;
 
 
 	for (auto arnt: rntends)
@@ -315,6 +353,16 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 				h.second.GetPtr()->Write();
 			}
 		}
+		//for 2D histograms
+		for (auto &h : _th2dhistos)
+		{
+			if (h.second.GetPtr() != nullptr) {
+				h.second.GetPtr()->Print();
+				h.second.GetPtr()->Write();
+			}
+		}
+
+
 		/*TH1F* hPDFWeights = new TH1F("LHEPdfWeightSum", "LHEPdfWeightSum", 103, 0, 1);
         for (size_t i=0; i<PDFWeights.size(); i++){
             hPDFWeights->SetBinContent(i+1, PDFWeights[i]);

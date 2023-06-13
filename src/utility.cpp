@@ -218,7 +218,7 @@ floats btv_case2(std::unique_ptr<correction::CorrectionSet>& cset, std::string t
 		 
         if (hadflav[i] != 0) {
 			//std::string type = "deepJet_mujets" ;
-            const auto bc_jets = cset->at("deepJet_mujets")->evaluate({sys, wp, hadflav[i], abs_etas[i], cast_pts[i]});
+            const auto bc_jets = cset->at("deepJet_comb")->evaluate({sys, wp, hadflav[i], abs_etas[i], cast_pts[i]});
             scalefactors_case2.emplace_back(bc_jets);
             //std::cout << "\njet SFs up_correlated for comb at tight WP\n";
             //std::cout << "SF b/c : " << bc_jets << '\n';

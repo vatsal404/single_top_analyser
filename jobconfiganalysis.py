@@ -30,9 +30,10 @@ config = {
         # json filename for BTV correction 
         'btvfname': 'data/BTV/2018_UL/btagging.json',
         #'btvfname': 'data/BTV/2017_UL/btagging.json',
-        # BTV correction type
+        # BTV correction type: //to use btvtype from the json file for the btag SFs
+        'btvtype': 'deepJet_mujets', #for fixed wp : case1 
+        #'btvtype': 'deepJet_comb', #for fixed wp : case2
         #'btvtype': 'deepJet_shape', #for central shape : case3
-        'btvtype': 'deepJet_mujets', #for fixed wp : case1
         
         'muon_fname': 'data/MUON/2018_UL/muon_Z.json', 
         'muontype': 'NUM_MediumID_DEN_TrackerMuons',#'Medium ID UL scale factor',
@@ -71,6 +72,6 @@ procflags = {
         }
 nanoaod_inputdir_outputdir_pairs = [
       
-        ['/eos/lyoeos.in2p3.fr/grid/cms/store/mc/RunIISummer20UL17NanoAODv9/ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v1/80000/','analyzed/testcorrection_muon.root', 'stderr_muontest.out' ],
+        ['/eos/lyoeos.in2p3.fr/grid/cms/store/mc/RunIISummer20UL17NanoAODv9/ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v1/80000/','analyzed/testcorrection_muon.root', 'stderr.out' ],
 ]
 

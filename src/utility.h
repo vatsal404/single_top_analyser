@@ -32,6 +32,15 @@ struct hist1dinfo
 	std::string weightname;
 	std::string mincutstep;
 } ;
+//for 2D histograms
+struct hist2dinfo
+{
+	ROOT::RDF::TH2DModel hmodel;
+	std::string varname1;
+	std::string varname2;
+	std::string weightname;
+	std::string mincutstep;
+} ;
 
 
 struct varinfo

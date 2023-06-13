@@ -38,6 +38,7 @@ using json = nlohmann::json;
 
 class NanoAODAnalyzerrdframe {
 	using RDF1DHist = RResultPtr<TH1D>;
+	using RDF2DHist = RResultPtr<TH2D>;
 public:
 	NanoAODAnalyzerrdframe(string infilename, string intreename, string outfilename);
 	NanoAODAnalyzerrdframe(TTree *t, string outfilename);
@@ -64,6 +65,7 @@ public:
 	void addVartoStore(string varname);
 	void addCuts(string cut, string idx);
 	void add1DHist(TH1DModel histdef, string variable, string weight, string mincutstep="");
+	void add2DHist(TH2DModel histdef, string variable1, string variable2, string weight, string mincutstep="");
 
 	void setupCuts_and_Hists();
 	void drawHists(RNode t);
@@ -108,13 +110,21 @@ public:
 	TFile *_outrootfile;
 	vector<string> _outrootfilenames;
 	RNode _rlm;
-	map<string, RDF1DHist> _th1dhistos;
 	
+	map<string, RDF1DHist> _th1dhistos;
 	bool helper_1DHistCreator(string hname, string title, const int nbins, const double xlow, const double xhi, string rdfvar, string evWeight, RNode *anode);
+	vector<hist1dinfo> _hist1dinfovector;
+
+	//for 2D histograms
+	map<string, RDF2DHist> _th2dhistos;
+	bool helper_2DHistCreator(string hname, string title, const int nbinsx, const double xlow, const double xhi, const int nbinsy, const double ylow, const double yhi, string rdfvarx, string rdfvary, string evWeight, RNode *anode);
+	
+	vector<hist2dinfo> _hist2dinfovector;
+
+
 	vector<string> _originalvars;
 	vector<string> _selections;
-
-	vector<hist1dinfo> _hist1dinfovector;
+	
 	vector<varinfo> _varinfovector;
 	vector<cutinfo> _cutinfovector;
 
