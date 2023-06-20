@@ -220,66 +220,49 @@ void BaseAnalyser::calculateEvWeight(){
     	if(isCase1){
 
 			cout<<"Case 1 B tagging SF for MC "<<endl;
-
-			auto btv = [this](ints &hadflav,floats &etas, floats &pts)->floats
+			// to use btv type directly from jobconfiganalysis 
+			auto btv = [this](ints &hadflav,floats &etas, floats &pts)->floats 
 			{
 			
 				return ::btv_case1(_correction_btag1, _btvtype, "central","M", hadflav, etas,  pts); // defined in utility.cpp
 			
 			};
 
-			auto btv_SF_up = [this](ints &hadflav,floats &etas, floats &pts)->floats
-			{
-				
-				return ::btv_case1(_correction_btag1, _btvtype, "up","M", hadflav, etas,  pts); 
-			
-			};
-			auto btv_SF_down = [this](ints &hadflav,floats &etas, floats &pts)->floats
-			{
-				
-				return ::btv_case1(_correction_btag1, _btvtype, "down","M", hadflav, etas,  pts); // 
-			
-			};
-
 			_rlm = _rlm.Define("btag_SF_case1",btv, {"Selected_bjethadflav", "Selected_bjeteta","Selected_bjetpt"});
-			_rlm = _rlm.Define("btag_SF_up_case1",btv_SF_up, {"Selected_bjethadflav", "Selected_bjeteta","Selected_bjetpt"});
-			_rlm = _rlm.Define("btag_SF_down_case1",btv_SF_down, {"Selected_bjethadflav", "Selected_bjeteta","Selected_bjetpt"});
-	
-			// function to calculate event weight for MC events 
-			auto btagweightgenerator_case1= [this](ints &hadflav, floats &etas, floats &pts)->float
-			{
-				double btagWeight = 1.0;
-				double sfb_weightup = 1.0;
-				double sfb_weightdown = 1.0;
+		
+			//======================================================================================================================================
+			//>>>> function to calculate event weights for MC events, incorporating fixedWP correction with mujets (here medium WP)and systematics with
+			//all variations seperately (up/down/correlated/uncorrelated/)
+			//The weight for each variation is stored in separate columns (btagWeight_case1_central,btagWeight_case1_up, btagWeight_case1_down, etc.). 
+			// btagWeight_case1_central  is used to recalculate the eventweight. Other variations are intended for systematics calculations.
+			//======================================================================================================================================
+			auto btagweightgenerator_case1 = [this](const ROOT::VecOps::RVec<int>& hadflav, const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts, const std::string& variation) -> float {
+    		double btagWeight = 1.0;
 
+    			for (std::size_t i = 0; i < pts.size(); i++) {
+        			if (hadflav[i] != 0) {
+            			double bcjets_weights = _correction_btag1->at("deepJet_mujets")->evaluate({variation, "M", hadflav[i], std::fabs(etas[i]), pts[i]});
+            			btagWeight *= bcjets_weights;
+        			} else {
+            			double lightjets_weights = _correction_btag1->at("deepJet_incl")->evaluate({variation, "M", hadflav[i], std::fabs(etas[i]), pts[i]});
+            			btagWeight *= lightjets_weights;
+        			}
+    			}
 
-				for (auto i=0; i<pts.size(); i++)
-				{
-					if (hadflav[i] != 0){
-						double wb = _correction_btag1->at("deepJet_mujets")->evaluate({"central","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						btagWeight *= wb;
-						//cout<<"btag weight from b/c jets :  central (b/c) = " << wb  << endl; 
-						//up/down
-						double wb_up = _correction_btag1->at("deepJet_mujets")->evaluate({"up","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						double wb_down = _correction_btag1->at("deepJet_mujets")->evaluate({"down","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
+    			return btagWeight;
+			};
+			// btag weight for each variation individually
+			std::vector<std::string> variations = {"central", "up", "down", "up_correlated", "down_correlated", "uncorrelated"}; 
+			for (const std::string& variation : variations) {
+    			std::string column_name = "btagWeight_case1_" + variation;
+    			_rlm = _rlm.Define(column_name, [btagweightgenerator_case1, variation](const ROOT::VecOps::RVec<int>& hadflav, const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts) {
+        			float weight = btagweightgenerator_case1(hadflav, etas, pts, variation);// Get the weight for the corresponding variation
+        			return weight;
+    			}, {"Selected_bjethadflav", "Selected_bjeteta", "Selected_bjetpt"}); //after all cuts, remove overlapped and btagged jets
+			}
 
-					}else{
-						double wl = _correction_btag1->at("deepJet_incl")->evaluate({"central","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						btagWeight *= wl;
-						//cout<< "  btag weight from light jets : central (light) = " <<  wl <<endl;
-						double wl_up = _correction_btag1->at("deepJet_incl")->evaluate({"up","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						double wl_down = _correction_btag1->at("deepJet_incl")->evaluate({"down","M", int(hadflav[i]), fabs(float(etas[i])), float(pts[i])});
-						
-					}
-				}
-				
-				return btagWeight;
-				
-			};	
-			_rlm = _rlm.Define("btagWeight_case1", btagweightgenerator_case1, {"Selected_bjethadflav","Selected_bjeteta",  "Selected_bjetpt"}); ////jets after overlapped and btagged 
-			//total event weight after btagging Medium wp 
-			//_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case1");
-			
+		//======================================================================================================================================
+		//case3 - Shape correction
 		}else{
 			//for case 3 : use btvtype': 'deepJet_shape' in jobconfiganalysis.py
 			cout<<"case 3 Shape correction B tagging SF for MC "<<endl;
@@ -290,7 +273,9 @@ void BaseAnalyser::calculateEvWeight(){
 			}; 
 			_rlm = _rlm.Define("btag_SF_case3", btvcentral, { "Selected_jethadflav", "Selected_jeteta", "Selected_jetpt", "Selected_jetbtag"}); 
 	
-			// function to calculate event weight for MC events based on DeepJet algorithm
+			//======================================================================================================================================
+			//>>>> function to calculate event weights for MC events,based on DeepJet algorithm, incorporating shape correction with central variation
+			//======================================================================================================================================
 			auto btagweightgenerator3= [this](ints &hadflav, floats &etas, floats &pts, floats &btags)->float
 			{
 				double bweight=1.0;
@@ -309,71 +294,66 @@ void BaseAnalyser::calculateEvWeight(){
 			//_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case3");
 		}
 	
-		//=========================================================Muon ID SF and eventweight================================================================// 
+		//=====================================================Muon ID SF and eventweight============================================================// 
 		//muontype= for thight: NUM_TightID_DEN_genTracks //for medium: NUM_MediumID_DEN_TrackerMuons
 		//Muon MediumID ISO UL type: NUM_TightRelIso_DEN_MediumID && thightID:NUM_TightRelIso_DEN_TightIDandIPCut --> the type can be found in json file
 		//--> As an example Medium wp is used 
-		//====================================================================================================================================================//
+		//===============================================================================================================================================//
 		//cout<<"muonID SF for MC "<<endl;
-			auto muonid_sf = [this](floats &etas, floats &pts)->floats
-			{
-				return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
-			};
-			_rlm = _rlm.Define("muonID_SF",muonid_sf, {"goodMuons_eta","goodMuons_pt"});
-		
-			//cout<<"Generate MUONID weight"<<endl;
-		
-			auto muonid_weightgenerator= [this](floats &etas, floats &pts)->float
-			{
-				double muonId_w=1.0;
-
-				for (auto i=0; i<pts.size(); i++)
-				{ 
-					//if (pts[i] < 15 || (fabs(float(etas[i])))>2.4 )continue; //  for muons pts<15 -- testing purpose
-					double w = _correction_muon->at(_muontype)->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
-					muonId_w *= w;
-					//cout<<"muonID weight ==  "<< w <<endl;
-				}
-				return muonId_w;
-			};
-			_rlm = _rlm.Define("muon_id_weight", muonid_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
-			
-			//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * muon_id_weight");
+		auto muonid_sf = [this](floats &etas, floats &pts)->floats
+		{
+			return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
+		};
+		_rlm = _rlm.Define("muonID_SF",muonid_sf, {"goodMuons_eta","goodMuons_pt"});
 	
-
-			/////MUON ISO SF--> need to be updated into the muoncorrection
-			/*cout<<"muon ISO SF for MC "<<endl;
-			auto muonid_iso = [this](floats &etas, floats &pts)->floats
-			{
-				return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
-			};
-			_rlm = _rlm.Define("muonISO_SF",muonid_iso, {"goodMuons_eta","goodMuons_pt"});
-			*/
-
-			//cout<<"Generate MUON ISO weight"<<endl;
-
-			auto muonIso_weightgenerator= [this](floats &etas, floats &pts)->float
-			{
-				double muonIso_w=1;
-				for (auto i=0; i<pts.size(); i++)
-				{
-					//if (pts[i] <15 || (fabs(float(etas[i])))>2.4 )continue; //testing json file contents
-					
-					double w = _correction_muon->at("NUM_TightRelIso_DEN_MediumID")->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
-					muonIso_w *= w;
-					//cout<<"muon ISO  weight ==  "<< w <<endl;
-				}
-				return muonIso_w;
-			};
-
-			_rlm = _rlm.Define("muon_iso_weight", muonIso_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
-			
-			//MuonID+ISO event weight:
-			_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight * muon_iso_weight");
-			
-			//Total event Weight:
-			_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1 * evWeight_MuonIDISO");
+		//cout<<"Generate MUONID weight"<<endl;
 	
+		auto muonid_weightgenerator= [this](floats &etas, floats &pts)->float
+		{
+			double muonId_w=1.0;
+			for (auto i=0; i<pts.size(); i++)
+			{ 
+				//if (pts[i] < 15 || (fabs(float(etas[i])))>2.4 )continue; //  for muons pts<15 -- testing purpose
+				double w = _correction_muon->at(_muontype)->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
+				muonId_w *= w;
+				//cout<<"muonID weight ==  "<< w <<endl;
+			}
+			return muonId_w;
+		};
+		_rlm = _rlm.Define("muon_id_weight", muonid_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
+		
+		//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1_central * muon_id_weight");
+
+		/////MUON ISO SF--> need to be updated into the muoncorrection
+		/*cout<<"muon ISO SF for MC "<<endl;
+		auto muonid_iso = [this](floats &etas, floats &pts)->floats
+		{
+			return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
+		};
+		_rlm = _rlm.Define("muonISO_SF",muonid_iso, {"goodMuons_eta","goodMuons_pt"});
+		*/
+		//cout<<"Generate MUON ISO weight"<<endl;
+		auto muonIso_weightgenerator= [this](floats &etas, floats &pts)->float
+		{
+			double muonIso_w=1;
+			for (auto i=0; i<pts.size(); i++)
+			{
+				//if (pts[i] <15 || (fabs(float(etas[i])))>2.4 )continue; //testing json file contents
+				
+				double w = _correction_muon->at("NUM_TightRelIso_DEN_MediumID")->evaluate({"2018_UL", fabs(float(etas[i])),float(pts[i]), "sf"});
+				muonIso_w *= w;
+				//cout<<"muon ISO  weight ==  "<< w <<endl;
+			}
+			return muonIso_w;
+		};
+		_rlm = _rlm.Define("muon_iso_weight", muonIso_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
+		
+		//MuonID+ISO event weight:
+		_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight * muon_iso_weight");
+		
+		//Total event Weight:
+		_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1_central * evWeight_MuonIDISO"); 
+
 	}
 
 }
@@ -461,13 +441,11 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("MET_pt");
     
 	//case1 btag correction- fixed wp	
-	addVartoStore("btag_SF_case1");
-	addVartoStore("btag_SF_up_case1");
-	addVartoStore("btag_SF_down_case1");
-	addVartoStore("btagWeight_case1");
+	addVartoStore("btagWeight_case1_central");
+	addVartoStore("btagWeight_case1_up");
+	addVartoStore("btagWeight_case1_down");
 	
 	//case3 shape correction
-	//addVartoStore("btag_SF_case3");
 	//addVartoStore("btagWeight_case3");
 
 

@@ -169,24 +169,21 @@ floats btv_case1(std::unique_ptr<correction::CorrectionSet>& cset, std::string t
         std::transform(pts.begin(), pts.end(), std::back_inserter(res), [](const auto& p) { return static_cast<float>(p); });
         return res;
     }();
-  for (auto i = 0; i < nvecs; i++) {
+  	for (auto i = 0; i < nvecs; i++) {
         //std::cout << "sys: " << sys << ", wp: " << wp << ", hadflav: " << hadflav[i] << ", etas: " << abs_etas[i] << ", pts: " << cast_pts[i] << '\n';
-		 
         if (hadflav[i] != 0) {
-			//std::string type = "deepJet_mujets" ;
             const auto bc_jets = cset->at("deepJet_mujets")->evaluate({sys, wp, hadflav[i], abs_etas[i], cast_pts[i]});
             scalefactors_case1.emplace_back(bc_jets);
             //std::cout << "\njet SFs from deepJe_mujets at medium WP\n";
             //std::cout << "SF b/c jets : " << bc_jets << '\n';
         } else{ 
-		//std::string type = "depJet_incl" ;
            const auto bc_jets = cset->at("deepJet_incl")->evaluate({sys, wp, hadflav[i], abs_etas[i], cast_pts[i]});
-            scalefactors_case1.emplace_back(bc_jets);
-			
+           scalefactors_case1.emplace_back(bc_jets);
             //std::cout << "\njet SFs from deepJet_incl at medium WP\n";
             //std::cout << "SF light jets : " << bc_jets << '\n';
 		}
         //
+		
     }
 
     return scalefactors_case1;
@@ -214,23 +211,24 @@ floats btv_case2(std::unique_ptr<correction::CorrectionSet>& cset, std::string t
         return res;
     }();
   for (auto i = 0; i < nvecs; i++) {
-        //std::cout << "sys: " << sys << ", wp: " << wp << ", hadflav: " << hadflav[i] << ", etas: " << abs_etas[i] << ", pts: " << cast_pts[i] << '\n';
+
+		float bweight = 1.0;
 		 
         if (hadflav[i] != 0) {
-			//std::string type = "deepJet_mujets" ;
+			//std::string type = "deepJet_comb" ;
             const auto bc_jets = cset->at("deepJet_comb")->evaluate({sys, wp, hadflav[i], abs_etas[i], cast_pts[i]});
-            scalefactors_case2.emplace_back(bc_jets);
+			bweight = bc_jets;
             //std::cout << "\njet SFs up_correlated for comb at tight WP\n";
             //std::cout << "SF b/c : " << bc_jets << '\n';
         } else{ 
 		//std::string type = "depJet_incl" ;
            const auto bc_jets = cset->at("deepJet_incl")->evaluate({sys, wp, hadflav[i], abs_etas[i], cast_pts[i]});
-            scalefactors_case2.emplace_back(bc_jets);
+			bweight = bc_jets;
 			
             //std::cout << "\njet up_correlated for comb at tight  WP\n";
             //std::cout << "SF light jets : " << bc_jets << '\n';
 		}
-
+		scalefactors_case2.emplace_back(bweight);
     }
 
     return scalefactors_case2;
