@@ -36,7 +36,7 @@ void BaseAnalyser::defineCuts()
     }
 	auto Nentry = _rlm.Count();
 	// This is how you can express a range of the first 100 entries
-    _rlm = _rlm.Range(0, 10000);
+    _rlm = _rlm.Range(0, 100000);
     auto Nentry_100 = _rlm.Count();
 	std::cout<< "-------------------------------------------------------------------" << std::endl;
     cout << "Usage of ranges:\n"
@@ -46,7 +46,7 @@ void BaseAnalyser::defineCuts()
 
 	//MinimalSelection to filter events
     addCuts("nMuon > 2 && nElectron > 0 && nJet>0", "0");
-    //addCuts("nJet>0","00");
+    addCuts("NgoodMuons>=2","00");
     //addCuts("ncleanjetspass>0","00");
 	//addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
 
@@ -307,22 +307,35 @@ void BaseAnalyser::calculateEvWeight(){
 		_rlm = _rlm.Define("muonID_SF",muonid_sf, {"goodMuons_eta","goodMuons_pt"});
 	
 		//cout<<"Generate MUONID weight"<<endl;
-	
-		auto muonid_weightgenerator= [this](floats &etas, floats &pts)->float
-		{
-			double muonId_w=1.0;
-			for (auto i=0; i<pts.size(); i++)
-			{ 
-				//if (pts[i] < 15 || (fabs(float(etas[i])))>2.4 )continue; //  for muons pts<15 -- testing purpose
-				double w = _correction_muon->at(_muontype)->evaluate({"2018_UL", fabs(float(etas[i])), float(pts[i]), "sf"});
+		//muonID sf and systematics with up/down variations
+		//===========//===========//===========//===========//===========
+		auto muonid_weightgenerator = [this](const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts, const std::string& variation) -> 	float {
+		    double muonId_w = 1.0;
+
+		    for (std::size_t i = 0; i < pts.size(); i++) {
+				
+		        double w = _correction_muon->at(_muontype)->evaluate({"2018_UL", std::fabs(etas[i]), pts[i], variation}); //muontype='NUM_MediumID_DEN_TrackerMuons': in jobconfiganalysis.py
 				muonId_w *= w;
-				//cout<<"muonID weight ==  "<< w <<endl;
-			}
-			return muonId_w;
+				//std::cout << "Individual weight (muon " << i << "): " << w << std::endl;
+				//std::cout << "Cumulative weight after muon " << i << ": " << muonId_w << std::endl;
+		    }	
+		    return muonId_w;
 		};
-		_rlm = _rlm.Define("muon_id_weight", muonid_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
-		
-		//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1_central * muon_id_weight");
+		// define muon ID weight sf/systs for each variation individually
+		//'sf' is nominal, and 'systup' and 'systdown' are up/down variations with total stat+-syst uncertainties. Individual systs are also available (in these cases syst only, not sf +/- syst
+		std::vector<std::string> variations = {"sf", "systup", "systdown","syst"};
+		for (const std::string& variation : variations) {
+		    std::string column_name = "muon_id_weight_" + variation;
+		    _rlm = _rlm.Define(column_name, [muonid_weightgenerator, variation](const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts) {
+		        float weight = muonid_weightgenerator(etas, pts, variation); // Get the weight for the corresponding variation
+				//std::cout << "Muon ID weight (" << variation << "): " << weight << std::endl;
+		        return weight;
+		    }, {"goodMuons_eta", "goodMuons_pt"});
+		}
+		//Total event Weight after nominal btagweight and muon_id weight 
+		//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1_central * muon_id_weight_sf");
+		//===========//===========//===========//===========//===========
+
 
 		/////MUON ISO SF--> need to be updated into the muoncorrection
 		/*cout<<"muon ISO SF for MC "<<endl;
@@ -349,7 +362,7 @@ void BaseAnalyser::calculateEvWeight(){
 		_rlm = _rlm.Define("muon_iso_weight", muonIso_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
 		
 		//MuonID+ISO event weight:
-		_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight * muon_iso_weight");
+		_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight_sf * muon_iso_weight");
 		
 		//Total event Weight:
 		_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1_central * evWeight_MuonIDISO"); 
@@ -451,7 +464,11 @@ void BaseAnalyser::defineMoreVars()
 
 	//MUONID - ISO SF & WEIGHT	
 	addVartoStore("muonID_SF");
-	addVartoStore("muon_id_weight");
+	//addVartoStore("muon_id_weight");
+	addVartoStore("muon_id_weight_sf");
+	addVartoStore("muon_id_weight_syst");
+	addVartoStore("muon_id_weight_systup");
+	addVartoStore("muon_id_weight_systdown");
 	//addVartoStore("muonISO_SF");
 	addVartoStore("muon_iso_weight");
 	addVartoStore("evWeight_MuonIDISO");   

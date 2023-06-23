@@ -136,15 +136,14 @@ floats muoncorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::str
         if (fabs(float(etas[i])) > 2.5) {
             throw std::invalid_argument("Invalid value of eta detected!");
         }
-		//for muons pt<15 
-		/*if (pts[i] < 15 || fabs(float(etas[i])) > 2.4) {
-        sf_muon.emplace_back(-1);
-        continue;
-    	}*/	
+		//if (pts[i] < 15 || fabs(float(etas[i])) > 2.4) {
+        //sf_muon.emplace_back(-1);
+    	//	}
         float sfm = cset->at(type)->evaluate({year, fabs(float(etas[i])), float(pts[i]), sys});
         sf_muon.emplace_back(sfm);
 
     }
+	//cout<<"SF MUON === " << sf_muon << endl;
     return sf_muon;
 }
 
