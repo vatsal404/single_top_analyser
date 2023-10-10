@@ -27,7 +27,8 @@
 #include "utility.h" // floats, etc are defined here
 #include "RNodeTree.h"
 #include "TCut.h"
-
+#include "TRandom.h"
+#include "RoccoR.h"
 
 using namespace ROOT::RDF;
 using namespace std;
@@ -51,6 +52,13 @@ public:
 	// object selectors
 	// RNode is in namespace ROOT::RDF
 	bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON
+	void selectFatJets();
+
+	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string muon_roch_fname, string muon_fname, string muon_hlt_type, string muon_reco_type, string muon_id_type, string muon_iso_type, string electron_fname, string electron_reco_type, string electron_id_type, string jercfname, string jerctag, string jercunctag);
+	void setupJetMETCorrection(string fname, string jettag);
+	void applyJetMETCorrections();
+    
+	//virtual void applyJetMETCorrections();
 
 
 	void addVar(varinfo v);
@@ -66,6 +74,11 @@ public:
 	void addCuts(string cut, string idx);
 	void add1DHist(TH1DModel histdef, string variable, string weight, string mincutstep="");
 	void add2DHist(TH2DModel histdef, string variable1, string variable2, string weight, string mincutstep="");
+
+	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, std::string output_var);
+
+	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var);
+	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var);
 
 	void setupCuts_and_Hists();
 	void drawHists(RNode t);
@@ -105,6 +118,17 @@ public:
 	//bool _isData;
 	bool _jsonOK;
 	string _outfilename;
+	string _jsonfname;
+	string _jerctag;
+	string _jercunctag;
+	string _putag;
+	string _btvtype;
+	string _muon_hlt_type;
+	string _muon_reco_type;
+	string _muon_id_type;
+	string _muon_iso_type;
+	string _electron_reco_type;
+	string _electron_id_type;
 
 
 	TFile *_outrootfile;
@@ -132,6 +156,25 @@ public:
 	map<string, vector<std::string>> _varstostorepertree;
 
 	json jsonroot;
+	// pile up weights
+	std::unique_ptr<correction::CorrectionSet> _correction_pu;
+
+	//muon correction
+	std::unique_ptr<correction::CorrectionSet> _correction_muon ;
+	RoccoR _Roch_corr;
+	void applyMuPtCorrection();
+
+	//electron correction
+	std::unique_ptr<correction::CorrectionSet> _correction_electron ;
+
+	// JERC scale factors
+	std::unique_ptr<correction::CorrectionSet> _correction_jerc; // json containing all forms of corrections and uncertainties
+	std::shared_ptr<const correction::CompoundCorrection> _jetCorrector; // just the combined L1L2L3 correction
+	std::shared_ptr<const correction::Correction> _jetCorrectionUnc; // for uncertainty corresponding to the jet corrector
+
+	// btag correction
+	std::unique_ptr<correction::CorrectionSet> _correction_btag1;
+
 
 	RNodeTree _rnt;
 

@@ -93,7 +93,7 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodMuonsID", MuonID(2)); //loose muons
-    _rlm = _rlm.Define("goodMuons","goodMuonsID && Muon_pt > 15 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.40");
+    _rlm = _rlm.Define("goodMuons","goodMuonsID && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.40");
     _rlm = _rlm.Define("goodMuons_pt", "Muon_pt[goodMuons]") 
                 .Define("goodMuons_eta", "Muon_eta[goodMuons]")
                 .Define("goodMuons_phi", "Muon_phi[goodMuons]")
@@ -213,161 +213,25 @@ void BaseAnalyser::removeOverlaps()
 
 void BaseAnalyser::calculateEvWeight(){
 	
-	bool isCase1 = true; 
-	//case1 : fixedWP correction with mujets (here medium WP) # evaluate('systematic', 'working_point', 'flavor', 'abseta', 'pt')
-	//for case 1  use one of the btvtype = "deepJet_mujets " , deepJet_comb" for b/c , deepJet_incl" for lightjets 
-    if (!_isData) {
-    	if(isCase1){
+  int _case = 1;
+    std::vector<std::string> Jets_vars_names = {"Selected_jethadflav", "Selected_jeteta",  "Selected_jetpt"};  
+  if(_case !=1){
+    Jets_vars_names.emplace_back("Selected_jetbtag");
+  }
+  std::string output_btag_column_name = "btag_SF_";
+  _rlm = calculateBTagSF(_rlm, Jets_vars_names, _case, output_btag_column_name);
+ 
 
-			cout<<"Case 1 B tagging SF for MC "<<endl;
-			// to use btv type directly from jobconfiganalysis 
-			auto btv = [this](ints &hadflav,floats &etas, floats &pts)->floats 
-			{
-			
-				return ::btv_case1(_correction_btag1, _btvtype, "central","M", hadflav, etas,  pts); // defined in utility.cpp
-			
-			};
+  std::vector<std::string> Muon_vars_names = {"goodMuons_eta", "goodMuons_pt"};
+  std::string output_mu_column_name = "muon_SF_";
+  _rlm = calculateMuSF(_rlm, Muon_vars_names, output_mu_column_name);
 
-			_rlm = _rlm.Define("btag_SF_case1",btv, {"Selected_bjethadflav", "Selected_bjeteta","Selected_bjetpt"});
-		
-			//======================================================================================================================================
-			//>>>> function to calculate event weights for MC events, incorporating fixedWP correction with mujets (here medium WP)and systematics with
-			//all variations seperately (up/down/correlated/uncorrelated/)
-			//The weight for each variation is stored in separate columns (btagWeight_case1_central,btagWeight_case1_up, btagWeight_case1_down, etc.). 
-			// btagWeight_case1_central  is used to recalculate the eventweight. Other variations are intended for systematics calculations.
-			//======================================================================================================================================
-			auto btagweightgenerator_case1 = [this](const ROOT::VecOps::RVec<int>& hadflav, const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts, const std::string& variation) -> float {
-    		double btagWeight = 1.0;
+  std::vector<std::string> Electron_vars_names = {"goodElectrons_eta", "goodElectrons_pt"};
+  std::string output_ele_column_name = "ele_SF_";
+  _rlm = calculateEleSF(_rlm, Electron_vars_names, output_ele_column_name);
 
-    			for (std::size_t i = 0; i < pts.size(); i++) {
-        			if (hadflav[i] != 0) {
-            			double bcjets_weights = _correction_btag1->at("deepJet_mujets")->evaluate({variation, "M", hadflav[i], std::fabs(etas[i]), pts[i]});
-            			btagWeight *= bcjets_weights;
-        			} else {
-            			double lightjets_weights = _correction_btag1->at("deepJet_incl")->evaluate({variation, "M", hadflav[i], std::fabs(etas[i]), pts[i]});
-            			btagWeight *= lightjets_weights;
-        			}
-    			}
-
-    			return btagWeight;
-			};
-			// btag weight for each variation individually
-			std::vector<std::string> variations = {"central", "up", "down", "up_correlated", "down_correlated", "uncorrelated"}; 
-			for (const std::string& variation : variations) {
-    			std::string column_name = "btagWeight_case1_" + variation;
-    			_rlm = _rlm.Define(column_name, [btagweightgenerator_case1, variation](const ROOT::VecOps::RVec<int>& hadflav, const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts) {
-        			float weight = btagweightgenerator_case1(hadflav, etas, pts, variation);// Get the weight for the corresponding variation
-        			return weight;
-    			}, {"Selected_bjethadflav", "Selected_bjeteta", "Selected_bjetpt"}); //after all cuts, remove overlapped and btagged jets
-			}
-
-		//======================================================================================================================================
-		//case3 - Shape correction
-		}else{
-			//for case 3 : use btvtype': 'deepJet_shape' in jobconfiganalysis.py
-			cout<<"case 3 Shape correction B tagging SF for MC "<<endl;
-			auto btvcentral = [this](ints &hadflav,floats &etas, floats &pts, floats &btags)->floats
-			//evaluate('systematic', 'flavor', 'eta', 'pt', 'discriminator')
-			{
-				return ::btvcorrection(_correction_btag1, _btvtype, "central",hadflav, etas,  pts, btags); // defined in utility.cpp
-			}; 
-			_rlm = _rlm.Define("btag_SF_case3", btvcentral, { "Selected_jethadflav", "Selected_jeteta", "Selected_jetpt", "Selected_jetbtag"}); 
-	
-			//======================================================================================================================================
-			//>>>> function to calculate event weights for MC events,based on DeepJet algorithm, incorporating shape correction with central variation
-			//======================================================================================================================================
-			auto btagweightgenerator3= [this](ints &hadflav, floats &etas, floats &pts, floats &btags)->float
-			{
-				double bweight=1.0;
-
-				for (auto i=0; i<pts.size(); i++)
-				{
-					double w = _correction_btag1->at(_btvtype)->evaluate({"central", int(hadflav[i]), fabs(float(etas[i])), float(pts[i]), float(btags[i])});
-					bweight *= w;
-				}
-				return bweight;
-			};
-
-			cout<<"Generate case3 b-tagging weight"<<endl;
-			_rlm = _rlm.Define("btagWeight_case3", btagweightgenerator3, {"Selected_jethadflav", "Selected_jeteta",  "Selected_jetpt", "Selected_jetbtag"});
-			//Total event weight after shape correction
-			//_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case3");
-		}
-	
-		//=====================================================Muon ID SF and eventweight============================================================// 
-		//muontype= for thight: NUM_TightID_DEN_genTracks //for medium: NUM_MediumID_DEN_TrackerMuons
-		//Muon MediumID ISO UL type: NUM_TightRelIso_DEN_MediumID && thightID:NUM_TightRelIso_DEN_TightIDandIPCut --> the type can be found in json file
-		//--> As an example Medium wp is used 
-		//===============================================================================================================================================//
-		//cout<<"muonID SF for MC "<<endl;
-		auto muonid_sf = [this](floats &etas, floats &pts)->floats
-		{
-			return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
-		};
-		_rlm = _rlm.Define("muonID_SF",muonid_sf, {"goodMuons_eta","goodMuons_pt"});
-	
-		//cout<<"Generate MUONID weight"<<endl;
-		//muonID sf and systematics with up/down variations
-		//===========//===========//===========//===========//===========
-		auto muonid_weightgenerator = [this](const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts, const std::string& variation) -> 	float {
-		    double muonId_w = 1.0;
-
-		    for (std::size_t i = 0; i < pts.size(); i++) {
-				
-		        double w = _correction_muon->at(_muontype)->evaluate({"2018_UL", std::fabs(etas[i]), pts[i], variation}); //muontype='NUM_MediumID_DEN_TrackerMuons': in jobconfiganalysis.py
-				muonId_w *= w;
-				//std::cout << "Individual weight (muon " << i << "): " << w << std::endl;
-				//std::cout << "Cumulative weight after muon " << i << ": " << muonId_w << std::endl;
-		    }	
-		    return muonId_w;
-		};
-		// define muon ID weight sf/systs for each variation individually
-		//'sf' is nominal, and 'systup' and 'systdown' are up/down variations with total stat+-syst uncertainties. Individual systs are also available (in these cases syst only, not sf +/- syst
-		std::vector<std::string> variations = {"sf", "systup", "systdown","syst"};
-		for (const std::string& variation : variations) {
-		    std::string column_name = "muon_id_weight_" + variation;
-		    _rlm = _rlm.Define(column_name, [muonid_weightgenerator, variation](const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts) {
-		        float weight = muonid_weightgenerator(etas, pts, variation); // Get the weight for the corresponding variation
-				//std::cout << "Muon ID weight (" << variation << "): " << weight << std::endl;
-		        return weight;
-		    }, {"goodMuons_eta", "goodMuons_pt"});
-		}
-		//Total event Weight after nominal btagweight and muon_id weight 
-		//_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1_central * muon_id_weight_sf");
-		//===========//===========//===========//===========//===========
-
-
-		/////MUON ISO SF--> need to be updated into the muoncorrection
-		/*cout<<"muon ISO SF for MC "<<endl;
-		auto muonid_iso = [this](floats &etas, floats &pts)->floats
-		{
-			return ::muoncorrection(_correction_muon, _muontype, "2018_UL", etas, pts, "sf"); // defined in utility.cpp
-		};
-		_rlm = _rlm.Define("muonISO_SF",muonid_iso, {"goodMuons_eta","goodMuons_pt"});
-		*/
-		//cout<<"Generate MUON ISO weight"<<endl;
-		auto muonIso_weightgenerator= [this](floats &etas, floats &pts)->float
-		{
-			double muonIso_w=1;
-			for (auto i=0; i<pts.size(); i++)
-			{
-				//if (pts[i] <15 || (fabs(float(etas[i])))>2.4 )continue; //testing json file contents
-				
-				double w = _correction_muon->at("NUM_TightRelIso_DEN_MediumID")->evaluate({"2018_UL", fabs(float(etas[i])),float(pts[i]), "sf"});
-				muonIso_w *= w;
-				//cout<<"muon ISO  weight ==  "<< w <<endl;
-			}
-			return muonIso_w;
-		};
-		_rlm = _rlm.Define("muon_iso_weight", muonIso_weightgenerator, {"goodMuons_eta","goodMuons_pt"});
-		
-		//MuonID+ISO event weight:
-		_rlm = _rlm.Define("evWeight_MuonIDISO", " muon_id_weight_sf * muon_iso_weight");
-		
-		//Total event Weight:
-		_rlm = _rlm.Define("evWeight", " pugenWeight * btagWeight_case1_central * evWeight_MuonIDISO"); 
-
-	}
+  //Total event Weight:
+  _rlm = _rlm.Define("evWeight", " pugenWeight * btag_SF_central * muon_SF_central * ele_SF_central"); 
 
 }
 //MET
@@ -454,24 +318,24 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("MET_pt");
     
 	//case1 btag correction- fixed wp	
-	addVartoStore("btagWeight_case1_central");
-	addVartoStore("btagWeight_case1_up");
-	addVartoStore("btagWeight_case1_down");
+	addVartoStore("btag_SF_central");
+	addVartoStore("btag_SF_up");
+	addVartoStore("btag_SF_down");
 	
 	//case3 shape correction
 	//addVartoStore("btagWeight_case3");
 
 
 	//MUONID - ISO SF & WEIGHT	
-	addVartoStore("muonID_SF");
+	addVartoStore("muon_SF_central");
 	//addVartoStore("muon_id_weight");
-	addVartoStore("muon_id_weight_sf");
-	addVartoStore("muon_id_weight_syst");
-	addVartoStore("muon_id_weight_systup");
-	addVartoStore("muon_id_weight_systdown");
+	addVartoStore("muon_SF_id_sf");
+	addVartoStore("muon_SF_id_syst");
+	addVartoStore("muon_SF_id_systup");
+	addVartoStore("muon_SF_id_systdown");
 	//addVartoStore("muonISO_SF");
-	addVartoStore("muon_iso_weight");
-	addVartoStore("evWeight_MuonIDISO");   
+	addVartoStore("muon_SF_iso_sf");
+	addVartoStore("evWeight");   
 
 }
 void BaseAnalyser::bookHists()
@@ -546,222 +410,12 @@ void BaseAnalyser::setupObjects()
 	selectMuons();
 	selectJets();
 	removeOverlaps();
-	calculateEvWeight();
+	if(!_isData){
+	  this->calculateEvWeight(); // PU, genweight and BTV and Mu and Ele
+	}
 	selectMET();
 
 }
-bool BaseAnalyser::readgoodjson(string goodjsonfname)
-{
-	auto isgoodjsonevent = [this](unsigned int runnumber, unsigned int lumisection)
-		{
-			auto key = std::to_string(runnumber).c_str();
-
-			bool goodeventflag = false;
-
-
-			if (jsonroot.contains(key))
-			{
-				for (auto &v: jsonroot[key])
-				{
-					if (v[0]<=lumisection && lumisection <=v[1]) goodeventflag = true;
-				}
-			}
-			return goodeventflag;
-		};
-
-	if (goodjsonfname != "")
-	{
-		std::ifstream jsoninfile;
-		jsoninfile.open(goodjsonfname);
-
-		if (jsoninfile.good())
-		{
-			//using rapidjson
-			//rapidjson::IStreamWrapper s(jsoninfile);
-			//jsonroot.ParseStream(s);
-
-			//using jsoncpp
-			jsoninfile >> jsonroot;
-			_rlm = _rlm.Define("goodjsonevent", isgoodjsonevent, {"run", "luminosityBlock"}).Filter("goodjsonevent");
-			_jsonOK = true;
-			return true;
-		}
-		else
-		{
-			cout << "Problem reading json file " << goodjsonfname << endl;
-			return false;
-		}
-	}
-	else
-	{
-		cout << "no JSON file given" << endl;
-		return true;
-	}
-}
-
-void BaseAnalyser::setupJetMETCorrection(string fname, string jettag) //data
-{
-
-    cout << "SETUP JETMET correction" << endl;
-	// read from file 
-	_correction_jerc = correction::CorrectionSet::from_file(fname);//jercfname=json
-	assert(_correction_jerc->validate()); //the assert functionality : check if the parameters passed to a function are valid =1:true
-	// correction type(jobconfiganalysis.py)
-	cout<<"JERC JSON file : " << fname<<endl;
-	_jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON (JEC,compound)compoundLevel="L1L2L3Res"
-	cout<< "JET tag in JSON : " << jettag << endl;
-	_jetCorrectionUnc = _correction_jerc->at(_jercunctag);
-	cout<< "JET uncertainity tag in JSON  : " << _jercunctag << endl;
-	std::cout<< "================================//=================================" << std::endl;
-}
-void BaseAnalyser::applyJetMETCorrections() //data
-{
-    //cout << "apply JETMET correction" << endl;
-
-	auto appcorrlambdaf = [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
-	{
-		floats corrfactors;
-		corrfactors.reserve(jetpts.size());
-		for (auto i =0; i<jetpts.size(); i++)
-		{
-			float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
-            //std::cout<<"jetpt===="<< jetpts[i] <<std::endl;
-			//float jet_rawmass = jet_mass * (1 - jet.rawFactor)
-			//std::cout<<"rawjetpt===="<< rawjetpt <<std::endl;
-			float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho});
-			//std::cout<<"correction factor===="<< corrfactor <<std::endl;
-			corrfactors.emplace_back(rawjetpt * corrfactor);
-			//std::cout<<"rawjetpt* corrfactor ===="<< rawjetpt * corrfactor <<std::endl;
-
-		}
-        //std::cout<<"Facsss===="<< corrfactors <<std::endl;
-		return corrfactors;
-		
-	};
-
-	auto jecuncertaintylambdaf= [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
-		{
-			floats uncertainties;
-			uncertainties.reserve(jetpts.size());
-			for (auto i =0; i<jetpts.size(); i++)
-			{
-				float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
-                
-				float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho});
-				//print("\njet SF for shape correction:")
-				//print(f"SF: {corrfactor}")
-                
-				float unc = _jetCorrectionUnc->evaluate({corrfactor*rawjetpt, jetetas[i]});
-				uncertainties.emplace_back(unc);
-
-			}
-			return uncertainties;
-		};
-
-	auto metcorrlambdaf = [](float met, float metphi, floats jetptsbefore, floats jetptsafter, floats jetphis)->float
-	{
-		auto metx = met * cos(metphi);
-		auto mety = met * sin(metphi);
-		for (auto i=0; i<jetphis.size(); i++)
-		{
-			if (jetptsafter[i]>15.0)
-			{
-				metx -= (jetptsafter[i] - jetptsbefore[i])*cos(jetphis[i]);
-				mety -= (jetptsafter[i] - jetptsbefore[i])*sin(jetphis[i]);
-			}
-		}
-		return float(sqrt(metx*metx + mety*mety));
-	};
-
-	auto metphicorrlambdaf = [](float met, float metphi, floats jetptsbefore, floats jetptsafter, floats jetphis)->float
-	{
-		auto metx = met * cos(metphi);
-		auto mety = met * sin(metphi);
-		for (auto i=0; i<jetphis.size(); i++)
-		{
-			if (jetptsafter[i]>15.0)
-			{
-				metx -= (jetptsafter[i] - jetptsbefore[i])*cos(jetphis[i]);
-				mety -= (jetptsafter[i] - jetptsbefore[i])*sin(jetphis[i]);
-			}
-		}
-		return float(atan2(mety, metx));
-	};
-
-	if (_jetCorrector != 0)
-	{
-        //cout << "jetcorrector==" <<_jetCorrector << endl;
-
-		_rlm = _rlm.Define("Jet_pt_corr", appcorrlambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
-		_rlm = _rlm.Define("Jet_pt_relerror", jecuncertaintylambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
-		_rlm = _rlm.Define("Jet_pt_corr_up", "Jet_pt_corr*(1.0f + Jet_pt_relerror)");
-		_rlm = _rlm.Define("Jet_pt_corr_down", "Jet_pt_corr*(1.0f - Jet_pt_relerror)");
-		_rlm = _rlm.Define("MET_pt_corr", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr", "Jet_phi"});
-		_rlm = _rlm.Define("MET_pt_corr_up", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_up", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr_up", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_up", "Jet_phi"});
-		_rlm = _rlm.Define("MET_pt_corr_down", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_down", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr_down", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_down", "Jet_phi"});
-	}
-
-}
-
-void BaseAnalyser::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype,string muon_fname, string muontype, string jercfname, string jerctag, string jercunctag)
-
-{
-    cout << "set up Corrections!" << endl;
-	if (_isData) _jsonOK = readgoodjson(goodjsonfname); // read golden json file
-
-	if (!_isData) {
-
-		// using correctionlib
-		
-        //Muon corrections
-		_correction_muon = correction::CorrectionSet::from_file(muon_fname);
-		_muontype = muontype;
-		std::cout<< "================================//=================================" << std::endl;
-		cout<< "MUON JSON FILE : " <<  muon_fname << endl;
-		cout<< "MUONID type in JSON  : " << _muontype << endl;
-       	assert(_correction_muon->validate());
-
-		// btag corrections
-		_correction_btag1 = correction::CorrectionSet::from_file(btvfname);
-		_btvtype = btvtype;
-		cout<< "BTV JSON FILE : "<< btvfname << endl;
-		cout<< "BTV type in JSON  :  " << _btvtype << endl;
-		assert(_correction_btag1->validate());
-
-		// pile up weights
-		_correction_pu = correction::CorrectionSet::from_file(pufname);
-		cout<< "PU JSON FILE : " << pufname << endl;
-		assert(_correction_pu->validate());
-		_putag = putag;
-		cout<< "PU tag in JSON : " << _putag << endl;
-		
-		auto punominal = [this](float x) { return pucorrection(_correction_pu, _putag, "nominal", x); };
-		auto puplus = [this](float x) { return pucorrection(_correction_pu, _putag, "up", x); };
-		auto puminus = [this](float x) { return pucorrection(_correction_pu, _putag, "down", x); };
-
-		if (!isDefined("puWeight")) _rlm = _rlm.Define("puWeight", punominal, {"Pileup_nTrueInt"});
-		if (!isDefined("puWeight_plus")) _rlm = _rlm.Define("puWeight_plus", puplus, {"Pileup_nTrueInt"});
-		if (!isDefined("puWeight_minus")) _rlm = _rlm.Define("puWeight_minus", puminus, {"Pileup_nTrueInt"});
-
-
-		if (!isDefined("pugenWeight"))
-		{
-			_rlm = _rlm.Define("pugenWeight", [this](float x, float y){
-					//return (x > 0 ? 1.0 : -1.0) *y;
-					return x * y;
-				}, {"genWeight", "puWeight"});
-		}
-	}
-	_jerctag = jerctag;
-	_jercunctag = jercunctag;
-
-	setupJetMETCorrection(jercfname, _jerctag);
-	applyJetMETCorrections();
-}
-
 
 void BaseAnalyser::setupAnalysis()
 {

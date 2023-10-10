@@ -1,4 +1,4 @@
-## correction tools in BaseAnalyser
+## correction tools in SingleTopAnalyzer
 - correction.lib is added to the framework
 - jsonfiles updated for 2018_UL
 - btag correction is added as weight. 

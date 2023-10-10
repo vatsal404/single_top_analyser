@@ -30,16 +30,25 @@ int main(void) {
 	string pileuptag = "Collisions18_UltraLegacy_goldenJSON";
 	string btvfname = "data/BTV/2018_UL/btagging.json";
 	string btvtype = "deepJet_shape";
-	string muon_fname = "data/MUON/2018_UL/muon_Z.json";
-	string muontype = "NUM_MediumID_DEN_TrackerMuons";
 	//string electron_fname = "data/ELECTRON/2018_UL/electron_Z.json";
 	//string electrontype = "UL-Electron-ID-SF";
 	string jercfname = "data/JERC/UL18_jerc.json";
 	string jerctag = "Summer19UL18_V5_MC_L1L2L3Res_AK4PFchs";
 	string jercunctag = "Summer19UL18_V5_MC_Total_AK4PFchs";
+	string muon_roch_fname = "data/MUO/2017_UL/RoccoR2017UL.txt";
+	string muon_fname = "data/MUO/2017_UL/muon_Z.json.gz";
+	string muonHLTtype = "NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight";
+	string muonRECOtype = "NUM_TrackerMuons_DEN_genTracks";
+	string muonIDtype = "NUM_MediumID_DEN_TrackerMuons";
+	string muonISOtype = "NUM_TightRelIso_DEN_MediumID";
+	string electron_fname = "data/EGM/2017_UL/electron.json.gz";
+	string electron_reco_type = "RecoAbove20";
+	string electron_id_type = "Tight";
 
 
-	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,muon_fname, muontype, jercfname, jerctag, jercunctag);
+
+	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype, muon_roch_fname, muon_fname, muonHLTtype, muonRECOtype, muonIDtype, muonISOtype, electron_fname, electron_reco_type, electron_id_type, jercfname, jerctag, jercunctag);
+
 	nanoaodrdf.setupObjects();
 	nanoaodrdf.setupAnalysis();
 	nanoaodrdf.run(false, "outputTree");
