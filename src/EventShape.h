@@ -60,6 +60,10 @@ private:
 	Double_t m_dDeltaThPower;
 	// PARU(42): Power of momentum dependence in thrust finder.	
 
+
+	Double_t m_dOblateness;
+
+
 	Int_t m_iFast; 
 	// MSTU(44): # of initial fastest particles choosen to start search.
 
@@ -88,7 +92,6 @@ private:
 	TRandom m_random;
 
 	Double_t m_dThrust[4];
-	Double_t m_dOblateness;
 	
 	static Int_t m_maxpart;
 

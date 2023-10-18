@@ -392,7 +392,7 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	applyMuPtCorrection();
 }
 
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var="btag_SF_")
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var)
 {
 
   //case1 : fixedWP correction with mujets (here medium WP) # evaluate('systematic', 'working_point', 'flavor', 'abseta', 'pt')
@@ -469,7 +469,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 }
 
 
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var="muon_SF_")
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var)
 {
 
     //=====================================================Muon SF and eventweight============================================================// 
@@ -553,7 +553,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
 }
 
 
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var="ele_SF_")
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var)
 {
 
     //auto cs = correction::CorrectionSet::from_file("electron.json.gz");
@@ -612,6 +612,19 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<
 
       _rlm = _rlm.Define(column_name, sf_definition); 
 
+    }
+    return _rlm;
+}
+
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyPrefiringWeight(RNode _rlm, std::string output_var)
+{
+  
+    std::vector<std::string> variations = {"Nom", "Up", "Dn"};
+    std::vector<std::string> output_variations = {"central", "up", "down"};
+    for (int i =0; i<int(variations.size()); i++) {
+      std::string input_column_name = "L1PreFiringWeight_" + variations[i];
+      std::string output_column_name = output_var + output_variations[i];
+      _rlm = _rlm.Define(output_column_name, input_column_name);
     }
     return _rlm;
 }

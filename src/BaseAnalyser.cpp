@@ -212,7 +212,8 @@ void BaseAnalyser::removeOverlaps()
 }
 
 void BaseAnalyser::calculateEvWeight(){
-	
+
+  //Scale Factors for BTag ID	
   int _case = 1;
     std::vector<std::string> Jets_vars_names = {"Selected_jethadflav", "Selected_jeteta",  "Selected_jetpt"};  
   if(_case !=1){
@@ -221,17 +222,21 @@ void BaseAnalyser::calculateEvWeight(){
   std::string output_btag_column_name = "btag_SF_";
   _rlm = calculateBTagSF(_rlm, Jets_vars_names, _case, output_btag_column_name);
  
-
+  //Scale Factors for Muon HLT, RECO, ID and ISO
   std::vector<std::string> Muon_vars_names = {"goodMuons_eta", "goodMuons_pt"};
   std::string output_mu_column_name = "muon_SF_";
   _rlm = calculateMuSF(_rlm, Muon_vars_names, output_mu_column_name);
 
+  //Scale Factors for Electron RECO and ID
   std::vector<std::string> Electron_vars_names = {"goodElectrons_eta", "goodElectrons_pt"};
   std::string output_ele_column_name = "ele_SF_";
   _rlm = calculateEleSF(_rlm, Electron_vars_names, output_ele_column_name);
 
+  //Prefiring Weight for 2016 and 2017
+  _rlm = applyPrefiringWeight(_rlm);
+
   //Total event Weight:
-  _rlm = _rlm.Define("evWeight", " pugenWeight * btag_SF_central * muon_SF_central * ele_SF_central"); 
+  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_central * muon_SF_central * ele_SF_central"); 
 
 }
 //MET
@@ -316,27 +321,28 @@ void BaseAnalyser::defineMoreVars()
 	addVartoStore("Jet_pt_relerror");
     addVartoStore("MET_pt_corr");
     addVartoStore("MET_pt");
+    if(!_isData){
+      //case1 btag correction- fixed wp	
+      addVartoStore("btag_SF_central");
+      addVartoStore("btag_SF_up");
+      addVartoStore("btag_SF_down");
+      
+      //case3 shape correction
+      //addVartoStore("btagWeight_case3");
+      
+      
+      //MUONID - ISO SF & WEIGHT	
+      addVartoStore("muon_SF_central");
+      //addVartoStore("muon_id_weight");
+      addVartoStore("muon_SF_id_sf");
+      addVartoStore("muon_SF_id_syst");
+      addVartoStore("muon_SF_id_systup");
+      addVartoStore("muon_SF_id_systdown");
+      //addVartoStore("muonISO_SF");
+      addVartoStore("muon_SF_iso_sf");
+    }
+    addVartoStore("evWeight");   
     
-	//case1 btag correction- fixed wp	
-	addVartoStore("btag_SF_central");
-	addVartoStore("btag_SF_up");
-	addVartoStore("btag_SF_down");
-	
-	//case3 shape correction
-	//addVartoStore("btagWeight_case3");
-
-
-	//MUONID - ISO SF & WEIGHT	
-	addVartoStore("muon_SF_central");
-	//addVartoStore("muon_id_weight");
-	addVartoStore("muon_SF_id_sf");
-	addVartoStore("muon_SF_id_syst");
-	addVartoStore("muon_SF_id_systup");
-	addVartoStore("muon_SF_id_systdown");
-	//addVartoStore("muonISO_SF");
-	addVartoStore("muon_SF_iso_sf");
-	addVartoStore("evWeight");   
-
 }
 void BaseAnalyser::bookHists()
 {
