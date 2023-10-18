@@ -75,10 +75,11 @@ public:
 	void add1DHist(TH1DModel histdef, string variable, string weight, string mincutstep="");
 	void add2DHist(TH2DModel histdef, string variable1, string variable2, string weight, string mincutstep="");
 
-	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, std::string output_var);
+	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, std::string output_var = "btag_SF_");
 
-	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var);
-	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var);
+	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var = "muon_SF_");
+	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var = "ele_SF_");
+	ROOT::RDF::RNode applyPrefiringWeight(RNode _rlm, std::string output_var="prefiring_SF_");
 
 	void setupCuts_and_Hists();
 	void drawHists(RNode t);
@@ -102,10 +103,10 @@ public:
 	//initialize HLT names
 	std::string ctrlBranchName(string str_Branch);
 	std::string setHLT(string str_HLT = "" );
-    std::vector< std::string > HLTGlobalNames;
-    std::vector< std::string > HLT2016Names;
-    std::vector< std::string > HLT2017Names;
-    std::vector< std::string > HLT2018Names;
+	std::vector< std::string > HLTGlobalNames;
+	std::vector< std::string > HLT2016Names;
+	std::vector< std::string > HLT2017Names;
+	std::vector< std::string > HLT2018Names;
 
 	//initialize object IDs
 	std::string ElectronID(int cutbasedID);
