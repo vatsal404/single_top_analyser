@@ -54,7 +54,7 @@ public:
 	bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON
 	void selectFatJets();
 
-	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string muon_roch_fname, string muon_fname, string muon_hlt_type, string muon_reco_type, string muon_id_type, string muon_iso_type, string electron_fname, string electron_reco_type, string electron_id_type, string jercfname, string jerctag, string jercunctag);
+	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muon_hlt_type, string muon_reco_type, string muon_id_type, string muon_iso_type, string electron_fname, string electron_reco_type, string electron_id_type, string jercfname, string jerctag, string jercunctag);
 	void setupJetMETCorrection(string fname, string jettag);
 	void applyJetMETCorrections();
     
@@ -74,11 +74,11 @@ public:
 	void addCuts(string cut, string idx);
 	void add1DHist(TH1DModel histdef, string variable, string weight, string mincutstep="");
 	void add2DHist(TH2DModel histdef, string variable1, string variable2, string weight, string mincutstep="");
+	double getBTaggingEff(double hadflav, double eta, double pt);
+	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, const double btag_cut, std::string _BTaggingWP = "M", std::string output_var = "btag_SF_");
 
-	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, std::string output_var);
-
-	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var);
-	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var);
+	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var = "muon_SF_");
+	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var="ele_SF_");
 
 	void setupCuts_and_Hists();
 	void drawHists(RNode t);
@@ -102,19 +102,19 @@ public:
 	//initialize HLT names
 	std::string ctrlBranchName(string str_Branch);
 	std::string setHLT(string str_HLT = "" );
-    std::vector< std::string > HLTGlobalNames;
-    std::vector< std::string > HLT2016Names;
-    std::vector< std::string > HLT2017Names;
-    std::vector< std::string > HLT2018Names;
-
+	std::vector< std::string > HLTGlobalNames;
+	std::vector< std::string > HLT2016Names;
+	std::vector< std::string > HLT2017Names;
+	std::vector< std::string > HLT2018Names;
+	
 	//initialize object IDs
 	std::string ElectronID(int cutbasedID);
-    std::string MuonID(int cutbasedID);
-    std::string JetID(int cutbasedID);
-
-//private:
+	std::string MuonID(int cutbasedID);
+	std::string JetID(int cutbasedID);
+	
+	//private:
 	ROOT::RDataFrame _rd;
-
+	
 	//bool _isData;
 	bool _jsonOK;
 	string _outfilename;
@@ -129,8 +129,8 @@ public:
 	string _muon_iso_type;
 	string _electron_reco_type;
 	string _electron_id_type;
-
-
+	
+	
 	TFile *_outrootfile;
 	vector<string> _outrootfilenames;
 	RNode _rlm;
@@ -138,7 +138,7 @@ public:
 	map<string, RDF1DHist> _th1dhistos;
 	bool helper_1DHistCreator(string hname, string title, const int nbins, const double xlow, const double xhi, string rdfvar, string evWeight, RNode *anode);
 	vector<hist1dinfo> _hist1dinfovector;
-
+	
 	//for 2D histograms
 	map<string, RDF2DHist> _th2dhistos;
 	bool helper_2DHistCreator(string hname, string title, const int nbinsx, const double xlow, const double xhi, const int nbinsy, const double ylow, const double yhi, string rdfvarx, string rdfvary, string evWeight, RNode *anode);
@@ -174,7 +174,9 @@ public:
 
 	// btag correction
 	std::unique_ptr<correction::CorrectionSet> _correction_btag1;
-
+	TFile *f_btagEff;
+	TH2D *hist_btagEff_bcflav;
+	TH2D *hist_btagEff_lflav;
 
 	RNodeTree _rnt;
 

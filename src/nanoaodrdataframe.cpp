@@ -26,10 +26,13 @@ int main(void) {
 	BaseAnalyser nanoaodrdf(&c1, "testout.root");
 
 	string goodjsonfname = "data/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt";
-	string pileupfname = "'data/LUM/2018_UL/puWeights.json";
+	string pileupfname = "data/LUM/2018_UL/puWeights.json";
 	string pileuptag = "Collisions18_UltraLegacy_goldenJSON";
 	string btvfname = "data/BTV/2018_UL/btagging.json";
 	string btvtype = "deepJet_shape";
+	string fname_btagEff = "data/BTV/2017_UL/BtaggingEfficiency.root";
+	string hname_btagEff_bcflav = "h_btagEff_bcflav";
+	string hname_btagEff_lflav = "h_btagEff_lflav";
 	//string electron_fname = "data/ELECTRON/2018_UL/electron_Z.json";
 	//string electrontype = "UL-Electron-ID-SF";
 	string jercfname = "data/JERC/UL18_jerc.json";
@@ -47,7 +50,7 @@ int main(void) {
 
 
 
-	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype, muon_roch_fname, muon_fname, muonHLTtype, muonRECOtype, muonIDtype, muonISOtype, electron_fname, electron_reco_type, electron_id_type, jercfname, jerctag, jercunctag);
+	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype, fname_btagEff, hname_btagEff_bcflav, hname_btagEff_lflav, muon_roch_fname, muon_fname, muonHLTtype, muonRECOtype, muonIDtype, muonISOtype, electron_fname, electron_reco_type, electron_id_type, jercfname, jerctag, jercunctag);
 
 	nanoaodrdf.setupObjects();
 	nanoaodrdf.setupAnalysis();

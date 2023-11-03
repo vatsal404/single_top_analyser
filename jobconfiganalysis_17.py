@@ -38,6 +38,9 @@ config = {
         # BTV correction type
         #'btvtype': 'deepJet_shape',
         'btvtype': 'deepJet_mujets',
+        'fname_btagEff': 'data/BTV/2017_UL/BtaggingEfficiency.root',
+        'hname_btagEff_bcflav': 'h_btagEff_bcflav',
+        'hname_btagEff_lflav': 'h_btagEff_lflav',
     
         # Muon Correction 
         'muon_roch_fname': 'data/MUO/2017_UL/RoccoR2017UL.txt', 
