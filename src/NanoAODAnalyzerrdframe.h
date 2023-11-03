@@ -78,7 +78,8 @@ public:
 	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, const double btag_cut, std::string _BTaggingWP = "M", std::string output_var = "btag_SF_");
 
 	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var = "muon_SF_");
-	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var="ele_SF_");
+	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var = "ele_SF_");
+	ROOT::RDF::RNode applyPrefiringWeight(RNode _rlm, std::string output_var="prefiring_SF_");
 
 	void setupCuts_and_Hists();
 	void drawHists(RNode t);
@@ -106,7 +107,7 @@ public:
 	std::vector< std::string > HLT2016Names;
 	std::vector< std::string > HLT2017Names;
 	std::vector< std::string > HLT2018Names;
-	
+
 	//initialize object IDs
 	std::string ElectronID(int cutbasedID);
 	std::string MuonID(int cutbasedID);

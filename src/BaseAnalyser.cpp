@@ -155,25 +155,25 @@ void BaseAnalyser::selectJets()
     
 
 
-
-    //For Btagging Efficiency    
-    _rlm = _rlm.Define("btagpass_bcflav_goodJets", "goodJets_deepjetbtag>0.2783 && goodJets_hadflav!=0") //0.2783 -medium, 0.7 - tight 
-      .Define("goodJets_btagpass_bcflav_pt", "goodJets_pt[btagpass_bcflav_goodJets]")
-      .Define("goodJets_btagpass_bcflav_eta", "goodJets_eta[btagpass_bcflav_goodJets]");
-
-    _rlm = _rlm.Define("all_bcflav_goodJets", "goodJets_hadflav!=0") //0.2783 -medium, 0.7 - tight 
-      .Define("goodJets_all_bcflav_pt", "goodJets_pt[all_bcflav_goodJets]")
-      .Define("goodJets_all_bcflav_eta", "goodJets_eta[all_bcflav_goodJets]");
-    
-
-    _rlm = _rlm.Define("btagpass_lflav_goodJets", "goodJets_deepjetbtag>0.2783 && goodJets_hadflav==0") //0.2783 -medium, 0.7 - tight 
-      .Define("goodJets_btagpass_lflav_pt", "goodJets_pt[btagpass_lflav_goodJets]")
-      .Define("goodJets_btagpass_lflav_eta", "goodJets_eta[btagpass_lflav_goodJets]");
-
-    _rlm = _rlm.Define("all_lflav_goodJets", "goodJets_hadflav==0") //0.2783 -medium, 0.7 - tight 
-      .Define("goodJets_all_lflav_pt", "goodJets_pt[all_lflav_goodJets]")
-      .Define("goodJets_all_lflav_eta", "goodJets_eta[all_lflav_goodJets]");
-
+    if(!_isData){
+      //For Btagging Efficiency    
+      _rlm = _rlm.Define("btagpass_bcflav_goodJets", "goodJets_deepjetbtag>0.2783 && goodJets_hadflav!=0") //0.2783 -medium, 0.7 - tight 
+	.Define("goodJets_btagpass_bcflav_pt", "goodJets_pt[btagpass_bcflav_goodJets]")
+	.Define("goodJets_btagpass_bcflav_eta", "goodJets_eta[btagpass_bcflav_goodJets]");
+      
+      _rlm = _rlm.Define("all_bcflav_goodJets", "goodJets_hadflav!=0") //0.2783 -medium, 0.7 - tight 
+	.Define("goodJets_all_bcflav_pt", "goodJets_pt[all_bcflav_goodJets]")
+	.Define("goodJets_all_bcflav_eta", "goodJets_eta[all_bcflav_goodJets]");
+      
+      
+      _rlm = _rlm.Define("btagpass_lflav_goodJets", "goodJets_deepjetbtag>0.2783 && goodJets_hadflav==0") //0.2783 -medium, 0.7 - tight 
+	.Define("goodJets_btagpass_lflav_pt", "goodJets_pt[btagpass_lflav_goodJets]")
+	.Define("goodJets_btagpass_lflav_eta", "goodJets_eta[btagpass_lflav_goodJets]");
+      
+      _rlm = _rlm.Define("all_lflav_goodJets", "goodJets_hadflav==0") //0.2783 -medium, 0.7 - tight 
+	.Define("goodJets_all_lflav_pt", "goodJets_pt[all_lflav_goodJets]")
+	.Define("goodJets_all_lflav_eta", "goodJets_eta[all_lflav_goodJets]");
+    }
 }
 //=================================Overlap function=================================================//
 void BaseAnalyser::removeOverlaps()
@@ -231,7 +231,8 @@ void BaseAnalyser::removeOverlaps()
 }
 
 void BaseAnalyser::calculateEvWeight(){
-	
+
+  //Scale Factors for BTag ID	
   int _case = 1;
   std::vector<std::string> Jets_vars_names = {"Selected_jethadflav", "Selected_jeteta",  "Selected_jetpt", "Selected_jetbtag"};  
   if(_case !=1){
@@ -240,11 +241,12 @@ void BaseAnalyser::calculateEvWeight(){
   std::string output_btag_column_name = "btag_SF_";
   _rlm = calculateBTagSF(_rlm, Jets_vars_names, _case, 0.2783, "M", output_btag_column_name);
  
-
+  //Scale Factors for Muon HLT, RECO, ID and ISO
   std::vector<std::string> Muon_vars_names = {"goodMuons_eta", "goodMuons_pt"};
   std::string output_mu_column_name = "muon_SF_";
   _rlm = calculateMuSF(_rlm, Muon_vars_names, output_mu_column_name);
 
+  //Scale Factors for Electron RECO and ID
   std::vector<std::string> Electron_vars_names = {"goodElectrons_eta", "goodElectrons_pt"};
   std::string output_ele_column_name = "ele_SF_";
   _rlm = calculateEleSF(_rlm, Electron_vars_names, output_ele_column_name);
@@ -252,7 +254,12 @@ void BaseAnalyser::calculateEvWeight(){
   _rlm = _rlm.Define("evWeight_wobtagSF", " pugenWeight * muon_SF_central * ele_SF_central"); 
   _rlm = _rlm.Define("totbtagSF", "btag_SF_bcflav_central * btag_SF_lflav_central"); 
   //Total event Weight:
-  _rlm = _rlm.Define("evWeight", " pugenWeight * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
+
+  //Prefiring Weight for 2016 and 2017
+  _rlm = applyPrefiringWeight(_rlm);
+  //Total event Weight:
+  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
+
 }
 //MET
 
@@ -322,9 +329,28 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("Selected_jetpt");
     addVartoStore("Selected_jeteta");
     addVartoStore("Selected_jetbtag");
+
+    
+    addVartoStore("good_bjetdeepjet");
+    
+    //jetmet corr
+    addVartoStore("Jet_pt_corr");
+    addVartoStore("Jet_pt_corr_up");
+    addVartoStore("Jet_pt_corr_down");
+    addVartoStore("Jet_pt_relerror");
+    addVartoStore("MET_pt_corr");
+    addVartoStore("MET_pt");
+
+    if(!_isData){
+      //case1 btag correction- fixed wp	
+      //case3 shape correction
+      //addVartoStore("btagWeight_case3");
     addVartoStore("Selected_jethadflav");
     addVartoStore("Selected_bjethadflav");//after overlap and btag cut
 
+    addVartoStore("good_bjethadflav");
+    addVartoStore("goodJets_hadflav");
+      
     //For Btagging Efficiency
     addVartoStore("goodJets_btagpass_bcflav_pt");
     addVartoStore("goodJets_btagpass_bcflav_eta");
@@ -336,18 +362,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodJets_all_lflav_pt");
     addVartoStore("goodJets_all_lflav_eta");
 
-    
-    addVartoStore("good_bjetdeepjet");
-    addVartoStore("good_bjethadflav");
-    addVartoStore("goodJets_hadflav");
-    
-    //jetmet corr
-    addVartoStore("Jet_pt_corr");
-    addVartoStore("Jet_pt_corr_up");
-    addVartoStore("Jet_pt_corr_down");
-    addVartoStore("Jet_pt_relerror");
-    addVartoStore("MET_pt_corr");
-    addVartoStore("MET_pt");
+      
     //"evWeight", " pugenWeight * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"
     //case1 btag correction- fixed wp	
     addVartoStore("btag_SF_bcflav_central");
@@ -369,6 +384,8 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("muon_SF_id_systdown");
     //addVartoStore("muonISO_SF");
     addVartoStore("muon_SF_iso_sf");
+    }
+
     addVartoStore("evWeight");   
     
 }
@@ -410,9 +427,10 @@ void BaseAnalyser::bookHists()
     add1DHist( {"hselected_jet1pt", "SelectedJet_1 pt no weight" , 100, 0, 1000} , "Selected_jet1pt", "evWeight", "");
     add1DHist( {"hselected_jetptWithweight", "clean-Jets with weight" , 100, 0, 2500} , "Selected_jetpt", "evWeight", "");
     add1DHist( {"hselected_jetptNoweight", "clean-Jets w/o weight" , 100, 0, 2500} , "Selected_jetpt", "one", "");
-
-    add1DHist( {"hbtag_SF_bcflav_central", "btag SF bcflav central" , 100, 0, 2} , "btag_SF_bcflav_central", "one", "");
-    add1DHist( {"hbtag_SF_lflav_central", "btag SF lflav central" , 100, 0, 2} , "btag_SF_lflav_central", "one", "");
+    if(!_isData){
+      add1DHist( {"hbtag_SF_bcflav_central", "btag SF bcflav central" , 100, 0, 2} , "btag_SF_bcflav_central", "one", "");
+      add1DHist( {"hbtag_SF_lflav_central", "btag SF lflav central" , 100, 0, 2} , "btag_SF_lflav_central", "one", "");
+    }
     
     //add2DHist( {"btagscalef", "btvcent_sf vs seljet_pt" , 100, 0, 500, 100, 0, 500} ,  "Selected_jetpt","btag_SF_case1", "one","");
 
