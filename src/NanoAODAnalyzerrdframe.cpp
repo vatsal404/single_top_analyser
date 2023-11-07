@@ -422,7 +422,7 @@ double NanoAODAnalyzerrdframe::getBTaggingEff(double hadflav, double eta, double
     binX = hist_btagEff_lflav->GetXaxis()->FindBin(eta);
     binY = hist_btagEff_lflav->GetYaxis()->FindBin(pt);
 
-    efficiency = hist_btagEff_bcflav->GetBinContent(binX, binY);
+    efficiency = hist_btagEff_lflav->GetBinContent(binX, binY);
   }
 
   return efficiency;
