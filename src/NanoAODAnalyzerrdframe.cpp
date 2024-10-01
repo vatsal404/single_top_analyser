@@ -326,7 +326,7 @@ void NanoAODAnalyzerrdframe::applyMuPtCorrection() //data and MC
 
 
 
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype, string muonrecotype,string muonidtype,string muonisotype,string electron_fname, string electron_reco_type, string electron_id_type, string jercfname, string jerctag, string jercunctag)
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype/*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav*/, string muon_roch_fname, string muon_fname, string muonhlttype, string muonrecotype,string muonidtype,string muonisotype,string electron_fname, string electron_reco_type, string electron_id_type, string jercfname, string jerctag, string jercunctag)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;
@@ -364,10 +364,10 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	  _btvtype = btvtype;
 	  assert(_correction_btag1->validate());
 
-	  f_btagEff = new TFile(fname_btagEff.c_str(), "READ");
+	 /* f_btagEff = new TFile(fname_btagEff.c_str(), "READ");
 	  hist_btagEff_bcflav = dynamic_cast<TH2D*>(f_btagEff->Get(hname_btagEff_bcflav.c_str()));
 	  hist_btagEff_lflav = dynamic_cast<TH2D*>(f_btagEff->Get(hname_btagEff_lflav.c_str()));
-
+*/
 
 	  // pile up weights
 	  _correction_pu = correction::CorrectionSet::from_file(pufname);
@@ -396,7 +396,7 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	applyJetMETCorrections();
 	applyMuPtCorrection();
 }
-double NanoAODAnalyzerrdframe::getBTaggingEff(double hadflav, double eta, double pt){
+/*double NanoAODAnalyzerrdframe::getBTaggingEff(double hadflav, double eta, double pt){
   double efficiency = 1.0;
   int maxXBin = -1;
   int maxYBin = -1;
@@ -531,6 +531,92 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 
   }
   return _rlm;
+}
+*/
+
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var = "btag_SF_")
+{
+
+	// case1 : fixedWP correction with mujets (here medium WP) # evaluate('systematic', 'working_point', 'flavor', 'abseta', 'pt')
+	// for case 1  use one of the btvtype = "deepCSV_mujets " , deepCSV_comb" for b/c , deepCSV_incl" for lightjets
+	if (_case == 1)
+	{
+
+		//======================================================================================================================================
+		//>>>> function to calculate event weights for MC events, incorporating fixedWP correction with mujets (here medium WP)and systematics with
+		// all variations seperately (up/down/correlated/uncorrelated/)
+		// The weight for each variation is stored in separate columns (btag_SF_central,btag_SF_up, btag_SF_down, etc.).
+		// btagWeight_case1_central  is used to recalculate the eventweight. Other variations are intended for systematics calculations.
+		//======================================================================================================================================
+		auto btagweightgenerator_case1 = [this](const ROOT::VecOps::RVec<int> &hadflav, const ROOT::VecOps::RVec<float> &etas, const ROOT::VecOps::RVec<float> &pts, const std::string &variation) -> float
+		{
+			double btagWeight = 1.0;
+			for (std::size_t i = 0; i < pts.size(); i++)
+			{
+				// std::cout<<"The BTag flavor"<< hadflav[i]<< " BTagJet eta:"<< etas[i]<<" BTagJet pt"<< pts[i]<<std::endl;
+				if (std::abs(etas[i]) > 2.4999 || pts[i] < 30.000001)
+					continue;
+				if (hadflav[i] != 0)
+				{
+					double bcjets_weights = _correction_btag1->at("deepJet_mujets")->evaluate({variation, "M", hadflav[i], std::fabs(etas[i]), pts[i]});
+					btagWeight *= bcjets_weights;
+				}
+				else
+				{
+					double lightjets_weights = _correction_btag1->at("deepJet_incl")->evaluate({variation, "M", hadflav[i], std::fabs(etas[i]), pts[i]});
+					btagWeight *= lightjets_weights;
+				}
+			}
+			return btagWeight;
+		};
+		// btag weight for each variation individually
+		std::vector<std::string> variations = {"central", "up", "down", "up_correlated", "down_correlated", "uncorrelated"};
+		for (const std::string &variation : variations)
+		{
+			std::string column_name = output_var + variation;
+			_rlm = _rlm.Define(column_name, [btagweightgenerator_case1, variation](const ROOT::VecOps::RVec<int> &hadflav, const ROOT::VecOps::RVec<float> &etas, const ROOT::VecOps::RVec<float> &pts)
+							   {
+	  float weight = btagweightgenerator_case1(hadflav, etas, pts, variation);// Get the weight for the corresponding variation
+	  return weight; }, Jets_vars_names); // after all cuts, remove overlapped
+			std::cout << "BJet SF column name: " << column_name << std::endl;
+			if (isDefined("column_name"))
+			{
+				std::cout << "BJet SF column: " << column_name << " is saved in the Node." << std::endl;
+			}
+		}
+
+		//======================================================================================================================================
+		// case3 - Shape correction
+	}
+	else if (_case == 3)
+	{
+		// for case 3 : use btvtype': 'deepJet_shape' in jobconfiganalysis.py
+		cout << "case 3 Shape correction B tagging SF for MC " << endl;
+		//======================================================================================================================================
+		//>>>> function to calculate event weights for MC events,based on DeepJet algorithm, incorporating shape correction with central variation
+		//======================================================================================================================================
+		auto btagweightgenerator3 = [this](ints &hadflav, floats &etas, floats &pts, floats &btags) -> float
+		{
+			double bweight = 1.0;
+
+			for (auto i = 0; i < int(pts.size()); i++)
+			{
+				if (std::abs(etas[i]) > 2.5 || pts[i] < 30.000001)
+					continue;
+				double w = _correction_btag1->at(_btvtype)->evaluate({"central", int(hadflav[i]), fabs(float(etas[i])), float(pts[i]), float(btags[i])});
+				bweight *= w;
+			}
+			return bweight;
+		};
+
+		cout << "Generate case3 b-tagging weight" << endl;
+		std::string column_name = output_var + "case3";
+		_rlm = _rlm.Define(column_name, btagweightgenerator3, Jets_vars_names);
+		// Total event weight after shape correction
+		//_rlm = _rlm.Define("evWeight", "pugenWeight*btagWeight_case3");
+		std::cout << "BJet SF column name: " << column_name << std::endl;
+	}
+	return _rlm;
 }
 
 
@@ -862,8 +948,8 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 
 	vector<RNodeTree *> rntends;
 	_rnt.getRNodeLeafs(rntends);
-	//_rnt.Print();
-    //cout << rntends.size() << endl;
+	_rnt.Print();
+    cout << rntends.size() << endl;
 
 
 	for (auto arnt: rntends)
