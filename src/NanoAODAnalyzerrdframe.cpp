@@ -534,7 +534,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 }
 */
 
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var = "btag_SF_")
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var)
 {
 
 	// case1 : fixedWP correction with mujets (here medium WP) # evaluate('systematic', 'working_point', 'flavor', 'abseta', 'pt')
@@ -941,7 +941,7 @@ void NanoAODAnalyzerrdframe::addCuts(string cut, string idx)
 	_cutinfovector.push_back({cut, idx});
 }
 
-
+/*
 void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 {
 
@@ -1003,12 +1003,83 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
         for (size_t i=0; i<PDFWeights.size(); i++){
             hPDFWeights->SetBinContent(i+1, PDFWeights[i]);
 		}*/
-		_outrootfile->Write(0, TObject::kOverwrite);
+/*		_outrootfile->Write(0, TObject::kOverwrite);
 		_outrootfile->Close();
 	}
     std::cout<< "-------------------------------------------------------------------" << std::endl;
     std::cout << "END...  :) " << std::endl; 
 
+}
+*/
+
+
+void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
+{
+	vector<RNodeTree *> rntends;
+	_rnt.getRNodeLeafs(rntends);
+	_rnt.Print();
+	 cout << rntends.size() << endl;
+	for (auto arnt : rntends)
+	{
+		string nodename = arnt->getIndex();
+		string outname = _outfilename;
+		if (rntends.size() > 1)
+			outname.replace(outname.find(".root"), 5, "_" + nodename + ".root");
+		_outrootfilenames.push_back(outname);
+		RNode *arnode = arnt->getRNode();
+		std::cout << "-------------------------------------------------------------------" << std::endl;
+		cout << "cut : ";
+		cout << arnt->getIndex();
+		if (saveAll)
+		{
+			arnode->Snapshot(outtreename, outname);
+		}
+		else
+		{
+			cout << " --writing branches" << endl;
+			std::cout << "-------------------------------------------------------------------" << std::endl;
+			for (auto bname : _varstostorepertree[nodename])
+			{
+				cout << bname << endl;
+			        cout << "-----branch stored" << endl;
+			}
+
+			arnode->Snapshot(outtreename, outname, _varstostorepertree[nodename]);
+		}
+		std::cout << "-------------------------------------------------------------------" << std::endl;
+		cout << "Creating output root file :  " << endl;
+		cout << outname << " ";
+		cout << endl;
+		std::cout << "-------------------------------------------------------------------" << std::endl;
+		_outrootfile = new TFile(outname.c_str(), "UPDATE");
+		cout << "Writing histograms...   " << endl;
+		std::cout << "-------------------------------------------------------------------" << std::endl;
+		for (auto &h : _th1dhistos)
+		{
+			if (h.second.GetPtr() != nullptr)
+			{
+				h.second.GetPtr()->Print();
+				h.second.GetPtr()->Write();
+			}
+		}
+		// for 2D histograms
+		for (auto &h : _th2dhistos)
+		{
+			if (h.second.GetPtr() != nullptr)
+			{
+				h.second.GetPtr()->Print();
+				h.second.GetPtr()->Write();
+			}
+		}
+		/*TH1F* hPDFWeights = new TH1F("LHEPdfWeightSum", "LHEPdfWeightSum", 103, 0, 1);
+		for (size_t i=0; i<PDFWeights.size(); i++){
+			hPDFWeights->SetBinContent(i+1, PDFWeights[i]);
+		}*/
+		_outrootfile->Write(0, TObject::kOverwrite);
+		_outrootfile->Close();
+	}
+	std::cout << "-------------------------------------------------------------------" << std::endl;
+	std::cout << "END...  :) " << std::endl;
 }
 
 void NanoAODAnalyzerrdframe::setParams(int year, string runtype, int datatype)

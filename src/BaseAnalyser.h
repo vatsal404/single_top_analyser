@@ -31,7 +31,6 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		void removeOverlaps();
 
 
-
 		bool debug = true;
 		bool _jsonOK;
 		string _outfilename;
