@@ -22,7 +22,7 @@ BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename)
                     "HLT_PFHT330PT30_QuadPFJet_75_60_45_40_TriplePFBTagDeepCSV_4p5",
                     "HLT_PFJet550","HLT_PFHT400_FivePFJet_100_100_60_30_30_DoublePFBTagDeepCSV_4p5",
                     "HLT_PFHT400_FivePFJet_120_120_60_30_30_DoublePFBTagDeepCSV_4p5"};
-	HLT2017Names= {"Name1","Name2"};
+	HLT2017Names= {"HLT_IsoMu24","HLT_Ele32_WPTight_Gsf"};
     HLT2016Names= {"Name1","Name2"};
 }
 
@@ -45,7 +45,7 @@ void BaseAnalyser::defineCuts()
 	std::cout<< "-------------------------------------------------------------------" << std::endl;
 
 	//MinimalSelection to filter events
-	addCuts("nMuon > 0 && nElectron == 0 && nJet>0", "0");
+	addCuts("nMuon > 0 + nElectron == 1 && nJet>0", "0");
 	//addCuts("NgoodMuons>=2","00");
     //addCuts("ncleanjetspass>0","00");
 	//addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
@@ -65,7 +65,7 @@ void BaseAnalyser::selectElectrons()
     }
    
     _rlm = _rlm.Define("goodElectronsID", ElectronID(2)); //without pt-eta cuts
-	_rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>30.0 && abs(Electron_eta)<2.4 && Electron_pfRelIso03_all<0.15");
+	_rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>35.0 && abs(Electron_eta)<2.1 && Electron_pfRelIso03_all<0.15");
     _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt[goodElectrons]")
                 .Define("goodElectrons_eta", "Electron_eta[goodElectrons]")
                 .Define("goodElectrons_phi", "Electron_phi[goodElectrons]")
