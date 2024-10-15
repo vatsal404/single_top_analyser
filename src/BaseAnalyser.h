@@ -24,7 +24,8 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		void setupAnalysis();
 		// object selectors
 		void selectElectrons();
-		void selectMuons();
+		void reconstructWboson();	
+        	void selectMuons();
 		void selectJets();
 		void calculateEvWeight();
 		void selectMET();

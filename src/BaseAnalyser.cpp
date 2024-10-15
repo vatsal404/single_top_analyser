@@ -45,10 +45,10 @@ void BaseAnalyser::defineCuts()
 	std::cout<< "-------------------------------------------------------------------" << std::endl;
 
 	//MinimalSelection to filter events
-	addCuts("nMuon > 0 + nElectron == 1 && nJet>0", "0");
+	addCuts("nMuon + nElectron == 1 && nJet>0 && PV_ndof>4", "0");
 	//addCuts("NgoodMuons>=2","00");
-    //addCuts("ncleanjetspass>0","00");
-	//addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
+//    addCuts("ncleanjetspass>0","00");
+//	addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
 
 }
 //===============================Find Good Electrons===========================================//
@@ -65,19 +65,27 @@ void BaseAnalyser::selectElectrons()
     }
    
     _rlm = _rlm.Define("goodElectronsID", ElectronID(2)); //without pt-eta cuts
-	_rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>35.0 && abs(Electron_eta)<2.1 && Electron_pfRelIso03_all<0.15");
+	_rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>35.0 && abs(Electron_eta)<2.1 && Electron_pfRelIso03_all<0.0588 && Electron_dxy<0.5 && Electron_dz<1");
     _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt[goodElectrons]")
+		.Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[0]) : -999.9")
+
                 .Define("goodElectrons_eta", "Electron_eta[goodElectrons]")
-                .Define("goodElectrons_phi", "Electron_phi[goodElectrons]")
-                .Define("goodElectrons_mass", "Electron_mass[goodElectrons]")
-                .Define("goodElectrons_idx", ::good_idx, {"goodElectrons"})
+                .Define("goodElectrons_leading_eta","int(goodElectrons_eta.size())>0 ? static_cast<double> (goodElectrons_eta[0]) : -999.9")
+               
+		 .Define("goodElectrons_phi", "Electron_phi[goodElectrons]")
+                 .Define("goodElectrons_leading_phi", "int(goodElectrons_phi.size())>0 ?static_cast<double>(goodElectrons_phi[0]) :-999.9")
+
+		.Define("goodElectrons_mass", "Electron_mass[goodElectrons]")
+                .Define("goodElectrons_leading_mass", "int(goodElectrons_mass.size())>0 ?static_cast<double>(goodElectrons_mass[0]) :-999.9")
+
+		.Define("goodElectrons_idx", ::good_idx, {"goodElectrons"})
                 .Define("NgoodElectrons", "int(goodElectrons_pt.size())");
 
     //-------------------------------------------------------
     //generate electron 4vector from selected good Electrons
     //-------------------------------------------------------
     _rlm = _rlm.Define("goodElectron_4Vecs", ::generate_4vec, {"goodElectrons_pt", "goodElectrons_eta", "goodElectrons_phi", "goodElectrons_mass"});
-
+    _rlm = _rlm.Define("goodElectron_TL4Vecs", ::generate_TLorentzVector, {"goodElectrons_leading_pt", "goodElectrons_leading_eta", "goodElectrons_leading_phi", "goodElectrons_leading_mass"});
 }
 //===============================Find Good Muons===============================================//
 //: Define Good Muons in rdata frame
@@ -93,12 +101,22 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodMuonsID", MuonID(2)); //loose muons
-    _rlm = _rlm.Define("goodMuons","goodMuonsID && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.40");
-    _rlm = _rlm.Define("goodMuons_pt", "Muon_pt[goodMuons]") 
-                .Define("goodMuons_eta", "Muon_eta[goodMuons]")
-                .Define("goodMuons_phi", "Muon_phi[goodMuons]")
+    _rlm = _rlm.Define("goodMuons", "(goodMuonsID && Muon_pt > 29 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all < 0.06) && Muon_dxy<2 && Muon_dz<5");
+
+//    _rlm = _rlm.Define("goodMuons","goodMuonsID && Muon_pt > 28 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.06");
+      _rlm = _rlm.Define("goodMuons_pt", "Muon_pt[goodMuons]")
+		 .Define("goodMuons_leading_pt", "int(goodMuons_pt.size())>0 ? static_cast<double>(goodMuons_pt[0]) : -999.9") 
+                
+		.Define("goodMuons_eta", "Muon_eta[goodMuons]")
+                .Define("goodMuons_leading_eta", "int(goodMuons_eta.size())>0 ? static_cast<double>(goodMuons_eta[0]) :-999.9")
+ 
+               .Define("goodMuons_phi", "Muon_phi[goodMuons]")
+               .Define("goodMuons_leading_phi", "int(goodMuons_phi.size())>0 ? static_cast<double>(goodMuons_phi[0]) : -999.9")
+
                 .Define("goodMuons_mass", "Muon_mass[goodMuons]")
-                .Define("goodMuons_charge", "Muon_charge[goodMuons]")
+		.Define("goodMuons_leading_mass", "int(goodMuons_mass.size())>0 ? static_cast<double>(goodMuons_mass[0]) :-999.9")
+                
+		.Define("goodMuons_charge", "Muon_charge[goodMuons]")
                 .Define("goodMuons_idx", ::good_idx, {"goodMuons"})
                 .Define("NgoodMuons", "int(goodMuons_pt.size())");
 
@@ -106,9 +124,80 @@ void BaseAnalyser::selectMuons()
     //generate muon 4vector from selected good Muons
     //-------------------------------------------------------
     _rlm = _rlm.Define("goodMuons_4vecs", ::generate_4vec, {"goodMuons_pt", "goodMuons_eta", "goodMuons_phi", "goodMuons_mass"});
-   
+    _rlm = _rlm.Define("goodMuons_TL4Vecs", ::generate_TLorentzVector, {"goodMuons_leading_pt", "goodMuons_leading_eta", "goodMuons_leading_phi", "goodMuons_leading_mass"});
+
+
 
 }
+
+//=============================Reconstruct W boson=============================================//
+//: Reconstruct the W boson
+//=============================================================================================//
+void BaseAnalyser::reconstructWboson()
+{
+    if (debug){
+    std::cout<<std::endl;
+    std::cout<< "================================//=================================" << std::endl;
+    std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
+    std::cout<< "================================//=================================" << std::endl;
+    }
+
+    /*--------------------- Reconstruct neutrino ---------------------*/
+
+    std::cout<<"Reconstructing neutrino from MET"<<std::endl;
+    _rlm = _rlm.Define("nu_pt", "MET_pt")
+               .Define("nu_phi", "MET_phi")
+               .Define("nu_phi_double", "static_cast<double>(nu_phi)")
+
+               .Define("nu_px", "nu_pt*cos(nu_phi)")
+               .Define("nu_py", "nu_pt*sin(nu_phi)");
+
+    _rlm = _rlm.Define("electronChannel","NgoodElectrons==1 ? 1 : 0");
+    _rlm = _rlm.Define("muonChannel", "NgoodMuons==1 ? 1 : 0");
+
+
+    _rlm = _rlm.Define("numb","-999.99");
+    _rlm = _rlm.Define("numbLorentzVector",::generate_TLorentzVector, {"numb", "numb", "numb", "numb"});
+    _rlm = _rlm.Define("lepton_TL4vec", "muonChannel==1 ? goodMuons_TL4Vecs : electronChannel==1 ?goodElectron_TL4Vecs : numbLorentzVector")
+               .Define("lep_phi", "electronChannel==1 ? goodElectrons_phi[0] : muonChannel==1 ? goodMuons_phi[0] : -999.9"); 
+
+    _rlm = _rlm.Define("lambda_reco", ::calculateLambda, {"lepton_TL4vec", "nu_pt", "nu_phi"});
+
+    _rlm = _rlm.Define("delta_reco", ::calculateDelta, {"lepton_TL4vec", "nu_pt", "lambda_reco"})
+               .Define("isRealSolution", "delta_reco > 0 ? 1 : -1");
+
+    _rlm = _rlm.Define("nu_pz", ::calculate_nu_z, {"lepton_TL4vec", "lambda_reco", "delta_reco", "nu_pt", "nu_phi"});
+
+    _rlm = _rlm.Define("nu_energy", ::calculate_nu_energy, {"nu_pt", "nu_phi", "nu_pz"});
+
+    _rlm = _rlm.Define("nu_TL4vec", ::get_neutrino_TL4vec, {"nu_pt", "nu_phi", "nu_pz", "nu_energy"});
+
+
+    // for (const auto &delta_reco: _rlm.Take<float>("delta_reco"))
+    // { 
+    //     std::cout << "delta_reco: " << delta_reco << "\n";
+    // }
+
+    /*--------------------- Reconstruct W boson ---------------------*/
+
+    // _rlm = _rlm.Define("Wboson_4vec", ::reconstructWboson_TL4vec, {"lepton_TL4vec", "nu_TL4vec"});
+
+    // _rlm = _rlm.Define("Wboson_transversMass", "Wboson_4vec.Mt()");
+
+    // _rlm = _rlm.Define("Wboson_transversMass", "sqrt(pow(lepton_TL4vec.Pt()+nu_pt,2)-pow(nu_pt*cos(nu_phi)+lepton_TL4vec.Px(),2) - pow(nu_pt*sin(nu_phi)+lepton_TL4vec.Py(),2))");
+    _rlm = _rlm.Define("delta_phi_lep_nu", ::calculate_deltaPhi_scalars, {"lep_phi", "nu_phi_double"})
+    .Define("Wboson_transversMass", "sqrt(2*lepton_TL4vec.Pt()*nu_pt*(1-cos(delta_phi_lep_nu)))");
+
+
+}
+
+
+
+
+
+
+
+
 //=================================Select Jets=================================================//
 //check the twiki page :    https://twiki.cern.ch/twiki/bin/view/CMS/JetID
 //to find jetId working points for the purpose of  your analysis.
@@ -127,7 +216,7 @@ void BaseAnalyser::selectJets()
 
     _rlm = _rlm.Define("goodJetsID", JetID(6)); //without pt-eta cuts
     //_rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
-    _rlm = _rlm.Define("goodJets", "Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
+    _rlm = _rlm.Define("goodJets", "Jet_pt>40.0 && abs(Jet_eta)<4.7 ");
     _rlm = _rlm.Define("goodJets_pt", "Jet_pt[goodJets]")
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
@@ -286,6 +375,7 @@ void BaseAnalyser::selectMET()
 }
 
 //=============================define variables==================================================//
+
 void BaseAnalyser::defineMoreVars()
 {
     if (debug){
@@ -312,7 +402,7 @@ void BaseAnalyser::defineMoreVars()
 
     //addVartoStore("genWeight");
     //addVartoStore("genEventSumw");
-
+    addVartoStore("PV");
     //electron
     addVartoStore("nElectron");
     addVartoStore("Electron_charge");
@@ -332,6 +422,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("Selected_jetpt");
     addVartoStore("Selected_jeteta");
     addVartoStore("Selected_jetbtag");
+    addVartoStore("Wboson_transversMass");
 
     
     addVartoStore("good_bjetdeepjet");
@@ -354,6 +445,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("good_bjethadflav");
     addVartoStore("goodJets_hadflav");
       
+
     //For Btagging Efficiency
     addVartoStore("goodJets_btagpass_bcflav_pt");
     addVartoStore("goodJets_btagpass_bcflav_eta");
@@ -387,7 +479,8 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("muon_SF_id_systdown");
     //addVartoStore("muonISO_SF");
     addVartoStore("muon_SF_iso_sf");
-    }
+    addVartoStore("nu_pt");
+  }
 
 //    addVartoStore("evWeight");   
     
@@ -419,9 +512,9 @@ void BaseAnalyser::bookHists()
     // add1DHist( {"hnevents", "Number of Events", 2, -0.5, 1.5}, "one", "evWeight", "");
     // add1DHist( {"hnevents_no_weight", "Number of Events w/o", 2, -0.5, 1.5}, "one", "one", "");
     
-    add1DHist( {"hNgoodElectrons", "NumberofGoodElectrons", 5, 0.0, 5.0}, "NgoodElectrons", "evWeight", "");
-    
-    add1DHist( {"hNgoodMuons", "# of good Muons ", 5, 0.0, 5.0}, "NgoodMuons", "evWeight", "");
+    add1DHist( {"hNgoodElectrons", "NumberofGoodElectrons", 5, 0.0, 10.0}, "NgoodElectrons", "evWeight", "");
+    add1DHist( {"hW_mass", "massdistributionof W boson", 20, 50.0, 120.0}, "Wboson_transversMass", "evWeight", "");  
+    add1DHist( {"hNgoodMuons", "# of good Muons ", 5, 0.0, 10.0}, "NgoodMuons", "evWeight", "");
     
     // add1DHist( {"hgood_jetpt_with weight", "Good Jet pt with weight " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
     // add1DHist( {"hgood_jetpt_NOWeight", "Good Jet pt no weihght " , 100, 0, 1000} , "goodJets_pt", "one", "");
@@ -469,10 +562,12 @@ void BaseAnalyser::setupObjects()
 	selectMuons();
 	selectJets();
 	removeOverlaps();
+
 	if(!_isData){
 	  this->calculateEvWeight(); // PU, genweight and BTV and Mu and Ele
 	}
 	selectMET();
+        reconstructWboson();
 
 }
 
