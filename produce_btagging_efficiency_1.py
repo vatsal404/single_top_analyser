@@ -4,7 +4,7 @@ from array import array
 from btagging_efficiency_binning import btageff_dataset_dict
 
 # Define the base directory where the dataset folders are located
-base_directory = '/eos/uscms/store/user/vsinha/'
+base_directory = ''
 
 # Define the output directory where the new root files will be stored
 output_directory = 'data/BTV/2017_UL'

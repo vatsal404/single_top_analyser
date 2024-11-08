@@ -288,7 +288,7 @@ floats muoncorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::str
     
     for (auto i=0; i<int(nvecs); i++)
     {
-        //std::cout << "year: " << year  << ", etas: " << fabs(float(etas[i])) << ", pts: " << float(pts[i]) << " sys : " << sys << '\n';
+        std::cout << "year: " << year  << ", etas: " << fabs(float(etas[i])) << ", pts: " << float(pts[i]) << " sys : " << sys << '\n';
         
         if (pts[i] < 0 ) {
             throw std::invalid_argument("Invalid value of pT detected!");

@@ -22,8 +22,10 @@ int main(void) {
 	TChain c1("Events");
 	//c1.Add("testinputdata/data/JetHT_2017C_DA05CA1A-3265-EE47-84F9-10CB09D22BDA.root"); //data
 	//c1.Add("testinputdata/MC/2017/ttJets-2017MC-A258F579-5EC0-D840-95D7-4327595FC3DE.root"); // MC
-	c1.Add("/eos/uscms/store/user/vsinha/375FDAF8-92F6-8046-9159-5040055F7708.root"); // MC
-	BaseAnalyser nanoaodrdf(&c1, "testout.root");
+//	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer16NanoAODv7/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v2/10000/102C3F90-6497-FB41-8B17-FDEDA109F2A6.root"); // MC
+        c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer16NanoAODv7/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v2/10000/F6E8EE8D-4E63-4841-861A-3A1C10564B8B.root"); // MC
+
+	BaseAnalyser nanoaodrdf(&c1, "testout_h.root");
 	nanoaodrdf.setParams(2017, "UL", -1);
 	// nanoaodrdf.setHLT();
 

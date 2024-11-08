@@ -6,6 +6,14 @@
  *      Developper: cdozen
  */
 
+#include "TCanvas.h"
+#include "TH1D.h"
+#include "TLatex.h"
+#include "TLegend.h"
+#include "TDirectory.h"
+#include "TStyle.h"
+#include <TSystem.h>
+
 #include "Math/GenVector/VectorUtil.h"
 #include "BaseAnalyser.h"
 #include "utility.h"
@@ -45,10 +53,10 @@ void BaseAnalyser::defineCuts()
 	std::cout<< "-------------------------------------------------------------------" << std::endl;
 
 	//MinimalSelection to filter events
-	addCuts("nMuon + nElectron == 1 && nJet>0 && PV_ndof>4", "0");
-	//addCuts("NgoodMuons>=2","00");
+	addCuts("nMuon + nElectron == 1 && nJet>2 && PV_ndof>4", "0");
+	//addCuts("Ngoodmuons>=2","00");
 //    addCuts("ncleanjetspass>0","00");
-//	addCuts(setHLT(),"1"); //HLT cut buy checking HLT names in the root file
+	addCuts(setHLT(),"2"); //HLT cut buy checking HLT names in the root file
 
 }
 //===============================Find Good Electrons===========================================//
@@ -65,7 +73,7 @@ void BaseAnalyser::selectElectrons()
     }
    
     _rlm = _rlm.Define("goodElectronsID", ElectronID(2)); //without pt-eta cuts
-	_rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>35.0 && abs(Electron_eta)<2.1 && Electron_pfRelIso03_all<0.0588 && Electron_dxy<0.5 && Electron_dz<1");
+    _rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>35.0 && abs(Electron_eta)<2.1 && Electron_pfRelIso03_all<0.0588 && Electron_dxy<0.5 && Electron_dz<1 && Electron_eInvMinusPInv<12.9 && Electron_hoe<0.0414 && Electron_lostHits==0");
     _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt[goodElectrons]")
 		.Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[0]) : -999.9")
 
@@ -100,31 +108,30 @@ void BaseAnalyser::selectMuons()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-    _rlm = _rlm.Define("goodMuonsID", MuonID(2)); //loose muons
-    _rlm = _rlm.Define("goodMuons", "(goodMuonsID && Muon_pt > 29 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all < 0.06) && Muon_dxy<2 && Muon_dz<5");
-
-//    _rlm = _rlm.Define("goodMuons","goodMuonsID && Muon_pt > 28 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.06");
-      _rlm = _rlm.Define("goodMuons_pt", "Muon_pt[goodMuons]")
-		 .Define("goodMuons_leading_pt", "int(goodMuons_pt.size())>0 ? static_cast<double>(goodMuons_pt[0]) : -999.9") 
+    _rlm = _rlm.Define("goodmuonsID", MuonID(2)); //loose muons
+    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_pt > 29 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all < 0.06 && Muon_dxy<2 && Muon_dz<5 && Muon_isGlobal==1");
+//   _rlm = _rlm.Define("goodmuons","Muon_pt > 29 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.06");
+      _rlm = _rlm.Define("goodmuons_pt", "Muon_pt[goodmuons]")
+		 .Define("goodmuons_leading_pt", "int(goodmuons_pt.size())>0 ? static_cast<double>(goodmuons_pt[0]) : -999.9") 
                 
-		.Define("goodMuons_eta", "Muon_eta[goodMuons]")
-                .Define("goodMuons_leading_eta", "int(goodMuons_eta.size())>0 ? static_cast<double>(goodMuons_eta[0]) :-999.9")
+		.Define("goodmuons_eta", "Muon_eta[goodmuons]")
+                .Define("goodmuons_leading_eta", "int(goodmuons_eta.size())>0 ? static_cast<double>(goodmuons_eta[0]) :-999.9")
  
-               .Define("goodMuons_phi", "Muon_phi[goodMuons]")
-               .Define("goodMuons_leading_phi", "int(goodMuons_phi.size())>0 ? static_cast<double>(goodMuons_phi[0]) : -999.9")
+               .Define("goodmuons_phi", "Muon_phi[goodmuons]")
+               .Define("goodmuons_leading_phi", "int(goodmuons_phi.size())>0 ? static_cast<double>(goodmuons_phi[0]) : -999.9")
 
-                .Define("goodMuons_mass", "Muon_mass[goodMuons]")
-		.Define("goodMuons_leading_mass", "int(goodMuons_mass.size())>0 ? static_cast<double>(goodMuons_mass[0]) :-999.9")
+                .Define("goodmuons_mass", "Muon_mass[goodmuons]")
+		.Define("goodmuons_leading_mass", "int(goodmuons_mass.size())>0 ? static_cast<double>(goodmuons_mass[0]) :-999.9")
                 
-		.Define("goodMuons_charge", "Muon_charge[goodMuons]")
-                .Define("goodMuons_idx", ::good_idx, {"goodMuons"})
-                .Define("NgoodMuons", "int(goodMuons_pt.size())");
+		.Define("goodmuons_charge", "Muon_charge[goodmuons]")
+                .Define("goodmuons_idx", ::good_idx, {"goodmuons"})
+                .Define("Ngoodmuons", "int(goodmuons_pt.size())");
 
     //-------------------------------------------------------
     //generate muon 4vector from selected good Muons
     //-------------------------------------------------------
-    _rlm = _rlm.Define("goodMuons_4vecs", ::generate_4vec, {"goodMuons_pt", "goodMuons_eta", "goodMuons_phi", "goodMuons_mass"});
-    _rlm = _rlm.Define("goodMuons_TL4Vecs", ::generate_TLorentzVector, {"goodMuons_leading_pt", "goodMuons_leading_eta", "goodMuons_leading_phi", "goodMuons_leading_mass"});
+    _rlm = _rlm.Define("goodmuons_4vecs", ::generate_4vec, {"goodmuons_pt", "goodmuons_eta", "goodmuons_phi", "goodmuons_mass"});
+    _rlm = _rlm.Define("goodmuons_TL4Vecs", ::generate_TLorentzVector, {"goodmuons_leading_pt", "goodmuons_leading_eta", "goodmuons_leading_phi", "goodmuons_leading_mass"});
 
 
 
@@ -153,13 +160,13 @@ void BaseAnalyser::reconstructWboson()
                .Define("nu_py", "nu_pt*sin(nu_phi)");
 
     _rlm = _rlm.Define("electronChannel","NgoodElectrons==1 ? 1 : 0");
-    _rlm = _rlm.Define("muonChannel", "NgoodMuons==1 ? 1 : 0");
+    _rlm = _rlm.Define("muonChannel", "Ngoodmuons==1 ? 1 : 0");
 
 
     _rlm = _rlm.Define("numb","-999.99");
     _rlm = _rlm.Define("numbLorentzVector",::generate_TLorentzVector, {"numb", "numb", "numb", "numb"});
-    _rlm = _rlm.Define("lepton_TL4vec", "muonChannel==1 ? goodMuons_TL4Vecs : electronChannel==1 ?goodElectron_TL4Vecs : numbLorentzVector")
-               .Define("lep_phi", "electronChannel==1 ? goodElectrons_phi[0] : muonChannel==1 ? goodMuons_phi[0] : -999.9"); 
+    _rlm = _rlm.Define("lepton_TL4vec", "muonChannel==1 ? goodmuons_TL4Vecs : electronChannel==1 ?goodElectron_TL4Vecs : numbLorentzVector")
+               .Define("lep_phi", "electronChannel==1 ? goodElectrons_phi[0] : muonChannel==1 ? goodmuons_phi[0] : -999.9"); 
 
     _rlm = _rlm.Define("lambda_reco", ::calculateLambda, {"lepton_TL4vec", "nu_pt", "nu_phi"});
 
@@ -180,7 +187,9 @@ void BaseAnalyser::reconstructWboson()
 
     /*--------------------- Reconstruct W boson ---------------------*/
 
-    // _rlm = _rlm.Define("Wboson_4vec", ::reconstructWboson_TL4vec, {"lepton_TL4vec", "nu_TL4vec"});
+    _rlm = _rlm.Define("Wboson_4vec", ::reconstructWboson_TL4vec, {"lepton_TL4vec", "nu_TL4vec"})
+               .Define("w_mass","Wboson_4vec.M()")
+               .Define("w_pt","Wboson_4vec.Pt()");
 
     // _rlm = _rlm.Define("Wboson_transversMass", "Wboson_4vec.Mt()");
 
@@ -215,31 +224,45 @@ void BaseAnalyser::selectJets()
     }
 
     _rlm = _rlm.Define("goodJetsID", JetID(6)); //without pt-eta cuts
-    //_rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
-    _rlm = _rlm.Define("goodJets", "Jet_pt>40.0 && abs(Jet_eta)<4.7 ");
+//    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
+    _rlm = _rlm.Define("goodJets_high_eta", "Jet_pt>40.0 && (abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.7) ");
+    _rlm = _rlm.Define("goodJets_low_eta", "Jet_pt>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.7 ");
+    _rlm = _rlm.Define("goodJets", " goodJets_high_eta || goodJets_low_eta ");
+
+
     _rlm = _rlm.Define("goodJets_pt", "Jet_pt[goodJets]")
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
                 .Define("goodJets_mass", "Jet_mass[goodJets]")
                 .Define("goodJets_idx", ::good_idx, {"goodJets"});
 				_rlm = _rlm.Define("goodJets_hadflav", "Jet_hadronFlavour[goodJets]");
-    //goot jets deep-b tag          
+    //goot jets deep-b tag
 	_rlm = _rlm.Define("goodJets_jetdeepbtag", "Jet_btagDeepB[goodJets]")
-                .Define("goodJets_deepjetbtag", "Jet_btagDeepFlavB[goodJets]") 
+                .Define("goodJets_deepjetbtag", "Jet_btagDeepFlavB[goodJets]")
                 .Define("NgoodJets", "int(goodJets_pt.size())")
                 .Define("goodJets_4vecs", ::generate_4vec, {"goodJets_pt", "goodJets_eta", "goodJets_phi", "goodJets_mass"});
 
 	//select b jest within goodjets 
-    _rlm = _rlm.Define("btagcuts", "goodJets_deepjetbtag>0.2783") //0.2783 -medium, 0.7 - tight 
+    _rlm = _rlm.Define("btagcuts", "goodJets_deepjetbtag>0.7") //0.2783 -medium, 0.7 - tight 
       .Define("good_bjetpt", "goodJets_pt[btagcuts]")
+      .Define("good_bjet_leading_pt", "int(good_bjetpt.size()) > 0 ? good_bjetpt[0] : -999.9")
+
       .Define("good_bjeteta", "goodJets_eta[btagcuts]")
-      .Define("good_bjetphi", "goodJets_phi[btagcuts]")
+      .Define("good_bjet_leading_eta", "int(good_bjeteta.size()) > 0 ? good_bjeteta[0] : -999.9")
+
+     .Define("good_bjetphi", "goodJets_phi[btagcuts]")
+      .Define("good_bjet_leading_phi", "int(good_bjetphi.size()) > 0 ? good_bjetphi[0] : -999.9")
+
       .Define("good_bjetmass", "goodJets_mass[btagcuts]")
+      .Define("good_bjet_leading_mass", "int(good_bjetmass.size()) > 0 ? good_bjetmass[0] : -999.9")
+
       .Define("good_bjetdeepjet", "goodJets_deepjetbtag[btagcuts]");
-    
+
     _rlm = _rlm.Define("good_bjethadflav", "goodJets_hadflav[btagcuts]");
     
     _rlm = _rlm.Define("Ngood_bjets", "int(good_bjetpt.size())")
+      .Define("good_bjet_TL4vec", ::generate_TLorentzVector, {"good_bjet_leading_pt","good_bjet_leading_eta","good_bjet_leading_phi","good_bjet_leading_mass"})
+      .Define("bjet_pt","good_bjet_TL4vec.Pt()")
       .Define("good_bjet4vecs", ::generate_4vec, {"good_bjetpt", "good_bjeteta", "good_bjetphi", "good_bjetmass"});
     
 
@@ -292,7 +315,7 @@ void BaseAnalyser::removeOverlaps()
     //Use clean jets/bjets for object selections
     //=====================================================================================//
 
-    _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodMuons_4vecs"});
+    _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodmuons_4vecs"});
 	_rlm =	_rlm.Define("Selected_jetpt", "goodJets_pt[muonjetoverlap]")
 		.Define("Selected_jeteta", "goodJets_eta[muonjetoverlap]")
 		.Define("Selected_jetphi", "goodJets_phi[muonjetoverlap]")
@@ -319,6 +342,42 @@ void BaseAnalyser::removeOverlaps()
 
 }
 
+
+//=================================Define regions=================================================//
+void BaseAnalyser::defineRegion()
+{
+    if (debug){
+    std::cout<<std::endl;
+    std::cout<< "================================//=================================" << std::endl;
+    std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
+    std::cout<< "================================//=================================" << std::endl;
+    }
+
+    _rlm = _rlm.Define("region_2j1t", "NgoodJets == 2 && Ngood_bjets== 1 ? 1 : 0");
+    _rlm = _rlm.Define("region_2j0t", "NgoodJets == 2 && Ngood_bjets == 0 ? 1 : 0");
+    _rlm = _rlm.Define("region_3j2t", "NgoodJets >= 3 && Ngood_bjets >= 2 ? 1 : 0");
+
+    _rlm = _rlm.Define("region", "region_2j1t == 1 ? 0.0 : region_2j0t == 1 ? 1.0 : region_3j2t == 1 ? 2.0 :-1.0");
+
+}
+
+void BaseAnalyser::reconstructTop()
+{
+    if (debug){
+    std::cout<<std::endl;
+    std::cout<< "================================//=================================" << std::endl;
+    std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
+    std::cout<< "================================//=================================" << std::endl;
+    }
+
+//    _rlm = _rlm.Define("bQuark_forReco", "region == 0.0 ? good_bjet_TL4vec : numbLorentzVector")
+    _rlm = _rlm.Define("bQuark_forReco", " good_bjet_TL4vec")
+               .Define("topQuark_TL4vec", "Wboson_4vec + bQuark_forReco");
+
+    _rlm = _rlm.Define("top_mass", "topQuark_TL4vec.M()")
+               .Define("top_pt", "topQuark_TL4vec.Pt()");
+
+}
 void BaseAnalyser::calculateEvWeight(){
 
   //Scale Factors for BTag ID	
@@ -333,7 +392,7 @@ void BaseAnalyser::calculateEvWeight(){
   _rlm = calculateBTagSF(_rlm, Jets_vars_names, 0.3040,output_btag_column_name);
 
   //Scale Factors for Muon HLT, RECO, ID and ISO
-  std::vector<std::string> Muon_vars_names = {"goodMuons_eta", "goodMuons_pt"};
+  std::vector<std::string> Muon_vars_names = {"goodmuons_eta", "goodmuons_pt"};
   std::string output_mu_column_name = "muon_SF_";
   _rlm = calculateMuSF(_rlm, Muon_vars_names, output_mu_column_name);
 
@@ -373,7 +432,102 @@ void BaseAnalyser::selectMET()
 
     
 }
+void BaseAnalyser::plotWBosonMass() {
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        std::cout << "Current working directory: " << cwd << std::endl;
+    }
 
+    // Test directory permissions
+    std::string outputDir = std::string(cwd) + "/plots";
+    std::cout << "Attempting to create directory: " << outputDir << std::endl;
+    
+    if (gSystem->AccessPathName(outputDir.c_str())) {  // returns true if path doesn't exist
+        std::cout << "Creating output directory..." << std::endl;
+        if (gSystem->mkdir(outputDir.c_str(), true) != 0) {
+            std::cerr << "Error: Failed to create output directory" << std::endl;
+            return;
+        }
+    }
+
+    // Create a test histogram if hW_mass doesn't exist
+    TH1D* h_wMass = dynamic_cast<TH1D*>(gDirectory->Get("hW_mass"));
+    if (!h_wMass) {
+        std::cout << "Creating test histogram since hW_mass was not found..." << std::endl;
+        h_wMass = new TH1D("hW_mass", "W Boson Mass", 50, 0, 200);
+        
+        // Fill with example data (Gaussian around 80 GeV)
+        for (int i = 0; i < 10000; i++) {
+            h_wMass->Fill(gRandom->Gaus(80, 10));
+        }
+    }
+
+    if (!h_wMass) {
+        std::cerr << "Error: Could not create or retrieve histogram" << std::endl;
+        return;
+    }
+
+    // Create and check canvas
+    TCanvas* c1 = new TCanvas("c1", "W Boson Mass Distribution", 800, 600);
+    if (!c1) {
+        std::cerr << "Error: Could not create canvas" << std::endl;
+        return;
+    }
+
+    // Style settings
+    c1->SetFillColor(0);
+    c1->SetFrameFillColor(0);
+    c1->SetTickx();
+    c1->SetTicky();
+
+    h_wMass->SetTitle("W Boson Transverse Mass Distribution");
+    h_wMass->GetXaxis()->SetTitle("m_{T}^{W} [GeV]");
+    h_wMass->GetYaxis()->SetTitle("Events / 5 GeV");
+    h_wMass->SetLineColor(kBlue+1);
+    h_wMass->SetLineWidth(2);
+    h_wMass->SetFillColor(kBlue-9);
+    h_wMass->SetFillStyle(1001);
+
+    // Draw and save
+    h_wMass->Draw("HIST");
+    
+    // Add ATLAS text
+    TLatex* atlas = new TLatex();
+    atlas->SetNDC();
+    atlas->SetTextFont(72);
+    atlas->SetTextSize(0.045);
+    atlas->DrawLatex(0.2, 0.85, "ATLAS");
+    atlas->SetTextFont(42);
+    atlas->DrawLatex(0.35, 0.85, "Internal");
+    atlas->SetTextSize(0.04);
+    atlas->DrawLatex(0.2, 0.80, "#sqrt{s} = 13 TeV, 139 fb^{-1}");
+
+    // Add legend
+    TLegend* legend = new TLegend(0.65, 0.75, 0.85, 0.85);
+    legend->SetBorderSize(0);
+    legend->SetFillStyle(0);
+    legend->AddEntry(h_wMass, "W #rightarrow l#nu", "f");
+    legend->Draw();
+
+    // Try multiple output formats
+    std::string outputBase = outputDir + "/WBoson_Mass_Distribution";
+    std::cout << "Attempting to save plots..." << std::endl;
+    
+    c1->SaveAs((outputBase + ".pdf").c_str());
+    c1->SaveAs((outputBase + ".png").c_str());
+    c1->SaveAs((outputBase + ".root").c_str());
+
+    std::cout << "Attempted to save files. Checking directory contents:" << std::endl;
+    gSystem->Exec(("ls -l " + outputDir).c_str());
+
+    // Clean up
+    delete legend;
+    delete atlas;
+    delete c1;
+    if (h_wMass && !gDirectory->Get("hW_mass")) {  // Only delete if we created it
+        delete h_wMass;
+    }
+}
 //=============================define variables==================================================//
 
 void BaseAnalyser::defineMoreVars()
@@ -384,7 +538,7 @@ void BaseAnalyser::defineMoreVars()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-    addVar({"good_muon1pt", "goodMuons_pt[0]", ""});
+    addVar({"good_muon1pt", "goodmuons_pt[0]", ""});
 
     //selected jet candidates
     addVar({"good_jet1pt", "(goodJets_pt.size()>0) ? goodJets_pt[0] : -1", ""});
@@ -409,10 +563,10 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("NgoodElectrons");
 
     //muon
-    addVartoStore("nMuon");
-    addVartoStore("Muon_charge");
-    addVartoStore("Muon_mass");
-    addVartoStore("NgoodMuons");
+//    addVartoStore("nMuon");
+//  addVartoStore("Muon_charge");
+//    addVartoStore("Muon_mass");
+//    addVartoStore("Ngoodmuons");
 
     //jet
     addVartoStore("nJet");
@@ -471,15 +625,23 @@ void BaseAnalyser::defineMoreVars()
     
     
     //MUONID - ISO SF & WEIGHT	
-    addVartoStore("muon_SF_central");
+//    addVartoStore("muon_SF_central");
     //addVartoStore("muon_id_weight");
-    addVartoStore("muon_SF_id_sf");
-    addVartoStore("muon_SF_id_syst");
-    addVartoStore("muon_SF_id_systup");
-    addVartoStore("muon_SF_id_systdown");
+//    addVartoStore("muon_SF_id_sf");
+//    addVartoStore("muon_SF_id_syst");
+//    addVartoStore("muon_SF_id_systup");
+//    addVartoStore("muon_SF_id_systdown");
     //addVartoStore("muonISO_SF");
-    addVartoStore("muon_SF_iso_sf");
+//    addVartoStore("muon_SF_iso_sf");
     addVartoStore("nu_pt");
+    addVartoStore("good_bjet_TL4vec");
+    addVartoStore("top_pt");
+    addVartoStore("top_mass");
+    addVartoStore("w_mass");
+    addVartoStore("w_pt");
+    addVartoStore("bjet_pt");
+
+
   }
 
 //    addVartoStore("evWeight");   
@@ -512,9 +674,9 @@ void BaseAnalyser::bookHists()
     // add1DHist( {"hnevents", "Number of Events", 2, -0.5, 1.5}, "one", "evWeight", "");
     // add1DHist( {"hnevents_no_weight", "Number of Events w/o", 2, -0.5, 1.5}, "one", "one", "");
     
-    add1DHist( {"hNgoodElectrons", "NumberofGoodElectrons", 5, 0.0, 10.0}, "NgoodElectrons", "evWeight", "");
-    add1DHist( {"hW_mass", "massdistributionof W boson", 20, 50.0, 120.0}, "Wboson_transversMass", "evWeight", "");  
-    add1DHist( {"hNgoodMuons", "# of good Muons ", 5, 0.0, 10.0}, "NgoodMuons", "evWeight", "");
+//    add1DHist( {"hNgoodElectrons", "NumberofGoodElectrons", 5, 0.0, 10.0}, "NgoodElectrons", "evWeight", "");
+    add1DHist( {"hW_mass", "massdistributionof W boson", 200, 0.0, 1000.0}, "Wboson_transversMass", "evWeight", "");  
+//    add1DHist( {"hNgoodmuons", "# of good Muons ", 5, 0.0, 10.0}, "Ngoodmuons", "evWeight", "");
     
     // add1DHist( {"hgood_jetpt_with weight", "Good Jet pt with weight " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
     // add1DHist( {"hgood_jetpt_NOWeight", "Good Jet pt no weihght " , 100, 0, 1000} , "goodJets_pt", "one", "");
@@ -568,7 +730,9 @@ void BaseAnalyser::setupObjects()
 	}
 	selectMET();
         reconstructWboson();
-
+        defineRegion();
+        reconstructTop();
+        plotWBosonMass();
 }
 
 void BaseAnalyser::setupAnalysis()

@@ -29,9 +29,10 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		void selectJets();
 		void calculateEvWeight();
 		void selectMET();
+                void plotWBosonMass();
 		void removeOverlaps();
-
-
+                void reconstructTop();
+                void defineRegion();
 		bool debug = true;
 		bool _jsonOK;
 		string _outfilename;

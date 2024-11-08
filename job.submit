@@ -1,0 +1,23 @@
+## HTCondor submit description file
+#executable   = runnanoaod.sh
+executable  = runjob.sh
+#arguments   = jobconfiganalysis.py
+# Output, error, and log files for the job
+output       = output_$(ClusterId).txt
+error        = error_$(ClusterId).txt
+log          = log_$(ClusterId).txt
++WantIOProxy          = true
+# Transfer the complete fly directory
+transfer_input_files = /uscms/home/vsinha/nobackup/CMSSW_12_3_4/src/fly
+
+# Resource requests
+request_cpus   = 1
+request_memory = 2048M
+request_disk   = 10240K
+
+# File transfer settings
+should_transfer_files = yes
+when_to_transfer_output = on_exit
+#transfer_output_files = testout_h.root
+# Queue the job
+queue
