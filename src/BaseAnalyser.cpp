@@ -13,7 +13,6 @@
 #include "TDirectory.h"
 #include "TStyle.h"
 #include <TSystem.h>
-
 #include "Math/GenVector/VectorUtil.h"
 #include "BaseAnalyser.h"
 #include "utility.h"
@@ -73,7 +72,7 @@ void BaseAnalyser::selectElectrons()
     }
    
     _rlm = _rlm.Define("goodElectronsID", ElectronID(2)); //without pt-eta cuts
-    _rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>35.0 && abs(Electron_eta)<2.1 && Electron_pfRelIso03_all<0.0588 && Electron_dxy<0.5 && Electron_dz<1 && Electron_eInvMinusPInv<12.9 && Electron_hoe<0.0414 && Electron_lostHits==0");
+    _rlm = _rlm.Define("goodElectrons", "goodElectronsID && Electron_pt>35.0 && abs(Electron_eta)<2.1 && Electron_pfRelIso03_all<0.0588 && Electron_dxy<0.5 && Electron_dz<1 && Electron_hoe<0.0414 && Electron_lostHits==0");
     _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt[goodElectrons]")
 		.Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[0]) : -999.9")
 
@@ -109,7 +108,7 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodmuonsID", MuonID(2)); //loose muons
-    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_pt > 29 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all < 0.06 && Muon_dxy<2 && Muon_dz<5 && Muon_isGlobal==1");
+    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_highPurity && Muon_pt > 29 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all < 0.06 && Muon_dxy<2 && Muon_dz<5 && Muon_isGlobal==1");
 //   _rlm = _rlm.Define("goodmuons","Muon_pt > 29 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.06");
       _rlm = _rlm.Define("goodmuons_pt", "Muon_pt[goodmuons]")
 		 .Define("goodmuons_leading_pt", "int(goodmuons_pt.size())>0 ? static_cast<double>(goodmuons_pt[0]) : -999.9") 
@@ -432,102 +431,6 @@ void BaseAnalyser::selectMET()
 
     
 }
-void BaseAnalyser::plotWBosonMass() {
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-        std::cout << "Current working directory: " << cwd << std::endl;
-    }
-
-    // Test directory permissions
-    std::string outputDir = std::string(cwd) + "/plots";
-    std::cout << "Attempting to create directory: " << outputDir << std::endl;
-    
-    if (gSystem->AccessPathName(outputDir.c_str())) {  // returns true if path doesn't exist
-        std::cout << "Creating output directory..." << std::endl;
-        if (gSystem->mkdir(outputDir.c_str(), true) != 0) {
-            std::cerr << "Error: Failed to create output directory" << std::endl;
-            return;
-        }
-    }
-
-    // Create a test histogram if hW_mass doesn't exist
-    TH1D* h_wMass = dynamic_cast<TH1D*>(gDirectory->Get("hW_mass"));
-    if (!h_wMass) {
-        std::cout << "Creating test histogram since hW_mass was not found..." << std::endl;
-        h_wMass = new TH1D("hW_mass", "W Boson Mass", 50, 0, 200);
-        
-        // Fill with example data (Gaussian around 80 GeV)
-        for (int i = 0; i < 10000; i++) {
-            h_wMass->Fill(gRandom->Gaus(80, 10));
-        }
-    }
-
-    if (!h_wMass) {
-        std::cerr << "Error: Could not create or retrieve histogram" << std::endl;
-        return;
-    }
-
-    // Create and check canvas
-    TCanvas* c1 = new TCanvas("c1", "W Boson Mass Distribution", 800, 600);
-    if (!c1) {
-        std::cerr << "Error: Could not create canvas" << std::endl;
-        return;
-    }
-
-    // Style settings
-    c1->SetFillColor(0);
-    c1->SetFrameFillColor(0);
-    c1->SetTickx();
-    c1->SetTicky();
-
-    h_wMass->SetTitle("W Boson Transverse Mass Distribution");
-    h_wMass->GetXaxis()->SetTitle("m_{T}^{W} [GeV]");
-    h_wMass->GetYaxis()->SetTitle("Events / 5 GeV");
-    h_wMass->SetLineColor(kBlue+1);
-    h_wMass->SetLineWidth(2);
-    h_wMass->SetFillColor(kBlue-9);
-    h_wMass->SetFillStyle(1001);
-
-    // Draw and save
-    h_wMass->Draw("HIST");
-    
-    // Add ATLAS text
-    TLatex* atlas = new TLatex();
-    atlas->SetNDC();
-    atlas->SetTextFont(72);
-    atlas->SetTextSize(0.045);
-    atlas->DrawLatex(0.2, 0.85, "ATLAS");
-    atlas->SetTextFont(42);
-    atlas->DrawLatex(0.35, 0.85, "Internal");
-    atlas->SetTextSize(0.04);
-    atlas->DrawLatex(0.2, 0.80, "#sqrt{s} = 13 TeV, 139 fb^{-1}");
-
-    // Add legend
-    TLegend* legend = new TLegend(0.65, 0.75, 0.85, 0.85);
-    legend->SetBorderSize(0);
-    legend->SetFillStyle(0);
-    legend->AddEntry(h_wMass, "W #rightarrow l#nu", "f");
-    legend->Draw();
-
-    // Try multiple output formats
-    std::string outputBase = outputDir + "/WBoson_Mass_Distribution";
-    std::cout << "Attempting to save plots..." << std::endl;
-    
-    c1->SaveAs((outputBase + ".pdf").c_str());
-    c1->SaveAs((outputBase + ".png").c_str());
-    c1->SaveAs((outputBase + ".root").c_str());
-
-    std::cout << "Attempted to save files. Checking directory contents:" << std::endl;
-    gSystem->Exec(("ls -l " + outputDir).c_str());
-
-    // Clean up
-    delete legend;
-    delete atlas;
-    delete c1;
-    if (h_wMass && !gDirectory->Get("hW_mass")) {  // Only delete if we created it
-        delete h_wMass;
-    }
-}
 //=============================define variables==================================================//
 
 void BaseAnalyser::defineMoreVars()
@@ -541,7 +444,7 @@ void BaseAnalyser::defineMoreVars()
     addVar({"good_muon1pt", "goodmuons_pt[0]", ""});
 
     //selected jet candidates
-    addVar({"good_jet1pt", "(goodJets_pt.size()>0) ? goodJets_pt[0] : -1", ""});
+/*    addVar({"good_jet1pt", "(goodJets_pt.size()>0) ? goodJets_pt[0] : -1", ""});
     addVar({"Selected_jet1pt", "(Selected_jetpt.size()>0) ? Selected_jetpt[0] : -1", ""});
     addVar({"good_jet1eta", "goodJets_eta[0]", ""});
     addVar({"good_jet1mass", "goodJets_mass[0]", ""});
@@ -638,7 +541,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("top_pt");
     addVartoStore("top_mass");
     addVartoStore("w_mass");
-    addVartoStore("w_pt");
+    addVartoStore("w_pt"); */
     addVartoStore("bjet_pt");
 
 
@@ -646,7 +549,7 @@ void BaseAnalyser::defineMoreVars()
 
 //    addVartoStore("evWeight");   
     
-}
+
 void BaseAnalyser::bookHists()
 {
     //=================================structure of histograms==============================================//
@@ -675,7 +578,9 @@ void BaseAnalyser::bookHists()
     // add1DHist( {"hnevents_no_weight", "Number of Events w/o", 2, -0.5, 1.5}, "one", "one", "");
     
 //    add1DHist( {"hNgoodElectrons", "NumberofGoodElectrons", 5, 0.0, 10.0}, "NgoodElectrons", "evWeight", "");
-    add1DHist( {"hW_mass", "massdistributionof W boson", 200, 0.0, 1000.0}, "Wboson_transversMass", "evWeight", "");  
+//    add1DHist( {"hW_mass", "massdistributionof W boson", 200, 0.0, 1000.0}, "Wboson_transversMass", "evWeight", "");  
+//    add1DHist( {"hT_mass", "massdistributionof Top quark", 300, 0.0,1000.0}, "top_mass", "evWeight", "");  
+
 //    add1DHist( {"hNgoodmuons", "# of good Muons ", 5, 0.0, 10.0}, "Ngoodmuons", "evWeight", "");
     
     // add1DHist( {"hgood_jetpt_with weight", "Good Jet pt with weight " , 100, 0, 1000} , "goodJets_pt", "evWeight", "");
@@ -732,7 +637,6 @@ void BaseAnalyser::setupObjects()
         reconstructWboson();
         defineRegion();
         reconstructTop();
-        plotWBosonMass();
 }
 
 void BaseAnalyser::setupAnalysis()

@@ -38,7 +38,13 @@ mv ../../fly .
 
 # Change to fly directory and run
 cd fly
-python3 submitanalysisjob.py jobconfiganalysis.py
+python3 submitanalysisjob.py jobconfiganalysis.py || { echo "submitanalysisjob.py failed"; exit 1; }
+
+
+if [ ! -f "test0.root" ]; then
+    echo "Error: test0.root not created!" >&2
+    exit 1
+fi
 # Exit with the status of the last command
 exit $?
 

@@ -22,8 +22,9 @@ int main(void) {
 	TChain c1("Events");
 	//c1.Add("testinputdata/data/JetHT_2017C_DA05CA1A-3265-EE47-84F9-10CB09D22BDA.root"); //data
 	//c1.Add("testinputdata/MC/2017/ttJets-2017MC-A258F579-5EC0-D840-95D7-4327595FC3DE.root"); // MC
-//	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer16NanoAODv7/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v2/10000/102C3F90-6497-FB41-8B17-FDEDA109F2A6.root"); // MC
-        c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer16NanoAODv7/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v2/10000/F6E8EE8D-4E63-4841-861A-3A1C10564B8B.root"); // MC
+	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v1/30000/C9A1F1CB-D6C0-1D40-80B0-79E49FD0F20E.root"); // MC
+//        c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer16NanoAODv7/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v2/10000/F6E8EE8D-4E63-4841-861A-3A1C10564B8B.root"); // MC
+//        c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/2430000/CD35530F-E555-014B-9CA0-EF1A6DEEF695.root"); // tw
 
 	BaseAnalyser nanoaodrdf(&c1, "testout_h.root");
 	nanoaodrdf.setParams(2017, "UL", -1);

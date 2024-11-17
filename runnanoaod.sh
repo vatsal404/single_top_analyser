@@ -1,8 +1,6 @@
 #!/bin/bash
-
 # Exit on error
 set -e
-
 # Print commands as they are executed
 set -x
 
@@ -14,12 +12,9 @@ ls -la
 export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch
 source $VO_CMS_SW_DIR/cmsset_default.sh
 
-# Change to working directory if specified by condor
-if [ -n "$_CONDOR_JOB_IWD" ]; then
-    cd $_CONDOR_JOB_IWD
-    echo "Changed to Condor working directory: $(pwd)"
-    ls -la
-fi
+# Store the initial condor directory
+CONDOR_DIR=$(pwd)
+echo "Condor directory: $CONDOR_DIR"
 
 # Setup CMSSW release
 echo "Setting up CMSSW_12_3_4"
@@ -29,15 +24,30 @@ eval `scramv1 runtime -sh`
 
 # Move the fly directory to the correct location
 mv ../../fly .
-
 echo "Contents of fly directory:"
-#ls -R fly/
+ls -la fly/
 
 # Make executable runnable
 chmod +x fly/nanoaodrdataframe
 
-# Change to fly directory and run
+# Change to fly directory
 cd fly
+echo "About to run nanoaodrdataframe from directory: $(pwd)"
+
+# Run the executable
 ./nanoaodrdataframe
-# Exit with the status of the last command
-exit $?
+
+# Immediately after running, search for the file
+echo "Searching for root file immediately after creation:"
+find / -name "testout_h.root" 2>/dev/null || echo "File not found in filesystem"
+
+echo "Current directory contents:"
+ls -la
+
+echo "Parent directory contents:"
+ls -la ..
+
+# Print environment variables that might affect file locations
+echo "Relevant environment variables:"
+env | grep -i path
+env | grep -i dir
