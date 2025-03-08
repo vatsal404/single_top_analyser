@@ -1,0 +1,93 @@
+000 (76624572.026.000) 2025-02-27 14:26:35 Job submitted from host: <131.225.189.168:9618?addrs=131.225.189.168-9618+[2620-6a-0-8421-f0-0-189-168]-9618&alias=lpcschedd6.fnal.gov&noUDP&sock=schedd_31891_26e2>
+...
+040 (76624572.026.000) 2025-02-27 14:27:12 Started transferring input files
+	Transferring to host: <131.225.189.134:9618?addrs=[2620-6a-0-8421-f0-0-189-134]-9618+131.225.189.134-9618&alias=cmswn2104.fnal.gov&noUDP&sock=slot1_13_2335_f7f8_64663>
+...
+040 (76624572.026.000) 2025-02-27 14:27:12 Finished transferring input files
+...
+001 (76624572.026.000) 2025-02-27 14:27:13 Job executing on host: <131.225.189.134:9618?addrs=[2620-6a-0-8421-f0-0-189-134]-9618+131.225.189.134-9618&alias=cmswn2104.fnal.gov&noUDP&sock=startd_2242_676c>
+	SlotName: slot1_13@cmswn2104.fnal.gov
+	CondorScratchDir = "/storage/local/data1/condor/execute/dir_2328033"
+	Cpus = 4
+	Disk = 10361089
+	Memory = 2048
+...
+006 (76624572.026.000) 2025-02-27 14:28:23 Image size of job updated: 401
+	401  -  MemoryUsage of job (MB)
+	411036  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:29:24 Image size of job updated: 677
+	677  -  MemoryUsage of job (MB)
+	693464  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:30:25 Image size of job updated: 974
+	974  -  MemoryUsage of job (MB)
+	997840  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:31:26 Image size of job updated: 981
+	981  -  MemoryUsage of job (MB)
+	1005532  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:32:26 Image size of job updated: 985
+	985  -  MemoryUsage of job (MB)
+	1008816  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:33:26 Image size of job updated: 1048
+	1048  -  MemoryUsage of job (MB)
+	1073196  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:35:26 Image size of job updated: 1056
+	1056  -  MemoryUsage of job (MB)
+	1082256  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:36:26 Image size of job updated: 1057
+	1057  -  MemoryUsage of job (MB)
+	1082424  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:37:27 Image size of job updated: 1057
+	1057  -  MemoryUsage of job (MB)
+	1082536  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:38:29 Image size of job updated: 1060
+	1060  -  MemoryUsage of job (MB)
+	1085924  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:39:29 Image size of job updated: 1060
+	1060  -  MemoryUsage of job (MB)
+	1086216  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:41:29 Image size of job updated: 1064
+	1064  -  MemoryUsage of job (MB)
+	1089764  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:42:29 Image size of job updated: 1064
+	1064  -  MemoryUsage of job (MB)
+	1089880  -  ResidentSetSize of job (KB)
+...
+006 (76624572.026.000) 2025-02-27 14:44:29 Image size of job updated: 1064
+	1064  -  MemoryUsage of job (MB)
+	1090024  -  ResidentSetSize of job (KB)
+...
+040 (76624572.026.000) 2025-02-27 17:02:06 Started transferring output files
+...
+040 (76624572.026.000) 2025-02-27 17:02:06 Finished transferring output files
+...
+005 (76624572.026.000) 2025-02-27 17:02:07 Job terminated.
+	(1) Normal termination (return value 1)
+		Usr 0 02:18:24, Sys 0 00:02:15  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 02:18:24, Sys 0 00:02:15  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	61587  -  Run Bytes Sent By Job
+	2167791  -  Run Bytes Received By Job
+	61587  -  Total Bytes Sent By Job
+	2167791  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :     0.00        4         4 
+	   Disk (KB)            :  2961     5242880  10361089 
+	   Memory (MB)          :  1064        2048      2048 
+	   TimeExecute (s)      :  9292                       
+	   TimeSlotBusy (s)     :  9295                       
+
+	Job terminated of its own accord at 2025-02-27T23:02:05Z with exit-code 1.
+...

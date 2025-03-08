@@ -1,0 +1,49 @@
+000 (74453876.016.000) 2025-02-14 03:38:36 Job submitted from host: <131.225.189.168:9618?addrs=131.225.189.168-9618+[2620-6a-0-8421-f0-0-189-168]-9618&alias=lpcschedd6.fnal.gov&noUDP&sock=schedd_31891_26e2>
+...
+040 (74453876.016.000) 2025-02-14 03:57:05 Started transferring input files
+	Transferring to host: <131.225.188.184:9618?addrs=[2620-6a-0-8421-f0-0-188-184]-9618+131.225.188.184-9618&alias=cmswn2061.fnal.gov&noUDP&sock=slot1_9_2240_0854_1944>
+...
+040 (74453876.016.000) 2025-02-14 03:57:05 Finished transferring input files
+...
+001 (74453876.016.000) 2025-02-14 03:57:06 Job executing on host: <131.225.188.184:9618?addrs=[2620-6a-0-8421-f0-0-188-184]-9618+131.225.188.184-9618&alias=cmswn2061.fnal.gov&noUDP&sock=startd_2110_dceb>
+	SlotName: slot1_9@cmswn2061.fnal.gov
+	CondorScratchDir = "/storage/local/data1/condor/execute/dir_2950988"
+	Cpus = 4
+	Disk = 6444002
+	Memory = 2048
+...
+006 (74453876.016.000) 2025-02-14 03:57:14 Image size of job updated: 52
+	52  -  MemoryUsage of job (MB)
+	53912  -  ResidentSetSize of job (KB)
+...
+006 (74453876.016.000) 2025-02-14 03:58:14 Image size of job updated: 494
+	494  -  MemoryUsage of job (MB)
+	506352  -  ResidentSetSize of job (KB)
+...
+006 (74453876.016.000) 2025-02-14 03:58:38 Image size of job updated: 528
+	528  -  MemoryUsage of job (MB)
+	541360  -  ResidentSetSize of job (KB)
+...
+040 (74453876.016.000) 2025-02-14 03:58:38 Started transferring output files
+...
+040 (74453876.016.000) 2025-02-14 03:58:38 Finished transferring output files
+...
+005 (74453876.016.000) 2025-02-14 03:58:38 Job terminated.
+	(1) Normal termination (return value 1)
+		Usr 0 00:00:03, Sys 0 00:00:02  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:00:03, Sys 0 00:00:02  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	16674  -  Run Bytes Sent By Job
+	455348  -  Run Bytes Received By Job
+	16674  -  Total Bytes Sent By Job
+	455348  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :     0.00        4         4 
+	   Disk (KB)            :  1246     5242880   6444002 
+	   Memory (MB)          :   528        2048      2048 
+	   TimeExecute (s)      :    92                       
+	   TimeSlotBusy (s)     :    93                       
+
+	Job terminated of its own accord at 2025-02-14T09:58:38Z with exit-code 1.
+...

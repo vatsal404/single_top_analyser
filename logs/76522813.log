@@ -1,0 +1,81 @@
+000 (76522813.000.000) 2025-02-24 04:39:17 Job submitted from host: <131.225.189.168:9618?addrs=131.225.189.168-9618+[2620-6a-0-8421-f0-0-189-168]-9618&alias=lpcschedd6.fnal.gov&noUDP&sock=schedd_31891_26e2>
+...
+040 (76522813.000.000) 2025-02-24 05:16:25 Started transferring input files
+	Transferring to host: <131.225.189.128:9618?addrs=[2620-6a-0-8421-f0-0-189-128]-9618+131.225.189.128-9618&alias=cmswn2102.fnal.gov&noUDP&sock=slot1_23_2341_3238_637>
+...
+040 (76522813.000.000) 2025-02-24 05:16:39 Finished transferring input files
+...
+021 (76522813.000.000) 2025-02-24 05:16:39 Error from starter on slot1_23@cmswn2102.fnal.gov:
+	SHADOW at 131.225.189.168 failed to send file(s) to <131.225.189.128:38195>: |Error: sending file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/./2017_data/375FDAF8-92F6-8046-9159-5040055F7708.root: max total upload bytes exceeded (max=1024 MB, this file=94 MB); STARTER failed to receive file(s) from <131.225.189.168:9618>
+	Code 32 Subcode 0
+...
+004 (76522813.000.000) 2025-02-24 05:16:39 Job was evicted.
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	1073741824  -  Run Bytes Received By Job
+	Error from slot1_23@cmswn2102.fnal.gov: SHADOW at 131.225.189.168 failed to send file(s) to <131.225.189.128:38195>: |Error: sending file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/./2017_data/375FDAF8-92F6-8046-9159-5040055F7708.root: max total upload bytes exceeded (max=1024 MB, this file=94 MB); STARTER failed to receive file(s) from <131.225.189.168:9618>
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :   750000 52428800  55429127 
+	   Memory (MB)          :              8192      8192 
+...
+012 (76522813.000.000) 2025-02-24 05:16:39 Job was held.
+	Error from slot1_23@cmswn2102.fnal.gov: SHADOW at 131.225.189.168 failed to send file(s) to <131.225.189.128:38195>: |Error: sending file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/./2017_data/375FDAF8-92F6-8046-9159-5040055F7708.root: max total upload bytes exceeded (max=1024 MB, this file=94 MB); STARTER failed to receive file(s) from <131.225.189.168:9618>
+	Code 32 Subcode 0
+...
+013 (76522813.000.000) 2025-02-24 06:39:35 Job was released.
+	via condor_release (by user vsinha)
+...
+040 (76522813.000.000) 2025-02-24 06:39:39 Started transferring input files
+	Transferring to host: <131.225.189.225:9618?addrs=[2620-6a-0-8421-f0-0-189-225]-9618+131.225.189.225-9618&alias=cmswn2150.fnal.gov&noUDP&sock=slot1_3_2223_0df3_30735>
+...
+040 (76522813.000.000) 2025-02-24 06:40:22 Finished transferring input files
+...
+001 (76522813.000.000) 2025-02-24 06:40:23 Job executing on host: <131.225.189.225:9618?addrs=[2620-6a-0-8421-f0-0-189-225]-9618+131.225.189.225-9618&alias=cmswn2150.fnal.gov&noUDP&sock=startd_2173_1363>
+	SlotName: slot1_3@cmswn2150.fnal.gov
+	CondorScratchDir = "/storage/local/data1/condor/execute/dir_2431806"
+	Cpus = 1
+	Disk = 54864309
+	Memory = 8192
+...
+006 (76522813.000.000) 2025-02-24 06:40:32 Image size of job updated: 56
+	56  -  MemoryUsage of job (MB)
+	57996  -  ResidentSetSize of job (KB)
+...
+006 (76522813.000.000) 2025-02-24 06:41:33 Image size of job updated: 832
+	832  -  MemoryUsage of job (MB)
+	852372  -  ResidentSetSize of job (KB)
+...
+006 (76522813.000.000) 2025-02-24 06:42:33 Image size of job updated: 940
+	940  -  MemoryUsage of job (MB)
+	962904  -  ResidentSetSize of job (KB)
+...
+006 (76522813.000.000) 2025-02-24 06:43:33 Image size of job updated: 947
+	947  -  MemoryUsage of job (MB)
+	969984  -  ResidentSetSize of job (KB)
+...
+040 (76522813.000.000) 2025-02-24 07:05:23 Started transferring output files
+...
+040 (76522813.000.000) 2025-02-24 07:05:23 Finished transferring output files
+...
+005 (76522813.000.000) 2025-02-24 07:05:25 Job terminated.
+	(1) Normal termination (return value 1)
+		Usr 0 00:06:18, Sys 0 00:00:11  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:06:18, Sys 0 00:00:11  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	87818  -  Run Bytes Sent By Job
+	751225024  -  Run Bytes Received By Job
+	87818  -  Total Bytes Sent By Job
+	1824966848  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        1         1 
+	   Disk (KB)            :   734578 52428800  54864309 
+	   Memory (MB)          :      947     8192      8192 
+	   TimeExecute (s)      :     1500                    
+	   TimeSlotBusy (s)     :     1547                    
+
+	Job terminated of its own accord at 2025-02-24T13:05:23Z with exit-code 1.
+...

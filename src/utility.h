@@ -62,22 +62,27 @@ struct cutinfo
 
 
 // generates vectors of 4 vectors given vectors of pt, eta, phi, mass
+TLorentzVector boostToRestFrame(const TLorentzVector& p, const TLorentzVector& W);
+float calculateWHelicityAngle(const TLorentzVector& lepton, const TLorentzVector& W,const TLorentzVector& topQuark);
+
 FourVectorVec generate_4vec(floats &pt, floats &eta, floats &phi, floats &mass);
 
 // return a vector size equal to length of x all filled with evWeight value
 floats weightv(floats &x, float evWeight);
 
-floats sphericity(FourVectorVec &p);
-
+//floats sphericity(FourVectorVec &p);
+double event_shape(FourVectorVec &p);
 double foxwolframmoment(int l, FourVectorVec &p, int minj=0, int maxj=-1);
 
 float pucorrection(std::unique_ptr<correction::CorrectionSet> &cset, std::string name, std::string syst, float ntruepileup);
 
 ints good_idx(ints good); 
-float calculate_deltaEta( FourVector &p1, FourVector &p2);
+float calculate_deltaEta(const FourVector &p1,const FourVector &p2);
 float calculate_deltaPhi( FourVector &p1, FourVector &p2);
 float calculate_deltaPhi_scalars(double &phi1, double &phi2);
-float calculate_deltaR( FourVector &p1, FourVector &p2);
+float calculate_deltaR(const FourVector &p1,const FourVector &p2);
+//float calculate_deltaR( TLorentzVector &p1, TLorentzVector &p2);
+
 float calculate_invMass( FourVector &p1, FourVector &p2);
 FourVector sum_4vec( FourVector &p1, FourVector &p2);
 floats sort_discriminant( floats discr, floats obj );

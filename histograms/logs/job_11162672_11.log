@@ -1,0 +1,43 @@
+000 (11162672.011.000) 2025-02-21 01:57:55 Job submitted from host: <131.225.189.251:9618?addrs=131.225.189.251-9618+[2620-6a-0-8421--e8]-9618&alias=lpcschedd4.fnal.gov&noUDP&sock=schedd_1925_f7e6>
+...
+040 (11162672.011.000) 2025-02-21 01:59:35 Started transferring input files
+	Transferring to host: <131.225.189.222:9618?addrs=[2620-6a-0-8421-f0-0-189-222]-9618+131.225.189.222-9618&alias=cmswn2149.fnal.gov&noUDP&sock=slot1_5_2147_8170_33770>
+...
+040 (11162672.011.000) 2025-02-21 01:59:36 Finished transferring input files
+...
+001 (11162672.011.000) 2025-02-21 01:59:37 Job executing on host: <131.225.189.222:9618?addrs=[2620-6a-0-8421-f0-0-189-222]-9618+131.225.189.222-9618&alias=cmswn2149.fnal.gov&noUDP&sock=startd_2097_f230>
+	SlotName: slot1_5@cmswn2149.fnal.gov
+	CondorScratchDir = "/storage/local/data1/condor/execute/dir_3821442"
+	Cpus = 4
+	Disk = 7392042
+	Memory = 2048
+...
+006 (11162672.011.000) 2025-02-21 01:59:45 Image size of job updated: 40
+	40  -  MemoryUsage of job (MB)
+	41296  -  ResidentSetSize of job (KB)
+...
+006 (11162672.011.000) 2025-02-21 02:00:29 Image size of job updated: 151
+	151  -  MemoryUsage of job (MB)
+	155248  -  ResidentSetSize of job (KB)
+...
+040 (11162672.011.000) 2025-02-21 02:00:29 Started transferring output files
+...
+040 (11162672.011.000) 2025-02-21 02:00:29 Finished transferring output files
+...
+005 (11162672.011.000) 2025-02-21 02:00:29 Job terminated.
+	(1) Normal termination (return value 1)
+		Usr 0 00:00:31, Sys 0 00:00:04  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:00:31, Sys 0 00:00:04  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	41029  -  Run Bytes Sent By Job
+	934658  -  Run Bytes Received By Job
+	41029  -  Total Bytes Sent By Job
+	934658  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        4         4 
+	   Disk (KB)            :     1738  5242880   7392042 
+	   Memory (MB)          :      151     2048      2048 
+
+	Job terminated of its own accord at 2025-02-21T08:00:29Z with exit-code 1.
+...

@@ -251,7 +251,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections() //data
 
 	if (_jetCorrector != 0)
 	{
-        //cout << "jetcorrector==" <<_jetCorrector << endl;
+        cout << "jetcorrector==" <<_jetCorrector << endl;
 
 		_rlm = _rlm.Define("Jet_pt_corr", appcorrlambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
 		_rlm = _rlm.Define("Jet_pt_relerror", jecuncertaintylambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
@@ -326,7 +326,7 @@ void NanoAODAnalyzerrdframe::applyMuPtCorrection() //data and MC
 
 
 
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype/*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav*/, string muon_roch_fname, string muon_fname, string muonhlttype, string muonrecotype,string muonidtype,string muonisotype,string electron_fname, string electron_reco_type, string electron_id_type, string jercfname, string jerctag, string jercunctag)
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype/*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,*/, string muon_roch_fname, string muon_fname, string muonhlttype, string muonrecotype,string muonidtype,string muonisotype,string electron_fname, string electron_reco_type, string electron_id_type, string jercfname, string jerctag, string jercunctag)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;
@@ -363,10 +363,10 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	  _correction_btag1 = correction::CorrectionSet::from_file(btvfname);
 	  _btvtype = btvtype;
 	  assert(_correction_btag1->validate());
-
-	 /* f_btagEff = new TFile(fname_btagEff.c_str(), "READ");
-	  hist_btagEff_bcflav = dynamic_cast<TH2D*>(f_btagEff->Get(hname_btagEff_bcflav.c_str()));
-	  hist_btagEff_lflav = dynamic_cast<TH2D*>(f_btagEff->Get(hname_btagEff_lflav.c_str()));
+/*
+	  fname_btagEff = new TFile(fname_btagEff.c_str(), "READ");
+	  hname_btagEff_bcflav = dynamic_cast<TH2D*>(f_btagEff->Get(hname_btagEff_bcflav.c_str()));
+	  hname_btagEff_lflav = dynamic_cast<TH2D*>(f_btagEff->Get(hname_btagEff_lflav.c_str()));
 */
 
 	  // pile up weights
@@ -541,6 +541,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 	// for case 1  use one of the btvtype = "deepCSV_mujets " , deepCSV_comb" for b/c , deepCSV_incl" for lightjets
 	if (_case == 1)
 	{
+                cout << "case 1 Shape correction B tagging SF for MC " << endl;
 
 		//======================================================================================================================================
 		//>>>> function to calculate event weights for MC events, incorporating fixedWP correction with mujets (here medium WP)and systematics with
@@ -558,12 +559,12 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 					continue;
 				if (hadflav[i] != 0)
 				{
-					double bcjets_weights = _correction_btag1->at("deepJet_mujets")->evaluate({variation, "M", hadflav[i], std::fabs(etas[i]), pts[i]});
+					double bcjets_weights = _correction_btag1->at("deepJet_mujets")->evaluate({variation, "T", hadflav[i], std::fabs(etas[i]), pts[i]});
 					btagWeight *= bcjets_weights;
 				}
 				else
 				{
-					double lightjets_weights = _correction_btag1->at("deepJet_incl")->evaluate({variation, "M", hadflav[i], std::fabs(etas[i]), pts[i]});
+					double lightjets_weights = _correction_btag1->at("deepJet_incl")->evaluate({variation, "T", hadflav[i], std::fabs(etas[i]), pts[i]});
 					btagWeight *= lightjets_weights;
 				}
 			}
@@ -583,6 +584,10 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 			{
 				std::cout << "BJet SF column: " << column_name << " is saved in the Node." << std::endl;
 			}
+                        else {
+                               std::cout << "The colomns are not defined " << std::endl;
+                        }
+
 		}
 
 		//======================================================================================================================================
@@ -1036,15 +1041,22 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 		}
 		else
 		{
+		
+			
 			cout << " --writing branches" << endl;
 			std::cout << "-------------------------------------------------------------------" << std::endl;
+
 			for (auto bname : _varstostorepertree[nodename])
 			{
-				cout << bname << endl;
+
+			       
+			   	cout << bname << endl;
 			        cout << "-----branch stored" << endl;
 			}
 
 			arnode->Snapshot(outtreename, outname, _varstostorepertree[nodename]);
+
+
 		}
 		std::cout << "-------------------------------------------------------------------" << std::endl;
 		cout << "Creating output root file :  " << endl;

@@ -28,7 +28,6 @@ if __name__=="__main__":
     jobconfmod_fname = args.jobconfmod
     # strip .py from the filename
     jobconfmod = jobconfmod_fname.replace('.py', '')
-
     submit(jobconfmod)
     pass
 

@@ -1,0 +1,6 @@
+WARNING: In non-interactive mode release checks e.g. deprecated releases, production architectures are disabled.
+[0B/0B][100%][==================================================][0B/s]  
+Run: [ERROR] Server responded with an error: [3025] read-only file system (destination)
+
+[ERROR] Server responded with an error: [3011] Unable to stat /eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_WJetsToLNu_1J_UL17.root; No such file or directory
+

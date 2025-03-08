@@ -1,0 +1,39 @@
+000 (11162672.009.000) 2025-02-21 01:57:55 Job submitted from host: <131.225.189.251:9618?addrs=131.225.189.251-9618+[2620-6a-0-8421--e8]-9618&alias=lpcschedd4.fnal.gov&noUDP&sock=schedd_1925_f7e6>
+...
+040 (11162672.009.000) 2025-02-21 01:58:29 Started transferring input files
+	Transferring to host: <131.225.189.222:9618?addrs=[2620-6a-0-8421-f0-0-189-222]-9618+131.225.189.222-9618&alias=cmswn2149.fnal.gov&noUDP&sock=slot1_5_2147_8170_33768>
+...
+040 (11162672.009.000) 2025-02-21 01:58:29 Finished transferring input files
+...
+001 (11162672.009.000) 2025-02-21 01:58:30 Job executing on host: <131.225.189.222:9618?addrs=[2620-6a-0-8421-f0-0-189-222]-9618+131.225.189.222-9618&alias=cmswn2149.fnal.gov&noUDP&sock=startd_2097_f230>
+	SlotName: slot1_5@cmswn2149.fnal.gov
+	CondorScratchDir = "/storage/local/data1/condor/execute/dir_3818861"
+	Cpus = 4
+	Disk = 7392042
+	Memory = 2048
+...
+006 (11162672.009.000) 2025-02-21 01:59:34 Image size of job updated: 195
+	195  -  MemoryUsage of job (MB)
+	200396  -  ResidentSetSize of job (KB)
+...
+040 (11162672.009.000) 2025-02-21 01:59:34 Started transferring output files
+...
+040 (11162672.009.000) 2025-02-21 01:59:34 Finished transferring output files
+...
+005 (11162672.009.000) 2025-02-21 01:59:34 Job terminated.
+	(1) Normal termination (return value 1)
+		Usr 0 00:00:05, Sys 0 00:00:02  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:00:05, Sys 0 00:00:02  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	33672  -  Run Bytes Sent By Job
+	872456  -  Run Bytes Received By Job
+	33672  -  Total Bytes Sent By Job
+	872456  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :     0.00        4         4 
+	   Disk (KB)            :  1670     5242880   7392042 
+	   Memory (MB)          :   195        2048      2048 
+
+	Job terminated of its own accord at 2025-02-21T07:59:34Z with exit-code 1.
+...

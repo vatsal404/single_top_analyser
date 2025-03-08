@@ -1,0 +1,5 @@
+WARNING: In non-interactive mode release checks e.g. deprecated releases, production architectures are disabled.
+Warning: Branch Wboson_transversemass_QCDele not found in the tree.
+[11.15kB/11.15kB][100%][==================================================][11.15kB/s]  [11.15kB/11.15kB][100%][==================================================][11.15kB/s]  
+[ERROR] Server responded with an error: [3010] Stating relative path 'root://cmseos.fnal.gov//store/user/vsinha/processed_histogramsPROC_QCD_Pt-300To470_MuEnrichedPt5_hist.root' is disallowed.
+

@@ -1,0 +1,1 @@
+/QCD_Pt-20to30_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM PROC_QCD_Pt-20-30_EMEnrichedPt5.root PROC_QCD_Pt-20-30_MEmEnrichedPt5.out

@@ -249,7 +249,7 @@ if __name__ == '__main__':
     from importlib import import_module
     from argparse import ArgumentParser
 
-    parser = ArgumentParser(usage="%prog inputDir outputDir jobconfmod")
+    parser = ArgumentParser(usage="%(prog)s inputDir outputDir jobconfmod")
     parser.add_argument("indir")
     parser.add_argument("outdir")
     parser.add_argument("jobconfmod")

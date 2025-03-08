@@ -24,6 +24,9 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		void setupAnalysis();
 		// object selectors
 		void selectElectrons();
+		void spectatorJets();
+                void Background_Estimation();
+                void selectChannel();
 		void reconstructWboson();	
         	void selectMuons();
 		void selectJets();
@@ -41,7 +44,7 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
 		TFile *_outrootfile;
 		vector<string> _outrootfilenames;
 
-
+                int _redefine;  
 };
 
 

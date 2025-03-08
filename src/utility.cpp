@@ -13,11 +13,46 @@
 #include "Math/GenVector/Rotation3D.h"
 #include "Math/Math.h"
 #include<cmath>
-
-
+#include <TLorentzVector.h>
+#include <TVector3.h>
 // Utility function to generate fourvector objects for thigs that pass selections
 
 using namespace std;
+
+#include <TLorentzVector.h>
+#include <TVector3.h>
+
+// Boosts a 4-momentum to the W boson rest frame
+TLorentzVector boostToRestFrame(const TLorentzVector& p, const TLorentzVector& W) {
+    // Get the boost vector of the W boson
+    TVector3 boost = W.BoostVector();  
+
+    // Boost the 4-momentum p to the W boson rest frame
+    TLorentzVector p_rest = p;
+    p_rest.Boost(-boost);  // Apply the inverse boost
+
+    return p_rest;
+}
+
+// Calculate the W helicity angle in the W boson rest frame
+float calculateWHelicityAngle(const TLorentzVector& lepton, const TLorentzVector& W,const TLorentzVector& topQuark) {
+    // Boost the lepton and top quark to the W boson rest frame
+    TLorentzVector lepton_rest = boostToRestFrame(lepton, W);
+    TLorentzVector top_rest = boostToRestFrame(topQuark, W);
+
+    // Get the 3-momenta of the lepton and top quark in the W boson rest frame
+    TVector3 p_lepton = lepton_rest.Vect();
+    TVector3 p_top = top_rest.Vect();
+
+    // Calculate the cos of the helicity angle
+    float cosThetaW = p_lepton.Dot(-p_top) / (p_lepton.Mag() * p_top.Mag());
+
+    // Ensure that cosThetaW is between -1 and 1 to avoid errors in acos
+    if (cosThetaW > 1) cosThetaW = 1;
+    if (cosThetaW < -1) cosThetaW = -1;
+
+    return cosThetaW;
+}
 
 FourVectorVec generate_4vec(floats &pt, floats &eta, floats &phi, floats &mass)
 {
@@ -39,31 +74,47 @@ floats weightv(floats &x, float evWeight)
 	return weightvector;
 }
 
-floats sphericity(FourVectorVec &p)
+double event_shape(FourVectorVec &p)
 {
-	TMatrixDSym NormMomTensor(3);
+    TMatrixDSym NormMomTensor(3);
 
-	NormMomTensor = 0.0;
-	double p2sum = 0.0;
-	for (auto x: p)
-	{
-		p2sum += x.P2();
-		double mom[3] = {x.Px(), x.Py(), x.Pz()};
-		for (int irow=0; irow<3; irow++)
-		{
-			for (int icol=irow; icol<3; icol++)
-			{
-				NormMomTensor(irow, icol) += mom[irow] * mom[icol];
-			}
-		}
-	}
-	NormMomTensor *= (1.0/p2sum);
-	TVectorT<double> Qrev;
-	NormMomTensor.EigenVectors(Qrev);
-	floats Q(3);
-	for (auto i=0; i<3; i++) Q[i] = Qrev[2-i];
+    NormMomTensor = 0.0;
+    double p2sum = 0.0;
+    
+    // Compute the momentum tensor and the sum of squared momenta
+    for (auto x : p)
+    {
+        p2sum += x.P2();
+        double mom[3] = {x.Px(), x.Py(), x.Pz()};
+        for (int irow = 0; irow < 3; irow++)
+        {
+            for (int icol = irow; icol < 3; icol++)
+            {
+                NormMomTensor(irow, icol) += mom[irow] * mom[icol];
+            }
+        }
+    }
 
-	return Q;
+    // Normalize the momentum tensor by p2sum
+    NormMomTensor *= (1.0 / p2sum);
+
+    // Compute the eigenvalues of the momentum tensor
+    TVectorT<double> Qrev;
+    NormMomTensor.EigenVectors(Qrev);
+
+    // Extract and sort the eigenvalues in ascending order
+    std::vector<double> lambdas(3);
+    for (int i = 0; i < 3; i++) lambdas[i] = Qrev[i];
+    std::sort(lambdas.begin(), lambdas.end());
+
+    // Normalize eigenvalues such that λ1 + λ2 + λ3 = 1
+    double sum = lambdas[0] + lambdas[1] + lambdas[2];
+    for (int i = 0; i < 3; i++) lambdas[i] /= sum;
+
+    // Compute event shape C using the formula C = 3 (λ1λ2 + λ1λ3 + λ2λ3)
+    double C = 3.0 * (lambdas[0] * lambdas[1] + lambdas[0] * lambdas[2] + lambdas[1] * lambdas[2]);
+
+    return C;
 }
 
 
@@ -229,7 +280,7 @@ ints good_idx(ints good)
 
 }
 
-float calculate_deltaEta( FourVector &p1, FourVector &p2){
+float calculate_deltaEta(const FourVector &p1,const FourVector &p2){
 	return p1.Eta() - p2.Eta();
 }
 float calculate_deltaPhi( FourVector &p1, FourVector &p2){
@@ -240,9 +291,10 @@ float calculate_deltaPhi_scalars(double &phi1, double &phi2){
 	return ROOT::VecOps::DeltaPhi(phi1, phi2);
 }
 
-float calculate_deltaR( FourVector &p1, FourVector &p2){
+float calculate_deltaR(const FourVector &p1,const FourVector &p2){
 	return ROOT::Math::VectorUtil::DeltaR(p1, p2);
 }
+
 float calculate_invMass( FourVector &p1, FourVector &p2){
 	return ROOT::Math::VectorUtil::InvariantMass(p1, p2);
 }

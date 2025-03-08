@@ -1,0 +1,4 @@
+WARNING: In non-interactive mode release checks e.g. deprecated releases, production architectures are disabled.
+[12.36kB/12.36kB][100%][==================================================][12.36kB/s]  [12.36kB/12.36kB][100%][==================================================][12.36kB/s]  
+[ERROR] Server responded with an error: [3010] Stating relative path 'root://cmseos.fnal.gov//store/user/vsinha/processed_histogramsPROC_ST_tW_top_5f_hist.root' is disallowed.
+

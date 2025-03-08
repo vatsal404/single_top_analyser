@@ -1,27 +1,18 @@
-executable  = runnanoaod.sh
-output      = output_$(Cluster)_$(Process).out
-error       = error_$(Cluster)_$(Process).txt
-log         = log_$(Cluster)_$(Process).txt
-+WantIOProxy = true
+universe=vanilla
+executable=runjob.sh
+arguments= $(input_dir) $(output_file) $(stderr_file)
 
-# Transfer input files
-transfer_input_files = /uscms/home/vsinha/nobackup/CMSSW_12_3_4/src/fly
+output=logs/$(ClusterId).out
+error=logs/$(ClusterId).err
+log=logs/$(ClusterId).log
 
-# Resource requests
-request_cpus   = 1
-request_memory = 2048M
-request_disk   = 10240K
+should_transfer_files=YES
+transfer_input_files= .
 
-# File transfer settings
-should_transfer_files = yes
-when_to_transfer_output = on_exit
+when_to_transfer_output=ON_EXIT_OR_EVICT
 
-# Specify all possible output root files and txt files
-transfer_output_files = testout_h.root
+request_cpus=1
+request_memory=8 GB
+request_disk= 50 GB
 
-# If you want to transfer to EOS, uncomment and adjust these lines
-#transfer_output_remaps = "test0.root = root://cmseos.fnal.gov//store/user/vsinha/results/test0_$(Cluster)_$(Process).root; \
- #                        test.root = root://cmseos.fnal.gov//store/user/vsinha/results/test_$(Cluster)_$(Process).root; \
-  #                       PROC_ST_tW-channel_top_UL17.root = root://cmseos.fnal.gov//store/user/vsinha/results/PROC_ST_tW-channel_top_UL17_$(Cluster)_$(Process).root"
-
-queue
+queue input_dir, output_file, stderr_file from sample_list.txt
