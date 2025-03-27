@@ -15,4 +15,4 @@ request_cpus=1
 request_memory=8 GB
 request_disk= 50 GB
 
-queue input_dir, output_file, stderr_file from sample_list.txt
+queue input_dir, output_file, stderr_file from sample_list_modified.txt

@@ -7,7 +7,7 @@ stderr_file=$3  # Define the log file name
 
 # Configuration variables
 jobconfmod="jobconfiganalysis_new"
-eos_output_dir="/eos/uscms/store/user/vsinha/results/"
+eos_output_dir="/eos/uscms/store/user/vsinha/results"
 
 echo "Running analysis with the following parameters:"
 echo "Input directory: $input_dir"

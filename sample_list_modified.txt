@@ -1,1 +1,2 @@
-/tZq_ll_4f_ckm_NLO_TuneCP5_13TeV-amcatnlo-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM top_tzq_signal.root top_tzq_err.out
+/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM PROCESSED_DYJetsToLL_M-50_UL17.root PROCESSED_DYJetsToLL_M-50_UL17.out
+

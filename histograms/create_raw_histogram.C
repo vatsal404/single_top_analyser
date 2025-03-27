@@ -87,7 +87,20 @@ void create_raw_histogram(const char* output_file = "data_hist.root") {
         {"bdt_MET_pt_ele_2j1t", {0, 200, 30}},
         {"bdt_MET_pt_ele_2j0t", {0, 200, 30}},
         {"bdt_MET_pt_ele_3j2t", {0, 200, 30}},
-        {"Wboson_transversMass", {0, 200,35}},
+
+        {"ncleanbjetspass",{0,10,10}},
+        {"ncleanjetspass",{0,10,10}},
+        {"nJet",{0,15,15}},
+
+        {"muonChannel",{0,2,2}},
+        {"electronChannel",{0,2,2}},
+        {"QCDmuonChannel",{0,2,2}},
+        {"QCDelectronChannel",{0,2,2}},
+        {"region_2j0t",{0,2,2}},
+        {"region_2j1t",{0,2,2}},
+        {"region_3j2t",{0,2,2}},
+
+	{"Wboson_transversMass", {0, 200,35}},
         {"Wboson_transversemass_ele", {0, 200, 35}},
         {"Wboson_transversemass_ele_barrel", {0, 200, 35}},
         {"Wboson_transversemass_ele_endcap", {0, 200, 35}},

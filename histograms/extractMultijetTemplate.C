@@ -5,18 +5,18 @@
 #include <iostream>
 
 void extractMultijetTemplate() {
-    std::vector<TString> dataFiles = {"hist_files/data_hist.root"};
+    std::vector<TString> dataFiles = {"data_hist.root"};
     std::vector<TString> bkgFiles = {
-    "bdt_hists/PROCESSED_DYJetsToLL_M-10to50_UL17_hist.root",
-    "bdt_hists/PROCESSED_DYJetsToLL_M-50_UL17_hist.root",
-    "bdt_hists/PROCESSED_ST_tW_antitop_5f_hist.root",
-    "bdt_hists/PROCESSED_ST_tW_top_5f_hist.root",
-    "bdt_hists/PROCESSED_ST_tchannel_antitop_5f_hist.root",
-    "bdt_hists/PROCESSED_ST_tchannel_top_5f_hist.root",
-    "bdt_hists/PROCESSED_TTbar-channel_top_UL17_hist.root",
-    "bdt_hists/PROCESSED_WJetsToLNu_0J_UL17_hist.root",
-    "bdt_hists/PROCESSED_WJetsToLNu_1J_UL17_hist.root",
-    "bdt_hists/PROCESSED_WJetsToLNu_2J_UL17_hist.root"
+    "PROCESSED_DYJetsToLL_M-10to50_UL17_hist.root",
+    "PROCESSED_DYJetsToLL_M-50_UL17_hist.root",
+    "PROCESSED_ST_tW_antitop_5f_hist.root",
+    "PROCESSED_ST_tW_top_5f_hist.root",
+    "PROCESSED_ST_tchannel_antitop_5f_hist.root",
+    "PROCESSED_ST_tchannel_top_5f_hist.root",
+    "PROCESSED_TTbar-channel_top_UL17_hist.root",
+    "PROCESSED_WJetsToLNu_0J_UL17_hist.root",
+    "PROCESSED_WJetsToLNu_1J_UL17_hist.root",
+    "PROCESSED_WJetsToLNu_2J_UL17_hist.root"
     };
     TString dataHistName = "Wboson_transversemass_QCDmuon";//data for determining multijet template
     TString dataNormalHistName = "Wboson_transversemass_muon"; // data to fit to multijet template 
@@ -76,15 +76,19 @@ void extractMultijetTemplate() {
         return;
     }
 
-for (int i = 1; i <= h_data->GetNbinsX(); i++) {
-    double dataVal = h_data->GetBinContent(i);
-    double bgVal = h_background->GetBinContent(i);
-    double multijetVal = dataVal - bgVal;
+    for (int i = 1; i <= h_data->GetNbinsX(); i++) {
+        double dataVal = h_data->GetBinContent(i);
+        double bgVal = h_background->GetBinContent(i);
+        double multijetVal = dataVal - bgVal;
 
-    if (multijetVal < 0) multijetVal = 0;  // Ensure non-negative values
+        // Replace negative or zero values with a very small positive number
+        if (multijetVal <= 0.0) {
+            multijetVal = 1e-12; // Adjust the small positive value as needed
+        }
 
-    h_multijet->SetBinContent(i, multijetVal);
-}
+        h_multijet->SetBinContent(i, multijetVal);
+    }
+
     for (int i = 1; i <= h_multijet->GetNbinsX(); i++) {
         std::cout << "Bin " << i << " -> Multijet: " << h_multijet->GetBinContent(i) << std::endl;
     }
@@ -113,12 +117,12 @@ for (int i = 1; i <= h_data->GetNbinsX(); i++) {
     legend->SetFillColor(0);   // Transparent background
     legend->SetTextSize(0.03); // Adjust text size
 
-// Add entries to the legend
+    // Add entries to the legend
     legend->AddEntry(h_data, "Data", "l");        // "l" means line
     legend->AddEntry(h_background, "Background", "l");
     legend->AddEntry(h_multijet, "Multijet", "l");
 
-// Draw the legend
+    // Draw the legend
     legend->Draw();
     c1->SaveAs("multijet_template.png");
 

@@ -1,4 +1,0 @@
-WARNING: In non-interactive mode release checks e.g. deprecated releases, production architectures are disabled.
-[11.45kB/11.45kB][100%][==================================================][11.45kB/s]  [11.45kB/11.45kB][100%][==================================================][11.45kB/s]  
-[ERROR] Server responded with an error: [3010] Stating relative path 'root://cmseos.fnal.gov//store/user/vsinha/processed_histogramsPROC_TTbar-channel_top_UL17_hist.root' is disallowed.
-

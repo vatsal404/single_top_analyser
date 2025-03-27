@@ -32,32 +32,31 @@ BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename)
                     "HLT_PFHT330PT30_QuadPFJet_75_60_45_40_TriplePFBTagDeepCSV_4p5",
                     "HLT_PFJet550","HLT_PFHT400_FivePFJet_100_100_60_30_30_DoublePFBTagDeepCSV_4p5",
                     "HLT_PFHT400_FivePFJet_120_120_60_30_30_DoublePFBTagDeepCSV_4p5"};
-	HLT2017Names= {"HLT_IsoMu24","HLT_Ele32_WPTight_Gsf"};
+	HLT2017Names= {"HLT_IsoMu24","HLT_Ele32_WPTight_Gsf"};//HLT_IsoTkMu24
     HLT2016Names= {"Name1","Name2"};
 }
 
 void BaseAnalyser::selectChannel()
 {
-//    _rlm = _rlm.Define("electronChannel","NgoodElectrons==1 ? 1 : 0");
-//    _rlm = _rlm.Define("muonChannel", "Ngoodmuons==1 ? 1 : 0");
    _rlm = _rlm.Define("muonChannel", "(Ngoodmuons==1) && (N_iso_loose_mu==1) && (N_veto_el==0) ");
 
-    _rlm = _rlm.Define("QCDmuonChannel", "(N_rev_iso_mu==1) && (N_veto_el==0) ");
+    _rlm = _rlm.Define("QCDmuonChannel", "(N_rev_iso_mu==1) && (N_veto_el==0) && (N_iso_loose_mu==1)");
 
     _rlm = _rlm.Define("electronChannel", "(NgoodElectrons==1) && (N_veto_el==1) && (N_iso_loose_mu==0)");
    
     _rlm = _rlm.Define("QCDelectronChannel", "(N_rev_iso_el==1) && (N_iso_loose_mu==0) && (N_veto_el==1)");
 
-//    _rlm=_rlm.Filter("muonChannel || electronChannel");
-//    _rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
     _rlm = _rlm.Define("numbLorentzVector",::generate_TLorentzVector, {"numb", "numb", "numb", "numb"});
+     _rlm = _rlm.Define("single_numb_vector",::generate_single_4vec, {"numb", "numb", "numb", "numb"});
+
     _rlm = _rlm.Define("lepton_TL4vec", "muonChannel==1 ? goodmuons_TL4Vecs : electronChannel==1 ?goodElectron_TL4Vecs : QCDmuonChannel==1? rev_iso_mu_TL4vec :QCDelectronChannel==1? rev_iso_el_TL4vec :numbLorentzVector")
 	       .Define("lep_eta", "electronChannel==1 ? goodElectrons_leading_eta : muonChannel==1 ? goodmuons_leading_eta : QCDmuonChannel==1 ? rev_iso_mu_leading_eta : QCDelectronChannel==1 ? rev_iso_el_leading_eta : numb")
                .Define("lep_phi", "electronChannel==1 ? goodElectrons_leading_phi : muonChannel==1 ? goodmuons_leading_phi : QCDmuonChannel==1 ? rev_iso_mu_leading_phi : QCDelectronChannel==1 ? rev_iso_el_leading_phi : numb"); 
-    _rlm = _rlm.Define("goodlepton_4vec", "muonChannel==1 ? goodmuons_4vecs : electronChannel==1 ? goodElectron_4vecs : QCDmuonChannel==1? rev_iso_mu_4vecs :QCDelectronChannel==1? rev_iso_el_4vecs :std::vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >()");
+    _rlm = _rlm.Define("goodlepton_4vecs", "muonChannel==1 ? goodmuons_4vecs : electronChannel==1 ? goodElectron_4vecs : QCDmuonChannel==1? rev_iso_mu_4vecs :QCDelectronChannel==1? rev_iso_el_4vecs :std::vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >()");
+_rlm = _rlm.Define("goodlepton_4vec", "muonChannel == 1 ? goodMuon_4vec : electronChannel == 1 ? goodElectron_4vec : QCDmuonChannel == 1 ? rev_iso_mu_4vec : QCDelectronChannel == 1 ? rev_iso_el_4vec : single_numb_vector");
+    _rlm = _rlm.Define("lepton_charge", "(muonChannel==1) ? goodmuons_leading_charge : (electronChannel==1) ? goodElectrons_leading_charge  :QCDmuonChannel==1? rel_iso_muon_leading_charge : QCDelectronChannel==1? rel_iso_Electrons_leading_charge : numb");
 
 }
-// Define your cuts here
 void BaseAnalyser::defineCuts()
 {
 	if (debug){
@@ -110,6 +109,9 @@ void BaseAnalyser::selectElectrons()
 		.Define("goodElectrons_mass", "Electron_mass[goodElectrons]")
                 .Define("goodElectrons_leading_mass", "int(goodElectrons_mass.size())>0 ?static_cast<double>(goodElectrons_mass[0]) :numb")
 
+		.Define("goodElectrons_charge","Electron_charge[goodElectrons]")
+		.Define("goodElectrons_leading_charge","int(goodElectrons_charge.size())>0 ?static_cast<double>(goodElectrons_charge[0]) :numb")
+
 		.Define("goodElectrons_idx", ::good_idx, {"goodElectrons"})
                 .Define("NgoodElectrons", "int(goodElectrons_pt.size())");
 
@@ -137,6 +139,9 @@ void BaseAnalyser::selectElectrons()
 
                .Define("rev_iso_el_rel_iso_collection","Electron_pfRelIso03_all[rev_iso_el]")
                .Define("log10_rev_iso_el_rel_iso_collection", "log10(rev_iso_el_rel_iso_collection)")
+
+	       .Define("rel_iso_Electrons_charge","Electron_charge[rev_iso_el]")
+		.Define("rel_iso_Electrons_leading_charge","int(rel_iso_Electrons_charge.size())>0 ?static_cast<double>(rel_iso_Electrons_charge[0]) :numb")
 
 
                .Define("N_rev_iso_el", "int(rev_iso_el_pt_collection.size())");
@@ -173,7 +178,6 @@ void BaseAnalyser::selectMuons()
 
  //loose muons
     _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_highPurity && Muon_pt_corr > 29 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all < 0.06 && abs(Muon_dxy)<2 && abs(Muon_dz<5) && Muon_isGlobal==1");
-//   _rlm = _rlm.Define("goodmuons","Muon_pt_corr > 29 && abs(Muon_eta) < 2.4 && Muon_miniPFRelIso_all < 0.06");
       _rlm = _rlm.Define("goodmuons_pt", "Muon_pt_corr[goodmuons]")
 		 .Define("goodmuons_leading_pt", "int(goodmuons_pt.size())>0 ? static_cast<double>(goodmuons_pt[0]) : numb") 
                 
@@ -187,6 +191,9 @@ void BaseAnalyser::selectMuons()
 		.Define("goodmuons_leading_mass", "int(goodmuons_mass.size())>0 ? static_cast<double>(goodmuons_mass[0]) :numb")
       
                 .Define("goodmuons_isolation", "Muon_pfRelIso04_all[goodmuons]")
+
+ 		.Define("gooodmuons_charge","Muon_charge[goodmuons]")
+                .Define("goodmuons_leading_charge","int(gooodmuons_charge.size())>0 ?static_cast<double>(gooodmuons_charge[0]) :numb")
 
 		.Define("goodmuons_charge", "Muon_charge[goodmuons]")
                 .Define("goodmuons_idx", ::good_idx, {"goodmuons"})
@@ -223,14 +230,14 @@ void BaseAnalyser::selectMuons()
 
                .Define("rev_iso_mu_relIso_dR0p3_collection", "Muon_pfRelIso03_all[rev_iso_mu]")
 
+	       .Define("rel_iso_muon_charge","Muon_charge[rev_iso_mu]")
+                .Define("rel_iso_muon_leading_charge","int(rel_iso_muon_charge.size())>0 ?static_cast<double>(rel_iso_muon_charge[0]) :numb")
+
                .Define("N_rev_iso_mu", "int(rev_iso_mu_pt_collection.size())");
 
     _rlm = _rlm.Define("rev_iso_mu_4vec", ::generate_single_4vec, {"rev_iso_mu_leading_pt", "rev_iso_mu_leading_eta", "rev_iso_mu_leading_phi", "rev_iso_mu_leading_mass"});
     _rlm = _rlm.Define("rev_iso_mu_TL4vec", ::generate_TLorentzVector, {"rev_iso_mu_leading_pt", "rev_iso_mu_leading_eta", "rev_iso_mu_leading_phi", "rev_iso_mu_leading_mass"});
     _rlm = _rlm.Define("rev_iso_mu_4vecs", ::generate_4vec, {"rev_iso_mu_pt_collection", "rev_iso_mu_eta_collection", "rev_iso_mu_phi_collection", "rev_iso_mu_mass_collection"});
-
-
-
 
 }
 
@@ -328,23 +335,15 @@ void BaseAnalyser::selectJets()
 
     _rlm = _rlm.Define("goodJetsID", JetID(6)); //without pt-eta cuts
 //    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt_corr>30.0 && abs(Jet_eta)<2.4 ");
-    _rlm = _rlm.Define("goodJets_high_eta", "Jet_pt_corr>0.0 && (abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.7) ");
+    _rlm = _rlm.Define("goodJets_high_eta", "Jet_pt_corr>40.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.7)) ");
     _rlm = _rlm.Define("goodJets_low_eta", "Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.7 ");
     _rlm = _rlm.Define("goodJets", " goodJets_high_eta || goodJets_low_eta ");
 
 
     _rlm = _rlm.Define("goodJets_pt", "Jet_pt_corr[goodJets]")
-                .Define("goodJets_leading_pt", "int(goodJets_pt.size())>0 ? goodJets_pt[0] : numb")
-
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
-		.Define("goodJets_leading_eta", "int(goodJets_eta.size())>0 ? goodJets_eta[0] : numb")
-
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
-                .Define("goodJets_leading_phi", "int(goodJets_phi.size())>0 ? goodJets_phi[0] : numb")
-
                 .Define("goodJets_mass", "Jet_mass[goodJets]")
-                .Define("goodJets_leading_mass", "int(goodJets_mass.size())>0 ? goodJets_mass[0] : numb")
-
                 .Define("goodJets_idx", ::good_idx, {"goodJets"});
     if(!_isData){
 
@@ -355,22 +354,23 @@ void BaseAnalyser::selectJets()
                 .Define("goodJets_deepjetbtag", "Jet_btagDeepFlavB[goodJets]")
                 .Define("NgoodJets", "int(goodJets_pt.size())")
                 .Define("goodJets_4vecs", ::generate_4vec, {"goodJets_pt", "goodJets_eta", "goodJets_phi", "goodJets_mass"});
-     _rlm = _rlm.Define("goodjet_single_4vec",::generate_single_4vec,{"goodJets_leading_pt","goodJets_leading_eta","goodJets_leading_phi","goodJets_leading_mass"});
 
 
 	//select b jest within goodjets 
-    _rlm = _rlm.Define("btagcuts", "goodJets_deepjetbtag>0.7") //0.2783 -medium, 0.7 - tight 
+    _rlm = _rlm.Define("btagcuts", "goodJets_deepjetbtag>0.7476") //0.2783 -medium, 0.7476 - tight 
       .Define("good_bjetpt", "goodJets_pt[btagcuts]")
-      .Define("good_bjet_leading_pt", "int(good_bjetpt.size()) > 0 ? good_bjetpt[0] : numb")
+      .Define("good_bjet_maxpt_index", "ArgMax(good_bjetpt)")
+
+      .Define("good_bjet_leading_pt", "int(good_bjetpt.size()) > 0 ? good_bjetpt[good_bjet_maxpt_index] : numb")
 
       .Define("good_bjeteta", "goodJets_eta[btagcuts]")
-      .Define("good_bjet_leading_eta", "int(good_bjeteta.size()) > 0 ? good_bjeteta[0] : numb")
+      .Define("good_bjet_leading_eta", "int(good_bjeteta.size()) > 0 ? good_bjeteta[good_bjet_maxpt_index] : numb")
 
      .Define("good_bjetphi", "goodJets_phi[btagcuts]")
-      .Define("good_bjet_leading_phi", "int(good_bjetphi.size()) > 0 ? good_bjetphi[0] : numb")
+      .Define("good_bjet_leading_phi", "int(good_bjetphi.size()) > 0 ? good_bjetphi[good_bjet_maxpt_index] : numb")
 
       .Define("good_bjetmass", "goodJets_mass[btagcuts]")
-      .Define("good_bjet_leading_mass", "int(good_bjetmass.size()) > 0 ? good_bjetmass[0] : numb")
+      .Define("good_bjet_leading_mass", "int(good_bjetmass.size()) > 0 ? good_bjetmass[good_bjet_maxpt_index] : numb")
 
       .Define("good_bjetdeepjet", "goodJets_deepjetbtag[btagcuts]");
     if(!_isData){
@@ -413,65 +413,26 @@ void BaseAnalyser::spectatorJets()
         std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
         std::cout<< "================================//=================================" << std::endl;
     }
-    _rlm = _rlm.Define("specJet_2j0t", "region_2j0t && Selected_jetbtag <= 0.7476")
+    _rlm = _rlm.Define("specJet", "Selected_jetbtag <= 0.7476")
     
                // First get the filtered collections
-               .Define("specJet_2j0t_pt_collection", "Selected_jetpt[specJet_2j0t]")
+               .Define("specJet_eta_collection", "Selected_jeteta[specJet]")
+	       .Define("specJet_maxeta_index", "ArgMax(specJet_eta_collection)")
                // Then get the leading values, checking collection size first
-               .Define("specJet_2j0t_leading_pt", "specJet_2j0t_pt_collection.size() > 0 ? specJet_2j0t_pt_collection[0] : numb")
+               .Define("specJet_leading_eta", "specJet_eta_collection.size() > 0 ? specJet_eta_collection[specJet_maxeta_index] : numb")
                
-               .Define("specJet_2j0t_eta_collection", "Selected_jeteta[specJet_2j0t]")
-               .Define("specJet_2j0t_leading_eta", "specJet_2j0t_eta_collection.size() > 0 ? specJet_2j0t_eta_collection[0] : numb")
+               .Define("specJet_pt_collection", "Selected_jetpt[specJet]")
+               .Define("specJet_leading_pt", "specJet_pt_collection.size() > 0 ? specJet_pt_collection[specJet_maxeta_index] : numb")
                
-               .Define("specJet_2j0t_phi_collection", "Selected_jetphi[specJet_2j0t]")
-               .Define("specJet_2j0t_leading_phi", "specJet_2j0t_phi_collection.size() > 0 ? specJet_2j0t_phi_collection[0] : numb")
+               .Define("specJet_phi_collection", "Selected_jetphi[specJet]")
+               .Define("specJet_leading_phi", "specJet_phi_collection.size() > 0 ? specJet_phi_collection[specJet_maxeta_index] : numb")
                
-               .Define("specJet_2j0t_mass_collection", "Selected_jetmass[specJet_2j0t]")
-               .Define("specJet_2j0t_leading_mass","specJet_2j0t_mass_collection.size() > 0 ? specJet_2j0t_mass_collection[0] : numb")
+               .Define("specJet_mass_collection", "Selected_jetmass[specJet]")
+               .Define("specJet_leading_mass","specJet_mass_collection.size() > 0 ? specJet_mass_collection[specJet_maxeta_index] : numb");
                
-               .Define("NspecJets_2j0t", "int(specJet_2j0t_pt_collection.size())");
-    _rlm = _rlm.Define("specJet_2j0t_single_4vec",::generate_single_4vec,{"specJet_2j0t_leading_pt","specJet_2j0t_leading_eta","specJet_2j0t_leading_phi","specJet_2j0t_leading_mass"});
-
-
-
-_rlm=_rlm.Define("specJet_2j1t", "region_2j1t && Selected_jetbtag <= 0.7476")
-
-    
-               .Define("specJet_2j1t_pt_collection", "Selected_jetpt[specJet_2j1t]")
-               .Define("specJet_2j1t_leading_pt", "int(specJet_2j1t_pt_collection.size()) == 1 ? specJet_2j1t_pt_collection[0] : numb ")
-
-               .Define("specJet_2j1t_eta_collection", "Selected_jeteta[specJet_2j1t]")
-               .Define("specJet_2j1t_leading_eta", "int(specJet_2j1t_eta_collection.size()) == 1 ? specJet_2j1t_eta_collection[0] : numb ")
-
-               .Define("specJet_2j1t_phi_collection", "Selected_jetphi[specJet_2j1t]")
-               .Define("specJet_2j1t_leading_phi", "int(specJet_2j1t_phi_collection.size()) == 1 ? specJet_2j1t_phi_collection[0] : numb ")
-
-               .Define("specJet_2j1t_mass_collection", "Selected_jetmass[specJet_2j1t]")
-               .Define("specJet_2j1t_leading_mass", "int(specJet_2j1t_mass_collection.size()) == 1 ? specJet_2j1t_mass_collection[0] : numb ")
-
-               .Define("NspecJets_2j1t", "int(specJet_2j1t_pt_collection.size())")
-               .Define("good_spec_jet4vecs", :: generate_TLorentzVector, {"specJet_2j1t_leading_pt", "specJet_2j1t_leading_eta", "specJet_2j1t_leading_phi", "specJet_2j1t_leading_mass"});
-    _rlm = _rlm.Define("specJet_2j1t_single_4vec",::generate_single_4vec,{"specJet_2j1t_leading_pt","specJet_2j1t_leading_eta","specJet_2j1t_leading_phi","specJet_2j1t_leading_mass"});
-
-
-_rlm = _rlm.Define("specJet_3j2t", "region_3j2t && Selected_jetbtag <= 0.7476 ")
-
-    
-               .Define("specJet_3j2t_pt_collection", "Selected_jetpt[specJet_3j2t]")
-               .Define("specJet_3j2t_leading_pt", " int(specJet_3j2t_pt_collection.size()) > 0? specJet_3j2t_pt_collection[0] : numb")
-
-               .Define("specJet_3j2t_eta_collection", "Selected_jeteta[specJet_3j2t]")
-               .Define("specJet_3j2t_leading_eta", "int(specJet_3j2t_pt_collection.size()) > 0 ? specJet_3j2t_eta_collection[0] : numb ")
-
-               .Define("specJet_3j2t_phi_collection", "Selected_jetphi[specJet_3j2t]")
-               .Define("specJet_3j2t_leading_phi", "int(specJet_3j2t_pt_collection.size()) > 0 ? specJet_3j2t_phi_collection[0] : numb ")
-
-               .Define("specJet_3j2t_mass_collection", "Selected_jetmass[specJet_3j2t]")
-               .Define("specJet_3j2t_leading_mass", "int(specJet_3j2t_pt_collection.size()) > 1 ? specJet_3j2t_mass_collection[0] : numb ")
-
-               .Define("NspecJet_3j2t", "int(specJet_3j2t_pt_collection.size())")
-               .Define("SpecJet_is_Btight_3j2t", "NgoodJets >= 3 && Ngood_bjets == 2 ? 1 : 0");
-    _rlm = _rlm.Define("specJet_3j2t_single_4vec",::generate_single_4vec,{"specJet_3j2t_leading_pt","specJet_3j2t_leading_eta","specJet_3j2t_leading_phi","specJet_3j2t_leading_mass"});
+           //    .Define("NspecJets_2j0t", "int(specJet_2j0t_pt_collection.size())");
+    _rlm = _rlm.Define("specJet_single_4vec",::generate_single_4vec,{"specJet_leading_pt","specJet_leading_eta","specJet_leading_phi","specJet_leading_mass"});
+ _rlm = _rlm.Define("specJet_single_TL4vec",:: generate_TLorentzVector,{"specJet_leading_pt", "specJet_leading_eta", "specJet_leading_phi", "specJet_leading_mass"});
 
 }
 //=================================Overlap function=================================================//
@@ -511,54 +472,27 @@ void BaseAnalyser::removeOverlaps()
 	
 std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
 
-/*
-void BaseAnalyser::removeOverlaps()
-{
-    cout << "checking overlapss between jets and muons" << endl;
-	// lambda function
-	// for checking overlapped jets with leptons
-    auto checkoverlap = [](FourVectorVec &goodjets, FourVectorVec &goodlep)
-		{
-			doubles mindrlepton;
-			for (auto ajet: goodjets)
-			{
-                auto mindr = 6.0;
-				for (auto alepton: goodlep)
-				{
-					auto dr = ROOT::Math::VectorUtil::DeltaR(ajet, alepton);
-                    if (dr < mindr) mindr = dr;
-                }
-                int out = mindr > 0.4 ? 1 : 0;
-                mindrlepton.emplace_back(out);
-
-			}
-            return mindrlepton;
-	    };
-*/
   //  _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodmuons_4vecs"});
-	_rlm =	_rlm.Define("Selected_jetpt", "goodJets_pt[checkOverlap]")
-		.Define("Selected_jet_leading_pt", "int(Selected_jetpt.size())>0 ? Selected_jetpt[0] : numb")
-		.Define("Selected_jetphi", "goodJets_phi[checkOverlap]")
-                .Define("Selected_jet_leading_phi", "int(Selected_jetpt.size())>0 ? Selected_jetphi[0] : numb")
+	_rlm =	_rlm.Define("Selected_jeteta", "goodJets_eta[checkOverlap]")
+		   .Define("Selected_jeteta_mineta_index", "ArgMin(Selected_jeteta)")
+                   .Define("Selected_jet_leading_eta", "int(Selected_jeteta.size())>0 ? Selected_jeteta[Selected_jeteta_mineta_index] : numb")
 
-	    	.Define("Selected_jeteta", "goodJets_eta[checkOverlap]")
-                .Define("Selected_jet_leading_eta", "int(Selected_jetpt.size())>0 ? Selected_jeteta[0] : numb")
+		.Define("Selected_jetphi", "goodJets_phi[checkOverlap]")
+	        .Define("Selected_jet_leading_phi", "int(Selected_jetphi.size())>0 ? Selected_jetphi[Selected_jeteta_mineta_index] : numb")
+
+	    	.Define("Selected_jetpt", "goodJets_pt[checkOverlap]")
+                .Define("Selected_jet_leading_pt", "int(Selected_jetpt.size())>0 ? Selected_jetpt[Selected_jeteta_mineta_index] : numb")
 
 		.Define("Selected_jetmass", "goodJets_mass[checkOverlap]")
-                .Define("Selected_jet_leading_mass", "int(Selected_jetpt.size())>0 ? Selected_jetmass[0] : numb")
-
-
+                .Define("Selected_jet_leading_mass", "int(Selected_jetphi.size())>0 ? Selected_jetmass[Selected_jeteta_mineta_index] : numb")
 
 		.Define("Selected_jetbtag", "goodJets_deepjetbtag[checkOverlap]") //
 //		.Define("Selected_jethadflav", "goodJets_hadflav[checkOverlap]") 
 		.Define("ncleanjetspass", "int(Selected_jetpt.size())")
 		.Define("cleanjet4vecs", ::generate_4vec, {"Selected_jetpt", "Selected_jeteta", "Selected_jetphi", "Selected_jetmass"})
 		.Define("Selected_jetHT", "Sum(Selected_jetpt)");
+	 _rlm = _rlm.Define("selected_cleanjet_TL4vec",:: generate_TLorentzVector,{"Selected_jet_leading_pt", "Selected_jet_leading_eta", "Selected_jet_leading_phi", "Selected_jet_leading_mass"});
 
-
-                _rlm = _rlm.Define("selected_cleanjet_4vec",::generate_single_4vec, {"Selected_jet_leading_pt", "Selected_jet_leading_eta", "Selected_jet_leading_phi", "Selected_jet_leading_mass"});
-                _rlm = _rlm.Define("selected_cleanjet_TL4vec",:: generate_TLorentzVector,{"Selected_jet_leading_pt", "Selected_jet_leading_eta", "Selected_jet_leading_phi", "Selected_jet_leading_mass"});
-//                _rlm = _rlm.Define("selected_cleanjet_4vec",::generate_single_4vec, {"Selected_jet_leading_pt", "Selected_jet_leading_eta", "Selected_jet_leading_phi", "Selected_jet_leading_mass"});
 
 
 
@@ -571,16 +505,18 @@ void BaseAnalyser::removeOverlaps()
 	 //=====================================================================================//
 	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>=0.7476") //medium wp -->as an example. 
 			.Define("Selected_bjetpt", "Selected_jetpt[btagcuts2]")
-                        .Define("Selected_bjet_leading_pt", "int(Selected_bjetpt.size())>0 ? Selected_bjetpt[0] : numb")
+                        .Define("Selected_bjet_maxpt_index", "ArgMax(Selected_bjetpt)")
+
+			.Define("Selected_bjet_leading_pt", "int(Selected_bjetpt.size())>0 ? Selected_bjetpt[Selected_bjet_maxpt_index] : numb")
 
 			.Define("Selected_bjeteta", "Selected_jeteta[btagcuts2]")
-                        .Define("Selected_bjet_leading_eta", "int(Selected_bjetpt.size())>0 ? Selected_bjeteta[0] : numb")
+                        .Define("Selected_bjet_leading_eta", "int(Selected_bjetpt.size())>0 ? Selected_bjeteta[Selected_bjet_maxpt_index] : numb")
 
 			.Define("Selected_bjetphi", "Selected_jetphi[btagcuts2]")
-                        .Define("Selected_bjet_leading_phi", "int(Selected_bjetpt.size())>0 ? Selected_bjetphi[0] : numb")
+                        .Define("Selected_bjet_leading_phi", "int(Selected_bjetpt.size())>0 ? Selected_bjetphi[Selected_bjet_maxpt_index] : numb")
 
 			.Define("Selected_bjetmass", "Selected_jetmass[btagcuts2]")
-                        .Define("Selected_bjet_leading_mass", "int(Selected_bjetpt.size())>0 ? Selected_bjetmass[0] : numb")
+                        .Define("Selected_bjet_leading_mass", "int(Selected_bjetpt.size())>0 ? Selected_bjetmass[Selected_bjet_maxpt_index] : numb")
 
 			.Define("ncleanbjetspass", "int(Selected_bjetpt.size())")
 			.Define("Selected_bjetHT", "Sum(Selected_bjetpt)")
@@ -615,9 +551,9 @@ void BaseAnalyser::defineRegion()
     _rlm = _rlm.Define("region", "region_2j1t == 1 ? 0.0 : region_2j0t == 1 ? 1.0 : region_3j2t == 1 ? 2.0 :-1.0");
 */
 
-_rlm = _rlm.Define("region_2j1t", "ncleanjetspass == 2 && ncleanbjetspass >= 1");
+_rlm = _rlm.Define("region_2j1t", "ncleanjetspass == 2 && ncleanbjetspass == 1");
 _rlm = _rlm.Define("region_2j0t", "ncleanjetspass== 2 && ncleanbjetspass == 0");
-_rlm = _rlm.Define("region_3j2t", "ncleanjetspass>= 3 && ncleanbjetspass >= 2");
+_rlm = _rlm.Define("region_3j2t", "ncleanjetspass== 3 && ncleanbjetspass >= 1");
 
 }
 
@@ -631,7 +567,7 @@ void BaseAnalyser::reconstructTop()
     }
 
 //    _rlm = _rlm.Define("bQuark_forReco", "region == 0.0 ? good_bjet_TL4vec : numbLorentzVector")
-    _rlm = _rlm.Define("bQuark_forReco", " region_2j1t ? selected_cleanbjet_TL4vec : numbLorentzVector")
+    _rlm = _rlm.Define("bQuark_forReco", " region_2j1t || region_3j2t ? selected_cleanbjet_TL4vec : region_2j0t ? selected_cleanjet_TL4vec : numbLorentzVector")
                .Define("topQuark_TL4vec", "Wboson_4vec + bQuark_forReco");
 
     _rlm = _rlm.Define("top_mass","topQuark_TL4vec.M()" )
@@ -690,7 +626,7 @@ void BaseAnalyser::selectMET()
     }
 
    _rlm = _rlm.Define("goodMET", "MET_pt_corr>=20")  // Boolean flag
-          .Define("goodMET_pt_corr", "goodMET ? MET_pt_corr : numb")  // Assign -999 for events failing cut
+          .Define("goodMET_pt_corr", "goodMET ? MET_pt_corr : numb")  // Assign numb for events failing cut
           .Define("goodMET_phi_corr", "goodMET ? MET_phi_corr : numb ");
 
     //            .Define("goodMET_eta","MET_eta[goodMET]")
@@ -703,17 +639,17 @@ void BaseAnalyser::selectMET()
     
 }
 
-
+/*
 double numb=std::numeric_limits<double>::quiet_NaN();
 
 
 double calculate_deltaEtaWrapper(bool region, bool channel, const FourVector& lepton, const FourVector& goodbjet , double Wboson_transversMass) {
-    return region && channel && Wboson_transversMass>=50 ? calculate_deltaEta(lepton, goodbjet) : -999;
+    return region && channel && Wboson_transversMass>=50 ? calculate_deltaEta(lepton, goodbjet) : numb;
 }
 
 
 double computeDeltaRWrapper(const bool region, const bool channel, const FourVector& specJet, const FourVector& goodbjet, double Wboson_transversMass) {
-    return (region && channel && Wboson_transversMass>=50) ? calculate_deltaR(specJet, goodbjet) : -999;
+    return (region && channel && Wboson_transversMass>=50) ? calculate_deltaR(specJet, goodbjet) : numb;
 }
 
 float eventShapeWrapper(const bool region,const bool channel,
@@ -724,16 +660,16 @@ float eventShapeWrapper(const bool region,const bool channel,
     combined.insert(combined.end(), jets.begin(), jets.end());
 
     // Call the event_shape function to compute event shape
-    return (region && channel && Wboson_transversMass>=50) ? event_shape(combined):-999;
+    return (region && channel && Wboson_transversMass>=50) ? event_shape(combined):numb;
 }
 
 float calculateWHelicityAngle_TL_wrapper(const TLorentzVector &lepton, const TLorentzVector &wBoson, const TLorentzVector &top,bool region, bool channel, double Wboson_transversMass){
-    return (region && channel && Wboson_transversMass>=50) ? calculateWHelicityAngle(lepton,wBoson,top):-999;
+    return (region && channel && Wboson_transversMass>=50) ? calculateWHelicityAngle(lepton,wBoson,top):numb;
 }
 //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //--------------------------------------------------------------------------------------------------------------------------------------
 
-
+*/
 
 void BaseAnalyser::Background_Estimation()
 {
@@ -771,73 +707,80 @@ _rlm = _rlm.Define("delphi_2j0t_ele_endcap", "region_2j0t && electronChannel && 
 
 
 
-_rlm = _rlm.Define("bdt_MET_pt_muon_2j0t", "region_2j0t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : -999");
-_rlm = _rlm.Define("bdt_MET_pt_muon_2j1t", "region_2j1t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : -999");
-_rlm = _rlm.Define("bdt_MET_pt_muon_3j2t", "region_3j2t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : -999");
-_rlm = _rlm.Define("bdt_MET_pt_ele_2j0t", "region_2j0t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : -999");
-_rlm = _rlm.Define("bdt_MET_pt_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : -999");
-_rlm = _rlm.Define("bdt_MET_pt_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : -999");
+_rlm = _rlm.Define("bdt_MET_pt_muon_2j0t", "region_2j0t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
+_rlm = _rlm.Define("bdt_MET_pt_muon_2j1t", "region_2j1t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
+_rlm = _rlm.Define("bdt_MET_pt_muon_3j2t", "region_3j2t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
+_rlm = _rlm.Define("bdt_MET_pt_ele_2j0t", "region_2j0t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
+_rlm = _rlm.Define("bdt_MET_pt_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
+_rlm = _rlm.Define("bdt_MET_pt_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
 
-_rlm = _rlm.Define("bdt_wboson_muon_2j0t", "region_2j0t && muonChannel ? Wboson_transversMass : -999");
-_rlm = _rlm.Define("bdt_wboson_muon_2j1t", "region_2j1t && muonChannel ? Wboson_transversMass : -999");
-_rlm = _rlm.Define("bdt_wboson_muon_3j2t", "region_3j2t && muonChannel ? Wboson_transversMass : -999");
-_rlm = _rlm.Define("bdt_wboson_ele_2j0t", "region_2j0t && electronChannel ? Wboson_transversMass : -999");
-_rlm = _rlm.Define("bdt_wboson_ele_2j1t", "region_2j1t && electronChannel ? Wboson_transversMass : -999");
-_rlm = _rlm.Define("bdt_wboson_ele_3j2t", "region_3j2t && electronChannel ? Wboson_transversMass : -999");
+_rlm = _rlm.Define("bdt_wboson_muon_2j0t", "region_2j0t && muonChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("bdt_wboson_muon_2j1t", "region_2j1t && muonChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("bdt_wboson_muon_3j2t", "region_3j2t && muonChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("bdt_wboson_ele_2j0t", "region_2j0t && electronChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("bdt_wboson_ele_2j1t", "region_2j1t && electronChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("bdt_wboson_ele_3j2t", "region_3j2t && electronChannel ? Wboson_transversMass : numb");
 
-_rlm = _rlm.Define("bdt_top_muon_2j0t", "region_2j0t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : -999");
-_rlm = _rlm.Define("bdt_top_muon_2j1t", "region_2j1t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : -999");
-_rlm = _rlm.Define("bdt_top_muon_3j2t", "region_3j2t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : -999");
-_rlm = _rlm.Define("bdt_top_ele_2j0t", "region_2j0t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : -999");
-_rlm = _rlm.Define("bdt_top_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : -999");
-_rlm = _rlm.Define("bdt_top_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : -999");
+_rlm = _rlm.Define("bdt_top_muon_2j0t", "region_2j0t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
+_rlm = _rlm.Define("bdt_top_muon_2j1t", "region_2j1t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
+_rlm = _rlm.Define("bdt_top_muon_3j2t", "region_3j2t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
+_rlm = _rlm.Define("bdt_top_ele_2j0t", "region_2j0t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
+_rlm = _rlm.Define("bdt_top_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
+_rlm = _rlm.Define("bdt_top_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
 
-_rlm = _rlm.Define("bdt_specJet_2j0t_leading_eta_muon", " muonChannel && Wboson_transversMass>=50 ? specJet_2j0t_leading_eta : -999");
-_rlm = _rlm.Define("bdt_specJet_2j0t_leading_eta_ele", " electronChannel && Wboson_transversMass>=50 ? specJet_2j0t_leading_eta : -999");
-_rlm = _rlm.Define("bdt_specJet_2j1t_leading_eta_muon", " muonChannel && Wboson_transversMass>=50 ? specJet_2j1t_leading_eta : -999");
-_rlm = _rlm.Define("bdt_specJet_2j1t_leading_eta_ele", " electronChannel && Wboson_transversMass>=50 ? specJet_2j1t_leading_eta : -999");
-_rlm = _rlm.Define("bdt_specJet_3j2t_leading_eta_muon", " muonChannel && Wboson_transversMass>=50 ? specJet_2j0t_leading_eta : -999");
-_rlm = _rlm.Define("bdt_specJet_3j2t_leading_eta_ele", " electronChannel && Wboson_transversMass>=50 ? specJet_3j2t_leading_eta : -999");
+_rlm = _rlm.Define("bdt_specJet_2j0t_leading_eta_muon", "region_2j0t &&  muonChannel && Wboson_transversMass>=50 ? specJet_leading_eta : numb");
+_rlm = _rlm.Define("bdt_specJet_2j0t_leading_eta_ele", "region_2j0t &&  electronChannel && Wboson_transversMass>=50 ? specJet_leading_eta : numb");
+_rlm = _rlm.Define("bdt_specJet_2j1t_leading_eta_muon", "region_2j1t &&  muonChannel && Wboson_transversMass>=50 ? specJet_leading_eta : numb");
+_rlm = _rlm.Define("bdt_specJet_2j1t_leading_eta_ele", "region_2j1t &&  electronChannel && Wboson_transversMass>=50 ? specJet_leading_eta : numb");
+_rlm = _rlm.Define("bdt_specJet_3j2t_leading_eta_muon", "region_3j2t &&  muonChannel && Wboson_transversMass>=50 ? specJet_leading_eta : numb");
+_rlm = _rlm.Define("bdt_specJet_3j2t_leading_eta_ele", "region_3j2t &&  electronChannel && Wboson_transversMass>=50 ? specJet_leading_eta : numb");
 
-//_rlm = _rlm.Define("bdt_delR_muon_2j1t", ::computeDeltaRWrapper, {"specJet_2j1t_single_4vec", "selected_cleanbjet_4vec"});
+_rlm = _rlm.Define("bdt_delR", ::calculate_deltaR, {"specJet_single_4vec", "selected_cleanbjet_4vec"});
 
+_rlm = _rlm.Define("bdt_delR_muon_2j1t", "region_2j1t &&  muonChannel && Wboson_transversMass>=50 ? bdt_delR : numb");
+_rlm = _rlm.Define("bdt_delR_muon_2j0t", "region_2j0t &&  muonChannel && Wboson_transversMass>=50 ? bdt_delR : numb");
+_rlm = _rlm.Define("bdt_delR_muon_3j2t", "region_3j2t &&  muonChannel && Wboson_transversMass>=50 ? bdt_delR : numb");
+_rlm = _rlm.Define("bdt_delR_ele_2j1t", "region_2j1t &&  electronChannel && Wboson_transversMass>=50 ? bdt_delR : numb");
+_rlm = _rlm.Define("bdt_delR_ele_2j0t", "region_2j0t &&  electronChannel && Wboson_transversMass>=50 ? bdt_delR : numb");
+_rlm = _rlm.Define("bdt_delR_ele_3j2t", "region_3j2t &&  electronChannel && Wboson_transversMass>=50 ? bdt_delR : numb");
 
-_rlm = _rlm.Define("bdt_delR_muon_2j1t", ::computeDeltaRWrapper, {"region_2j1t", "muonChannel", "specJet_2j1t_single_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_delR_muon_2j0t", ::computeDeltaRWrapper, {"region_2j0t", "muonChannel", "specJet_2j0t_single_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_delR_muon_3j2t", ::computeDeltaRWrapper, {"region_3j2t", "muonChannel", "specJet_3j2t_single_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_delR_ele_2j1t", ::computeDeltaRWrapper, {"region_2j1t", "electronChannel", "specJet_2j1t_single_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_delR_ele_2j0t", ::computeDeltaRWrapper, {"region_2j0t", "electronChannel", "specJet_2j0t_single_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_delR_ele_3j2t", ::computeDeltaRWrapper, {"region_3j2t", "electronChannel", "specJet_3j2t_single_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-
-//_rlm = _rlm.Define("bdt_deltaEta_muon_2j1t", ::calculate_deltaEtaWrapper, {"goodMuon_4vec", "selected_cleanbjet_4vec"});
-
-
-_rlm = _rlm.Define("bdt_deltaEta_muon_2j1t", ::calculate_deltaEtaWrapper, {"region_2j1t", "muonChannel", "goodMuon_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_deltaEta_muon_2j0t", ::calculate_deltaEtaWrapper, {"region_2j0t", "muonChannel", "goodMuon_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_deltaEta_muon_3j2t", ::calculate_deltaEtaWrapper, {"region_3j2t", "muonChannel", "goodMuon_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_deltaEta_ele_2j1t", ::calculate_deltaEtaWrapper, {"region_2j1t", "electronChannel", "goodElectron_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_deltaEta_ele_2j0t", ::calculate_deltaEtaWrapper, {"region_2j0t", "electronChannel", "goodElectron_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_deltaEta_ele_3j2t", ::calculate_deltaEtaWrapper, {"region_3j2t", "electronChannel", "goodElectron_4vec", "selected_cleanbjet_4vec","Wboson_transversMass"});
-
-//_rlm = _rlm.Define("bdt_eventShape_muon_2j1t", ::eventShapeWrapper, {"goodmuons_4vecs", "cleanbjet4vecs"});
+_rlm = _rlm.Define("bdt_deltaEta", ::calculate_deltaEta, {"goodlepton_4vec", "selected_cleanbjet_4vec"});
 
 
-_rlm = _rlm.Define("bdt_eventShape_muon_2j1t", ::eventShapeWrapper, {"region_2j1t", "muonChannel", "goodmuons_4vecs", "cleanbjet4vecs","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_eventShape_muon_2j0t", ::eventShapeWrapper, {"region_2j0t", "muonChannel", "goodmuons_4vecs", "cleanbjet4vecs","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_eventShape_muon_3j2t", ::eventShapeWrapper, {"region_3j2t", "muonChannel", "goodmuons_4vecs", "cleanbjet4vecs","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_eventShape_ele_2j1t", ::eventShapeWrapper, {"region_2j1t", "electronChannel", "goodmuons_4vecs", "cleanbjet4vecs","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_eventShape_ele_2j0t", ::eventShapeWrapper, {"region_2j0t", "electronChannel", "goodmuons_4vecs", "cleanbjet4vecs","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_eventShape_ele_3j2t", ::eventShapeWrapper, {"region_3j2t", "electronChannel", "goodmuons_4vecs", "cleanbjet4vecs","Wboson_transversMass"});
+_rlm = _rlm.Define("bdt_deltaEta_muon_2j1t", "region_2j1t &&  muonChannel && Wboson_transversMass>=50 ? bdt_deltaEta : numb");
+_rlm = _rlm.Define("bdt_deltaEta_muon_2j0t", "region_2j0t &&  muonChannel && Wboson_transversMass>=50 ? bdt_deltaEta : numb");
+_rlm = _rlm.Define("bdt_deltaEta_muon_3j2t", "region_3j2t &&  muonChannel && Wboson_transversMass>=50 ? bdt_deltaEta : numb");
+_rlm = _rlm.Define("bdt_deltaEta_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? bdt_deltaEta : numb");
+_rlm = _rlm.Define("bdt_deltaEta_ele_2j0t", "region_2j0t &&  electronChannel && Wboson_transversMass>=50 ? bdt_deltaEta : numb");
+_rlm = _rlm.Define("bdt_deltaEta_ele_3j2t", "region_3j2t &&  electronChannel && Wboson_transversMass>=50 ? bdt_deltaEta : numb");
 
-//_rlm = _rlm.Define("bdt_WHelicity_muon_2j1t", ::calculateWHelicityAngle_TL_wrapper, {"goodmuons_TL4Vecs", "Wboson_4vec", "topQuark_TL4vec"});
+//_rlm = _rlm.Define("bdt_eventShape", ::event_shape, {"goodlepton_4vecs", "cleanbjet4vecs"});
+_rlm = _rlm.Define("bdt_eventShape", 
+                   [](const FourVectorVec &leptons, const FourVectorVec &jets) {
+                        FourVectorVec combined = leptons;
+                        combined.insert(combined.end(), jets.begin(), jets.end());
+
+                        return  event_shape(combined); 
+                   }, 
+                   {"goodlepton_4vecs", "cleanbjet4vecs"});
 
 
-_rlm = _rlm.Define("bdt_WHelicity_muon_2j1t", ::calculateWHelicityAngle_TL_wrapper, {"goodmuons_TL4Vecs", "Wboson_4vec", "topQuark_TL4vec", "region_2j1t", "muonChannel","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_WHelicity_muon_2j0t", ::calculateWHelicityAngle_TL_wrapper, {"goodmuons_TL4Vecs", "Wboson_4vec", "topQuark_TL4vec", "region_2j0t", "muonChannel","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_WHelicity_muon_3j2t", ::calculateWHelicityAngle_TL_wrapper, {"goodmuons_TL4Vecs", "Wboson_4vec", "topQuark_TL4vec", "region_3j2t", "muonChannel","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_WHelicity_ele_2j1t", ::calculateWHelicityAngle_TL_wrapper, {"goodElectron_TL4Vecs", "Wboson_4vec", "topQuark_TL4vec", "region_2j1t", "electronChannel","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_WHelicity_ele_2j0t", ::calculateWHelicityAngle_TL_wrapper, {"goodElectron_TL4Vecs", "Wboson_4vec", "topQuark_TL4vec", "region_2j0t", "electronChannel","Wboson_transversMass"});
-_rlm = _rlm.Define("bdt_WHelicity_ele_3j2t", ::calculateWHelicityAngle_TL_wrapper, {"goodElectron_TL4Vecs", "Wboson_4vec", "topQuark_TL4vec", "region_3j2t", "electronChannel","Wboson_transversMass"});
+_rlm = _rlm.Define("bdt_eventShape_muon_2j1t", "region_2j1t &&  muonChannel && Wboson_transversMass>=50 ? bdt_eventShape : numb");
+_rlm = _rlm.Define("bdt_eventShape_muon_2j0t", "region_2j0t &&  muonChannel && Wboson_transversMass>=50 ? bdt_eventShape : numb");
+_rlm = _rlm.Define("bdt_eventShape_muon_3j2t", "region_3j2t &&  muonChannel && Wboson_transversMass>=50 ? bdt_eventShape : numb");
+_rlm = _rlm.Define("bdt_eventShape_ele_2j1t", "region_2j1t &&  electronChannel && Wboson_transversMass>=50 ? bdt_eventShape : numb");
+_rlm = _rlm.Define("bdt_eventShape_ele_2j0t", "region_2j0t &&  electronChannel && Wboson_transversMass>=50 ? bdt_eventShape : numb");
+_rlm = _rlm.Define("bdt_eventShape_ele_3j2t", "region_3j2t &&  electronChannel && Wboson_transversMass>=50 ?  bdt_eventShape: numb");
+
+_rlm = _rlm.Define("bdt_WHelicity", ::calculateWHelicityAngle, {"lepton_TL4vec", "Wboson_4vec", "topQuark_TL4vec"});
+
+
+_rlm = _rlm.Define("bdt_WHelicity_muon_2j1t", "region_2j1t &&  muonChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
+_rlm = _rlm.Define("bdt_WHelicity_muon_2j0t", "region_2j0t &&  muonChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
+_rlm = _rlm.Define("bdt_WHelicity_muon_3j2t", "region_3j2t &&  muonChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
+_rlm = _rlm.Define("bdt_WHelicity_ele_2j1t", "region_2j1t &&  electronChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
+_rlm = _rlm.Define("bdt_WHelicity_ele_2j0t", "region_2j0t &&  electronChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
+_rlm = _rlm.Define("bdt_WHelicity_ele_3j2t", "region_3j2t &&  electronChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
 
 }
 //=============================define variables==================================================//
@@ -957,8 +900,8 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("w_pt"); */
    
 // my variables start drom here -------------------------------------------------------------------------	   
-    addVartoStore("muon_isolation");
-    addVartoStore("ele_isolation");
+  //  addVartoStore("muon_isolation");
+    //addVartoStore("ele_isolation");
    /* addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
     addVartoStore("goodElectrons_leading_phi");
@@ -984,7 +927,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("rev_iso_mu_leading_eta");
     addVartoStore("rev_iso_mu_leading_phi");
     addVartoStore("bjet_mass");*/
-/*    addVartoStore("Ngood_bjets");    
+    addVartoStore("lepton_charge");    
     addVartoStore("bdt_wboson_muon_2j0t");
     addVartoStore("bdt_wboson_muon_2j1t");
     addVartoStore("bdt_wboson_muon_3j2t");
@@ -1039,9 +982,9 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("nJet");
     addVartoStore("evWeight");
     addVartoStore("genWeight");
-    addVartoStore("genEventSumw");*/
+    addVartoStore("genEventSumw");
 
-    //addVartoStore("btag_SF_central");
+    addVartoStore("ncleanbjetspass");
    /* addVartoStore("top_mass_2j1t");
     addVartoStore("top_mass_2j1t_ele");
     addVartoStore("top_mass_2j1t_muon");
@@ -1064,26 +1007,26 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("Wboson_transversemass_QCDmuon");
    // addVartoStore("good_bjet_leading_pt");
     
-    addVartoStore("ele_isolation_barrel");
-    addVartoStore("ele_isolation_endcap");
-    addVartoStore("MET_pt_2j0t_muon");
-    addVartoStore("MET_pt_2j0t_ele_barrel");
-    addVartoStore("MET_pt_2j0t_ele_endcap");
-    addVartoStore("Pt_2j0t_muon");
-    addVartoStore("eta_2j0t_muon");
-    addVartoStore("eta_2j0t_ele");
-    addVartoStore("delphi_2j0t_muon");
-    addVartoStore("delphi_2j0t_ele");
-    addVartoStore("delphi_2j0t_ele_barrel");
-    addVartoStore("delphi_2j0t_ele_endcap");
+    addVartoStore("region_2j0t");
+    addVartoStore("region_2j1t");
+    addVartoStore("region_3j2t");
+    addVartoStore("muonChannel");
+    addVartoStore("electronChannel");
+    addVartoStore("MET_pt_corr");
+    addVartoStore("top_mass");
+    addVartoStore("specJet_leading_eta");
+    addVartoStore("bdt_delR");
+    addVartoStore("bdt_deltaEta");
+    addVartoStore("bdt_eventShape");
+    addVartoStore("bdt_WHelicity");
     
-    // addVartoStore("muon_SF_central");
-      // addVartoStore("btag_SF_central");
-      addVartoStore("genWeight");
+    addVartoStore("QCDmuonChannel");
+    addVartoStore("QCDelectronChannel");
+     // addVartoStore("genWeight");
     //addVartoStore("top_pt");
     //addVartoStore("w_pt");
       // addVartoStore("ele_SF_central");
-      addVartoStore("genWeight");
+     /* addVartoStore("genWeight");
     addVartoStore("genEventSumw");
     addVartoStore("delphi_2j0t_muon");
     addVartoStore("eta_2j0t_muon");
@@ -1095,7 +1038,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("MET_pt_2j0t_ele_endcap");
     addVartoStore("muon_SF_central");
     addVartoStore("ele_SF_central");
-
+*/
 }
 
 //    addVartoStore("evWeight");   

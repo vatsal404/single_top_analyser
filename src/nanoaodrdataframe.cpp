@@ -20,7 +20,7 @@ using namespace ROOT;
 int main(void) {
 
 	TChain c1("Events");
-	//c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/QCD_Pt-50to80_EMEnriched_TuneCP5_13TeV-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/270000/3FCE4216-EB2D-064B-94DD-29CA7FFDEBA6.root"); //data
+//	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/QCD_Pt-50to80_EMEnriched_TuneCP5_13TeV-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/270000/3FCE4216-EB2D-064B-94DD-29CA7FFDEBA6.root"); //data
 //	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/2810000/8EDF6CCF-B922-2B40-8889-B0CD442F88CC.root"); // MC
 	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/TT_TuneCH3_13TeV-powheg-herwig7/NANOAODSIM/106X_mc2017_realistic_v9-v1/2520000/02DB06FB-1711-CB4D-A03E-1877AEEC3095.root"); // MC
       //  c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer16NanoAODv7/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v2/10000/F6E8EE8D-4E63-4841-861A-3A1C10564B8B.root"); // MC

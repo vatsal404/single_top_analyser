@@ -1,4 +1,0 @@
-WARNING: In non-interactive mode release checks e.g. deprecated releases, production architectures are disabled.
-[10.3kB/10.3kB][100%][==================================================][10.3kB/s]  [10.3kB/10.3kB][100%][==================================================][10.3kB/s]  
-[ERROR] Server responded with an error: [3010] Stating relative path 'root://cmseos.fnal.gov//store/user/vsinha/processed_histogramsPROC_QCD_Pt-30To50_MuEnrichedPt5_hist.root' is disallowed.
-
