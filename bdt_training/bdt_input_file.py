@@ -29,68 +29,68 @@ boolean_variables = ["region_2j1t", "muonChannel", "electronChannel", "region_2j
 # Define file-specific event selection criteria
 event_selection = {
     # For signal files
-    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_ST_tchannel_antitop_5f.root": {
-#        ("region_2j1t", "muonChannel","Wboson_transversMass>50"): 200000,
-        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 30000,
-    },
-    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_ST_tchannel_top_5f.root": {
-       # ("muonChannel", "region_2j0t","Wboson_transversMass>50"): 200000,
-        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 30000,
-    },
-#    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_TTbar-channel_top_UL17.root": {
+    #"/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_ST_tchannel_antitop_5f.root": {
+    #    #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 200000,
+    #    ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 200000,
+    #},
+    #"/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_ST_tchannel_top_5f.root": {
+    #   # ("muonChannel", "region_2j0t","Wboson_transversMass>50"): 200000,
+    #    ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 200000,
+    #},
+    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_TTbar-channel_top_UL17.root": {
 #        ("region_2j1t", "muonChannel"): 50000,
-#        ("region_2j1t", "electronChannel"): 30000,
+        ("region_2j1t", "electronChannel"): 30000,
 #        ("region_3j2t", "muonChannel"): 3000,
-#        ("region_3j2t", "electronChannel"): 2000,
-#    },
+        ("region_3j2t", "electronChannel"): 2000,
+    },
 
     # For background files
    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_TTbar-channel_top_UL17.root": {
-        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 950000,
+       # ("region_2j1t", "muonChannel","Wboson_transversMass>50"): 30000,
         ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 30000,
-        #("region_3j2t", "muonChannel","Wboson_transversMass>50"): 5000,
+        #("region_3j2t", "muonChannel","Wboson_transversMass>50"): 2000,
         ("region_3j2t", "electronChannel","Wboson_transversMass>50"): 2000,
     },
     "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_WJetsToLNu_1J_UL17.root": {
-        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 30000,
-        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 10000,
+        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 15000,
+        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 15000,
         #("region_2j0t", "muonChannel","Wboson_transversMass>50"): 3000,
         ("region_2j0t", "electronChannel","Wboson_transversMass>50"): 1000,
     },
     "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_WJetsToLNu_0J_UL17.root": {
-        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 30000,
-        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 10000,
+        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 15000,
+        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 15000,
         #("region_2j0t", "muonChannel","Wboson_transversMass>50"): 4000,
         ("region_2j0t", "electronChannel","Wboson_transversMass>50"): 1000,
     },
     "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_WJetsToLNu_2J_UL17.root": {
-        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 30000,
-        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 10000,
+        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 15000,
+        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 15000,
         #("region_2j0t", "muonChannel","Wboson_transversMass>50"): 3000,
         ("region_2j0t", "electronChannel","Wboson_transversMass>50"):1000,
     },
 
    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_ST_tW_antitop_5f.root": {
-        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 49000,
-        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 30000,
+        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 15000,
+        ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 15000,
         #("region_3j2t", "muonChannel","Wboson_transversMass>50"): 1000,
-        ("region_3j2t", "electronChannel","Wboson_transversMass>50"): 2000,
+        ("region_3j2t", "electronChannel","Wboson_transversMass>50"): 1000,
     },
 
    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_ST_tW_top_5f.root": {
-        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 49000,
+        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 30000,
         ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 30000,
         #("region_3j2t", "muonChannel","Wboson_transversMass>50"): 1000,
         ("region_3j2t", "electronChannel","Wboson_transversMass>50"): 2000,
     },
    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_DYJetsToLL_M-10to50_UL17.root": {
-        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 48000,
+        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 30000,
         ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 30000,
         #("region_3j2t", "muonChannel","Wboson_transversMass>50"): 2000,
         ("region_3j2t", "electronChannel","Wboson_transversMass>50"): 2000,
     },
    "/eos/uscms/store/user/vsinha/bdt_variables/PROCESSED_DYJetsToLL_M-50_UL17.root": {
-        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 48000,
+        #("region_2j1t", "muonChannel","Wboson_transversMass>50"): 30000,
         ("region_2j1t", "electronChannel","Wboson_transversMass>50"): 30000,
         #("region_3j2t", "muonChannel","Wboson_transversMass>50"): 2000,
         ("region_3j2t", "electronChannel","Wboson_transversMass>50"): 2000,

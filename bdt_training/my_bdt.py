@@ -2,14 +2,14 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score, roc_curve
+from sklearn.metrics import roc_auc_score, roc_curve, precision_score, recall_score, f1_score
 from scipy.stats import ks_2samp
 import uproot  # For reading ROOT files
 import matplotlib.pyplot as plt  # For plotting
 
 # Load signal and background data from ROOT files
-signal_file = uproot.open('signal_muon.root')  # Replace with your signal file path
-background_file = uproot.open('background_muon.root')  # Replace with your background file path
+signal_file = uproot.open('signal_electron.root')  # Replace with your signal file path
+background_file = uproot.open('background_electron.root')  # Replace with your background file path
 
 # Assuming the data is stored in a TTree named 'tree'
 signal_tree = signal_file['outputTree']  # Replace 'tree' with the actual TTree name
@@ -57,7 +57,7 @@ dtest = xgb.DMatrix(X_test, label=y_test, missing=np.nan)
 params = {
     'objective': 'binary:logistic',
     'eval_metric': 'logloss',
-    'max_depth': 3,
+    'max_depth': 4,
     'eta': 0.1,
     'subsample': 0.7,
     'colsample_bytree': 0.5,
@@ -87,6 +87,18 @@ plt.show()
 
 # Make predictions
 y_pred = bst.predict(dtest)
+
+# Convert predicted probabilities to binary predictions using 0.5 as the threshold
+y_pred_binary = (y_pred >= 0.5).astype(int)
+
+# Compute precision and recall
+precision = precision_score(y_test, y_pred_binary)
+recall = recall_score(y_test, y_pred_binary)
+f1 = f1_score(y_test, y_pred_binary)
+print(f'Precision: {precision:.4f}')
+print(f'Recall: {recall:.4f}')
+print(f'F1 Score: {f1:.4f}')
+
 
 # Calculate ROC AUC score (only if both classes are present in y_test)
 if len(np.unique(y_test)) > 1:
