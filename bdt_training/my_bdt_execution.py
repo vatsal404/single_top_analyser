@@ -24,7 +24,7 @@ INPUT_FILES = [
 
 OUTPUT_FILE = "combined_bdt1_electron_results.root"
 HIST_FILE = "bdt1_electron_histograms.root"
-FEATURE_BRANCHES = ["top_mass", "specJet_leading_eta", "bdt_delR", "bdt_deltaEta", "Wboson_transversMass"]
+FEATURE_BRANCHES = ["top_mass", "specJet_leading_eta", "bdt_delR", "bdt_deltaEta", "Wboson_transversMass"]#,"bdt_WHelicity","bdt_eventShape", "MET_pt_corr"]
 WEIGHT_BRANCHES = ["genWeight", "evWeight"]
 FILTER_BRANCHES = ["electronChannel", "region_2j1t"]
 CHUNK_SIZE = 100000
