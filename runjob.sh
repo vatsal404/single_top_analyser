@@ -53,7 +53,7 @@ fi
 
 local_output_path="${output_dir}/${output_file}"
 echo "Final output file path: ${local_output_path}"
-
+tar -xzf package.tar.gz
 
 # Run the analysis job
 ./processnanoaod.py $input_dir $local_output_path $jobconfmod > $log_file 2>&1 || { echo "Error: Processing failed"; exit 1; }

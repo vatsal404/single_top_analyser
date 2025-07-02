@@ -132,7 +132,7 @@ float calculate_nu_z_complex(TLorentzVector &lepton, float met_pt, float met_phi
 
 float calculate_nu_energy(float met_pt, float met_phi, float met_pz);
 TLorentzVector get_neutrino_TL4vec(float met_pt, float met_phi, float met_pz, float met_energy);
-
+FourVectorVec get_neutrino_4vecs(float met_pt, float met_phi, float met_pz, float met_energy);
 /* -------------- W boson Reconstruction for SingleTop t-channel ------------------------*/
 
 TLorentzVector reconstructWboson_TL4vec(TLorentzVector &lepton, TLorentzVector &neutrino);

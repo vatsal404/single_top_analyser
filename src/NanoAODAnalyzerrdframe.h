@@ -104,9 +104,9 @@ public:
 	std::string ctrlBranchName(string str_Branch);
 	std::string setHLT(string str_HLT = "" );
 	std::vector< std::string > HLTGlobalNames;
-	std::vector< std::string > HLT2016Names;
-	std::vector< std::string > HLT2017Names;
-	std::vector< std::string > HLT2018Names;
+	std::vector< std::string > HLT2022Names;
+	std::vector< std::string > HLT2023Names;
+	std::vector< std::string > HLT2024Names;
 
 	//initialize object IDs
 	std::string ElectronID(int cutbasedID);

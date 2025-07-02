@@ -20,14 +20,13 @@ using namespace ROOT;
 int main(void) {
 
 	TChain c1("Events");
-//	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/QCD_Pt-50to80_EMEnriched_TuneCP5_13TeV-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/270000/3FCE4216-EB2D-064B-94DD-29CA7FFDEBA6.root"); //data
-//	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/2810000/8EDF6CCF-B922-2B40-8889-B0CD442F88CC.root"); // MC
-	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/TT_TuneCH3_13TeV-powheg-herwig7/NANOAODSIM/106X_mc2017_realistic_v9-v1/2520000/02DB06FB-1711-CB4D-A03E-1877AEEC3095.root"); // MC
-      //  c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer16NanoAODv7/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v2/10000/F6E8EE8D-4E63-4841-861A-3A1C10564B8B.root"); // MC
+//	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/2810000/42C8CAA1-8910-1749-8F1D-2DF492ED1A89.root"); //data
+//	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/2810000/8EDF6CCF-B922-2B40-8889-B0CD442F88CC.root")c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/TT_TuneCH3_13TeV-powheg-herwig7/NANOAODSIM/106X_mc2017_realistic_v9-v1/2520000/02DB06FB-1711-CB4D-A03E-1877AEEC3095.root"); // MC
+	c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer22NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/2530000/10821e1d-9f4a-49a9-96dd-6fdce1f1bbbb.root"); // MC
 //        c1.Add("root://xrootd-cms.infn.it//store/data/Run2017B/SingleElectron/NANOAOD/UL2017_MiniAODv2_NanoAODv9-v1/120000/46E53FF3-D096-C647-83A1-8112BC83D056.root"); // tw
 
 	BaseAnalyser nanoaodrdf(&c1, "test.root");
-	nanoaodrdf.setParams(2017, "UL", -1);
+	nanoaodrdf.setParams(2022, "UL", -1);
 	// nanoaodrdf.setHLT();
 
 	string goodjsonfname = "data/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt";

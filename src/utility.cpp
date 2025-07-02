@@ -13,6 +13,7 @@
 #include "Math/GenVector/Rotation3D.h"
 #include "Math/Math.h"
 #include<cmath>
+#include <TMatrixDSymEigen.h>
 #include <TLorentzVector.h>
 #include <TVector3.h>
 // Utility function to generate fourvector objects for thigs that pass selections
@@ -22,34 +23,30 @@ using namespace std;
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
-// Boosts a 4-momentum to the W boson rest frame
-TLorentzVector boostToRestFrame(const TLorentzVector& p, const TLorentzVector& W) {
-    // Get the boost vector of the W boson
-    TVector3 boost = W.BoostVector();  
-
-    // Boost the 4-momentum p to the W boson rest frame
-    TLorentzVector p_rest = p;
-    p_rest.Boost(-boost);  // Apply the inverse boost
-
-    return p_rest;
+// Helper function to boost a TLorentzVector to the rest frame of another TLorentzVector
+TLorentzVector boostToRestFrame(const TLorentzVector& p, const TLorentzVector& restFrame) {
+    TLorentzVector boosted = p;
+    boosted.Boost(-restFrame.BoostVector());
+    return boosted;
 }
 
-// Calculate the W helicity angle in the W boson rest frame
-float calculateWHelicityAngle(const TLorentzVector& lepton, const TLorentzVector& W,const TLorentzVector& topQuark) {
-    // Boost the lepton and top quark to the W boson rest frame
-    TLorentzVector lepton_rest = boostToRestFrame(lepton, W);
-    TLorentzVector top_rest = boostToRestFrame(topQuark, W);
+// Correct calculation of W boson helicity angle
+float calculateWHelicityAngle(const TLorentzVector& lepton, const TLorentzVector& W, const TLorentzVector& topQuark) {
+    // Boost lepton to W boson rest frame
+    TLorentzVector lepton_inWrest = boostToRestFrame(lepton, W);
 
-    // Get the 3-momenta of the lepton and top quark in the W boson rest frame
-    TVector3 p_lepton = lepton_rest.Vect();
-    TVector3 p_top = top_rest.Vect();
+    // Boost W to top quark rest frame
+    TLorentzVector W_inTopRest = boostToRestFrame(W, topQuark);
 
-    // Calculate the cos of the helicity angle
-    float cosThetaW = p_lepton.Dot(-p_top) / (p_lepton.Mag() * p_top.Mag());
+    // Get 3-vectors
+    TVector3 p_lepton = lepton_inWrest.Vect();
+    TVector3 p_W_inTopRest = W_inTopRest.Vect();
 
-    // Ensure that cosThetaW is between -1 and 1 to avoid errors in acos
-    if (cosThetaW > 1) cosThetaW = 1;
-    if (cosThetaW < -1) cosThetaW = -1;
+    // Calculate cos(theta_W)
+    float cosThetaW = p_lepton.Dot(p_W_inTopRest) / (p_lepton.Mag() * p_W_inTopRest.Mag());
+
+    // Clamp to [-1, 1] to avoid numerical issues
+    cosThetaW = std::max(-1.0f, std::min(1.0f, cosThetaW));
 
     return cosThetaW;
 }
@@ -77,43 +74,39 @@ floats weightv(floats &x, float evWeight)
 double event_shape(FourVectorVec &p)
 {
     TMatrixDSym NormMomTensor(3);
-
-    NormMomTensor = 0.0;
     double p2sum = 0.0;
-    
-    // Compute the momentum tensor and the sum of squared momenta
-    for (auto x : p)
+
+    for (auto &x : p)
     {
         p2sum += x.P2();
         double mom[3] = {x.Px(), x.Py(), x.Pz()};
-        for (int irow = 0; irow < 3; irow++)
+        for (int i = 0; i < 3; ++i)
         {
-            for (int icol = irow; icol < 3; icol++)
+            for (int j = i; j < 3; ++j)
             {
-                NormMomTensor(irow, icol) += mom[irow] * mom[icol];
+                NormMomTensor(i, j) += mom[i] * mom[j];
+                if (i != j)
+                    NormMomTensor(j, i) = NormMomTensor(i, j);  // Enforce symmetry
             }
         }
     }
 
-    // Normalize the momentum tensor by p2sum
+    if (p2sum == 0) return 0.0;
     NormMomTensor *= (1.0 / p2sum);
 
-    // Compute the eigenvalues of the momentum tensor
-    TVectorT<double> Qrev;
-    NormMomTensor.EigenVectors(Qrev);
+    TMatrixDSymEigen eig(NormMomTensor);
+    TVectorD eigenVals = eig.GetEigenValues();
 
-    // Extract and sort the eigenvalues in ascending order
     std::vector<double> lambdas(3);
-    for (int i = 0; i < 3; i++) lambdas[i] = Qrev[i];
+    for (int i = 0; i < 3; ++i) lambdas[i] = eigenVals[i];
     std::sort(lambdas.begin(), lambdas.end());
 
-    // Normalize eigenvalues such that λ1 + λ2 + λ3 = 1
+    // Normalize just in case
     double sum = lambdas[0] + lambdas[1] + lambdas[2];
-    for (int i = 0; i < 3; i++) lambdas[i] /= sum;
+    if (sum == 0) return 0.0;
+    for (int i = 0; i < 3; ++i) lambdas[i] /= sum;
 
-    // Compute event shape C using the formula C = 3 (λ1λ2 + λ1λ3 + λ2λ3)
-    double C = 3.0 * (lambdas[0] * lambdas[1] + lambdas[0] * lambdas[2] + lambdas[1] * lambdas[2]);
-
+    double C = 3.0 * (lambdas[0]*lambdas[1] + lambdas[0]*lambdas[2] + lambdas[1]*lambdas[2]);
     return C;
 }
 
@@ -622,6 +615,19 @@ TLorentzVector get_neutrino_TL4vec(float met_pt, float met_phi, float met_pz, fl
 	return neutrino_TL4vec;
 }
 
+FourVectorVec get_neutrino_4vecs(float pt,float phi,float pz,float energy)
+
+{
+    FourVectorVec four_vectors;  // Result container
+        float px = pt * std::cos(phi);
+        float py = pt * std::sin(phi);
+
+        FourVector vec;
+        vec.SetPxPyPzE(px, py, pz, energy);
+        four_vectors.push_back(vec);
+
+    return four_vectors;
+}
 
 TLorentzVector reconstructWboson_TL4vec(TLorentzVector &lepton, TLorentzVector &neutrino)
 {

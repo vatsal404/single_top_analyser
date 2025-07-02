@@ -253,8 +253,8 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections() //data
 	{
         cout << "jetcorrector==" <<_jetCorrector << endl;
 
-		_rlm = _rlm.Define("Jet_pt_corr", appcorrlambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
-		_rlm = _rlm.Define("Jet_pt_relerror", jecuncertaintylambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "fixedGridRhoFastjetAll"});
+		_rlm = _rlm.Define("Jet_pt_corr", appcorrlambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "Rho_fixedGridRhoFastjetAll"});
+		_rlm = _rlm.Define("Jet_pt_relerror", jecuncertaintylambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "Rho_fixedGridRhoFastjetAll"});
 		_rlm = _rlm.Define("Jet_pt_corr_up", "Jet_pt_corr*(1.0f + Jet_pt_relerror)");
 		_rlm = _rlm.Define("Jet_pt_corr_down", "Jet_pt_corr*(1.0f - Jet_pt_relerror)");
 		_rlm = _rlm.Define("MET_pt_corr", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr", "Jet_phi"});
@@ -296,7 +296,7 @@ void NanoAODAnalyzerrdframe::applyMuPtCorrection() //data and MC
   }
   else{
   
-    auto lambdaf_mc = [this](const ints mu_charges, const floats mu_pts, const floats mu_etas, const floats mu_phis, const ints muon_genIdx, const floats gen_pts,  const ints nls)->floats
+    auto lambdaf_mc = [this](const ints mu_charges, const floats mu_pts, const floats mu_etas, const floats mu_phis, const ROOT::VecOps::RVec<Short_t> &muon_genIdx, const floats gen_pts, const ROOT::VecOps::RVec<UChar_t> &nls)->floats
       {
 	floats corrMuPts;
 	corrMuPts.reserve(mu_pts.size());
@@ -575,7 +575,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 		for (const std::string &variation : variations)
 		{
 			std::string column_name = output_var + variation;
-			_rlm = _rlm.Define(column_name, [btagweightgenerator_case1, variation](const ROOT::VecOps::RVec<int> &hadflav, const ROOT::VecOps::RVec<float> &etas, const ROOT::VecOps::RVec<float> &pts)
+			_rlm = _rlm.Define(column_name, [btagweightgenerator_case1, variation](const ROOT::VecOps::RVec<UChar_t> &hadflav, const ROOT::VecOps::RVec<float> &etas, const ROOT::VecOps::RVec<float> &pts)
 							   {
 	  float weight = btagweightgenerator_case1(hadflav, etas, pts, variation);// Get the weight for the corresponding variation
 	  return weight; }, Jets_vars_names); // after all cuts, remove overlapped
@@ -1106,11 +1106,11 @@ void NanoAODAnalyzerrdframe::setParams(int year, string runtype, int datatype)
 	_datatype=datatype;
 	
 
-	if(_year==2016) {
-        cout << "Analysing through Run 2016" << endl;
-    }else if(_year==2017) {
+	if(_year==2022) {
+        cout << "Analysing through Run 2022" << endl;
+    }else if(_year==2023) {
         cout << "Analysing through Run 2017" << endl;
-    }else if(_year==2018){
+    }else if(_year==2024){
         cout << "Analysing through Run 2018" << endl;
     }
 
@@ -1189,12 +1189,12 @@ std::string NanoAODAnalyzerrdframe::setHLT(std::string str_HLT){
 
     }else{ // fill the HLT names in a vector according to each year
             std::vector<string> V_output;
-            if(_year==2016){
-                HLTGlobalNames=HLT2016Names;
-            }else if (_year==2017){
-                HLTGlobalNames=HLT2017Names;
-            }else if(_year==2018){
-                HLTGlobalNames=HLT2018Names;
+            if(_year==2022){
+                HLTGlobalNames=HLT2022Names;
+            }else if (_year==2023){
+                HLTGlobalNames=HLT2023Names;
+            }else if(_year==2024){
+                HLTGlobalNames=HLT2024Names;
             }
 
             //loop on HLTs

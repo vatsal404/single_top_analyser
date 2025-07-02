@@ -14,7 +14,7 @@ config = {
         'outtreename': "outputTree",
 
         #data year (2016,2017,2018)
-        'year': 2017,
+        'year': 2022,
 
         # is ReReco or Ultra Legacy
         'runtype': 'UL',
@@ -79,7 +79,7 @@ procflags = {
         'saveallbranches': False,
 
         ###### How many input files? ######
-        'nrootfiles': 100,
+        'nrootfiles': 1000,
         # 'nrootfiles': 50,
 
         ###### Make a copy of the analyzer in the same directory as the analyzed root files ######
@@ -89,84 +89,87 @@ procflags = {
 # input directory where your input root tree resides
 # output directory where your output should go
 outDir='/eos/uscms/store/user/vsinha/processed_ntuple'
-# dump of stderr/stdout to file
 
 nanoaod_inputdir_outputdir_pairs = [
 
+    # TTBAR SAMPLE
+    ['/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TTbar_SemiLept.root', outDir+'/TTbar_SemiLept.out'],
+    ['/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TTbar_Dilept.root', outDir+'/TTbar_Dilept.out'],
+    ['/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TTbar_Hadronic.root', outDir+'/TTbar_Hadronic.out'],
 
-#         [' /ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM',outDir+ '/check_error_ev.root',outDir+ '/check_error_ev.out'],
+    # Rare backgrounds
+    ['/WW_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/WW.root', outDir+'/WW.out'],
+    ['/WZ_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/WZ.root', outDir+'/WZ.out'],
+    ['/ZZ_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/ZZ.root', outDir+'/ZZ.out'],
 
-#['/ST_t-channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM',outDir + '/process_ST_t-channel_antitop_4f_ev.root',outDir + '/process_ST_t-channel_antitop_4f_ev.out'],
-#['/TT_TuneCH3_13TeV-powheg-herwig7/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM', outDir + '/PROC_TTbar-channel_top_UL17.root', outDir + '/PROC_TT_bar_channel_top_UL17.out'],
-# ['/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM', outDir + '/PROC_DYJetsToLL_M-10to50_UL17_ev.root', outDir + '/PROC_DYJetsToLL_M-10to50_UL17_ev.out'], #77
-#['/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM', outDir + '/PROC_DYJetsToLL_M-50_UL17.root', outDir + '/PROC_DYJetsToLL_M-50_UL17.out'], #75],
-#['/SingleMuon/Run2017C-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017C_UL_SingleMuon.root' ,  outDir + '/Run2017C_UL_SingleMuon.out'], #117
-#['/ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir +  '/PROC_ST_tW_top_5f.root', outDir +  '/PROC_ST_tW_top_5f.out'] #60
+    # Drell-Yan
+    ['/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/DYjetsM10to50.root', outDir+'/DYjetsM10to50.out'],
+    ['/DYJetsToLL_M-50_TuneCP5_13p6TeV-madgraphMLM-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/DYJetsM50.root', outDir+'/DYJetsM50.out'],
 
+    # W+jets
+    ['/WtoLNu-2Jets_0J_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM', outDir+'/W0Jets.root', outDir+'/W0Jets.out'],
+    ['/WtoLNu-2Jets_1J_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/W1Jets.root', outDir+'/W1Jets.out'],
+    ['/WtoLNu-2Jets_2J_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/W2Jets.root', outDir+'/W2Jets.out'],
 
+    # QCD MuEnriched
+    ['/QCD_PT-15to20_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt15to20_Mu.root', outDir+'/QCD_Pt15to20_Mu.out'],
+    ['/QCD_PT-20to30_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt20to30_Mu.root', outDir+'/QCD_Pt20to30_Mu.out'],
+    ['/QCD_PT-30to50_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt30to50_Mu.root', outDir+'/QCD_Pt30to50_Mu.out'],
+    ['/QCD_PT-50to80_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt50to80_Mu.root', outDir+'/QCD_Pt50to80_Mu.out'],
+    ['/QCD_PT-80to120_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt80to120_Mu.root', outDir+'/QCD_Pt80to120_Mu.out'],
+    ['/QCD_PT-120to170_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt120to170_Mu.root', outDir+'/QCD_Pt120to170_Mu.out'],
+    ['/QCD_PT-170to300_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt170to300_Mu.root', outDir+'/QCD_Pt170to300_Mu.out'],
+    ['/QCD_PT-300to470_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt300to470_Mu.root', outDir+'/QCD_Pt300to470_Mu.out'],
+    ['/QCD_PT-470to600_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt470to600_Mu.root', outDir+'/QCD_Pt470to600_Mu.out'],
+    ['/QCD_PT-600to800_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt600to800_Mu.root', outDir+'/QCD_Pt600to800_Mu.out'],
+    ['/QCD_PT-800to1000_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt800to1000_Mu.root', outDir+'/QCD_Pt800to1000_Mu.out'],
+    ['/QCD_PT-1000_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt1000toInf_Mu.root', outDir+'/QCD_Pt1000toInf_Mu.out'],
 
-    ['/TT_TuneCH3_13TeV-powheg-herwig7/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM', outDir + '/PROC_TTbar-channel_top_UL17_genweight.root', outDir + '/PROC_TT_bar_channel_top_UL17_genweight.out'],
-    ['/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM', outDir + '/PROC_DYJetsToLL_M-50_UL17_genweight.root', outDir + '/PROC_DYJetsToLL_M-50_UL17_genweight.out'],
-   # ['/QCD_Pt-15to20_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-15to20_EMEnriched_genweight.root', outDir + '/PROC_QCD_Pt-15to20_EMEnriched_genweight.out'],
-   # ['/QCD_Pt-30To50_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-30To50_MuEnrichedPt5_genweight.root', outDir + '/PROC_QCD_Pt-30To50_MuEnrichedPt5_genweight.out'],
-   # ['/QCD_Pt-80To120_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-80To120_MuEnrichedPt5_genweight.root', outDir + '/PROC_QCD_Pt-80To120_MuEnrichedPt5_genweight.out'],
-   # ['/QCD_Pt-170To300_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-170To300_MuEnrichedPt5_genweight.root', outDir + '/PROC_QCD_Pt-170To300_MuEnrichedPt5_genweight.out'],
-   # ['/QCD_Pt-600To800_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-600To800_MuEnrichedPt5_genweight.root', outDir + '/PROC_QCD_Pt-600To800_MuEnrichedPt5_genweight.out'],
-#    ['/SingleElectron/Run2017F-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD', outDir + '/Run2017F_UL_SingleElectron_genweight.root', outDir + '/Run2017F_UL_SingleElectron_genweight.out'],
- #   ['/SingleMuon/Run2017B-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD', outDir + '/Run2017B_UL_SingleMuon_genweight.root', outDir + '/Run2017B_UL_SingleMuon_genweight.out'],
-  #  ['/SingleMuon/Run2017C-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD', outDir + '/Run2017C_UL_SingleMuon_genweight.root', outDir + '/Run2017C_UL_SingleMuon_genweight.out'],
-   # ['/SingleMuon/Run2017F-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD', outDir + '/Run2017F_UL_SingleMuon_genweight.root', outDir + '/Run2017F_UL_SingleMuon_genweight.out']
+    # QCD EleEnriched
+    ['/QCD_PT-10to30_EMEnriched_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt10to30_Ele.root', outDir+'/QCD_Pt10to30_Ele.out'],
+    ['/QCD_PT-30to50_EMEnriched_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt30to50_Ele.root', outDir+'/QCD_Pt30to50_Ele.out'],
+    ['/QCD_PT-50to80_EMEnriched_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt50to80_Ele.root', outDir+'/QCD_Pt50to80_Ele.out'],
+    ['/QCD_PT-80to120_EMEnriched_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt80to120_Ele.root', outDir+'/QCD_Pt80to120_Ele.out'],
+    ['/QCD_PT-120to170_EMEnriched_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt120to170_Ele.root', outDir+'/QCD_Pt120to170_Ele.out'],
+    ['/QCD_PT-170to300_EMEnriched_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt170to300_Ele.root', outDir+'/QCD_Pt170to300_Ele.out'],
+    ['/QCD_PT-300toInf_EMEnriched_TuneCP5_13p6TeV_pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/QCD_Pt300toInf_Ele.root', outDir+'/QCD_Pt300toInf_Ele.out'],
 
+    # Signal samples
+    ['/TbarBQ_t-channel_4FS_TuneCP5_13p6TeV_powheg-madspin-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TbarBQ_t_channel.root', outDir+'/TbarBQ_t_channel.out'],
+    ['/TBbarQ_t-channel_4FS_TuneCP5_13p6TeV_powheg-madspin-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TBbarQ_t_channel.root', outDir+'/TBbarQ_t_channel.out'],
 
+    # s-channel background
+    ['/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TbarBtoLminusNuB_s_channel.root', outDir+'/TbarBtoLminusNuB_s_channel.out'],
+    ['/TBbartoLplusNuBbar-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TBbartoLplusNuBbar_s_channel.root', outDir+'/TBbartoLplusNuBbar_s_channel.out'],
 
+    # STW samples
+    ['/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TbarWplusto2L2Nu.root', outDir+'/TbarWplusto2L2Nu.out'],
+    ['/TWminusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TWminusto2L2Nu.root', outDir+'/TWminusto2L2Nu.out'],
+    ['/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5_ext1-v2/NANOAODSIM', outDir+'/TbarWplusto2L2Nu_ext.root', outDir+'/TbarWplusto2L2Nu_ext.out'],
+    ['/TWminusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5_ext1-v2/NANOAODSIM', outDir+'/TWminusto2L2Nu_ext.root', outDir+'/TWminusto2L2Nu_ext.out'],
 
+    ['/TbarWplusto4Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TbarWplusto4Q.root', outDir+'/TbarWplusto4Q.out'],
+    ['/TWminusto4Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TWminusto4Q.root', outDir+'/TWminusto4Q.out'],
+    ['/TbarWplusto4Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5_ext1-v2/NANOAODSIM', outDir+'/TbarWplusto4Q_ext.root', outDir+'/TbarWplusto4Q_ext.out'],
+    ['/TWminusto4Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5_ext1-v2/NANOAODSIM', outDir+'/TWminusto4Q_ext.root', outDir+'/TWminusto4Q_ext.out'],
 
+    ['/TbarWplustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TbarWplustoLNu2Q.root', outDir+'/TbarWplustoLNu2Q.out'],
+    ['/TWminustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM', outDir+'/TWminustoLNu2Q.root', outDir+'/TWminustoLNu2Q.out'],
+    ['/TbarWplustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5_ext1-v2/NANOAODSIM', outDir+'/TbarWplustoLNu2Q_ext.root', outDir+'/TbarWplustoLNu2Q_ext.out'],
+    ['/TWminustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5_ext1-v2/NANOAODSIM', outDir+'/TWminustoLNu2Q_ext.root', outDir+'/TWminustoLNu2Q_ext.out'],
+
+    # Data samples
+    ['/SingleMuon/Run2022C-16Dec2023-v1/NANOAOD', outDir+'/Data_SingleMu_c.root', outDir+'/Data_SingleMu_c.out'],
+    ['/Muon/Run2022C-16Dec2023-v1/NANOAOD', outDir+'/Data_Mu_c.root', outDir+'/Data_Mu_c.out'],
+    ['/Muon/Run2022D-16Dec2023-v1/NANOAOD', outDir+'/Data_Mu_d.root', outDir+'/Data_Mu_d.out'],
+    ['/Muon/Run2022E-16Dec2023-v1/NANOAOD', outDir+'/Data_Mu_e.root', outDir+'/Data_Mu_e.out'],
+    ['/Muon/Run2022F-16Dec2023-v1/NANOAOD', outDir+'/Data_Mu_f.root', outDir+'/Data_Mu_f.out'],
+    ['/Muon/Run2022G-16Dec2023-v1/NANOAOD', outDir+'/Data_Mu_g.root', outDir+'/Data_Mu_g.out'],
+
+    ['/EGamma/Run2022C-16Dec2023-v1/NANOAOD', outDir+'/Data_Ele_c.root', outDir+'/Data_Ele_c.out'],
+    ['/EGamma/Run2022D-16Dec2023-v1/NANOAOD', outDir+'/Data_Ele_d.root', outDir+'/Data_Ele_d.out'],
+    ['/EGamma/Run2022E-16Dec2023-v1/NANOAOD', outDir+'/Data_Ele_e.root', outDir+'/Data_Ele_e.out'],
+    ['/EGamma/Run2022F-16Dec2023-v1/NANOAOD', outDir+'/Data_Ele_f.root', outDir+'/Data_Ele_f.out'],
+    ['/EGamma/Run2022G-16Dec2023-v1/NANOAOD', outDir+'/Data_Ele_g.root', outDir+'/Data_Ele_g.out'],
 ]
-"""
-[
-    ['/QCD_Pt-15to20_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-15to20_EMEnriched_ev.root', outDir + '/PROC_QCD_Pt-15to20_EMEnriched_ev.out'], #25
-    ['/QCD_Pt-20to30_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-20to30_EMEnriched_ev.root', outDir + '/PROC_QCD_Pt-20to30_EMEnriched_ev.out'], #72
-    ['/QCD_Pt-30to50_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-30to50_EMEnriched_ev.root', outDir + '/PROC_QCD_Pt-30to50_EMEnriched_ev.out'], #7
-    ['/QCD_Pt-50to80_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-50to80_EMEnriched_ev.root', outDir + '/PROC_QCD_Pt-50to80_EMEnriched_ev.out'], #8
-    ['/QCD_Pt-80to120_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-80to120_EMEnriched_ev.root', outDir + '/PROC_QCD_Pt-80to120_EMEnriched_ev.out'], #21
-    ['/QCD_Pt-120to170_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-120to170_EMEnriched_ev.root', outDir + '/PROC_QCD_Pt-120to170_EMEnriched_ev.out'], #37
-    ['/QCD_Pt-170to300_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-70to300_EMEnriched_ev.root', outDir + '/PROC_QCD_Pt-70to300_EMEnriched_ev.out'], #5
-
-    ['/QCD_Pt-15To20_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-15To20_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-15To20_MuEnrichedPt5_ev.out'], #18
-    ['/QCD_Pt-20To30_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-20To30_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-20To30_MuEnrichedPt5_ev.out'], #87
-    ['/QCD_Pt-30To50_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-30To50_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-30To50_MuEnrichedPt5_ev.out'], #110
-    ['/QCD_Pt-50To80_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-50To80_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-50To80_MuEnrichedPt5_ev.out'], #46
-    ['/QCD_Pt-80To120_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-80To120_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-80To120_MuEnrichedPt5_ev.out'], #60
-    ['/QCD_Pt-120To170_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-120To170_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-120To170_MuEnrichedPt5_ev.out'], #78
-    ['/QCD_Pt-170To300_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-170To300_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-170To300_MuEnrichedPt5_ev.out'], #94
-    ['/QCD_Pt-300To470_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-300To470_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-300To470_MuEnrichedPt5_ev.out'], #68
-    ['/QCD_Pt-470To600_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-470To600_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-470To600_MuEnrichedPt5_ev.out'], #42
-    ['/QCD_Pt-600To800_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-600To800_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-600To800_MuEnrichedPt5_ev.out'], #58
-    ['/QCD_Pt-800To1000_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-800To1000_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-800To1000_MuEnrichedPt5_ev.out'], #101
-    ['/QCD_Pt-1000_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_QCD_Pt-1000_MuEnrichedPt5_ev.root', outDir + '/PROC_QCD_Pt-1000_MuEnrichedPt5_ev.out'] #39
-]
-
-#          [ '/SingleElectron/Run2017B-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' , outDir +'/Run2017B_UL_SingleElectron.root' ,  outDir + '/Run2017B_UL_SingleElectron.out'], #32
-#          [ '/SingleElectron/Run2017C-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017C_UL_SingleElectron.root' ,  outDir + '/Run2017C_UL_SingleElectron.out'], #59
-#          [ '/SingleElectron/Run2017D-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017D_UL_SingleElectron.root' ,  outDir + '/Run2017D_UL_SingleElectron.out'], #37
-#          [ '/SingleElectron/Run2017E-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017E_UL_SingleElectron.root' ,  outDir + '/Run2017E_UL_SingleElectron.out'],
-#          [ '/SingleElectron/Run2017F-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017F_UL_SingleElectron.root' ,  outDir + '/Run2017F_UL_SingleElectron.out'], #66
-
-#         ['/SingleMuon/Run2017B-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017B_UL_SingleMuon.root' ,  outDir + '/Run2017B_UL_SingleMuon.out'], #79
-         ['/SingleMuon/Run2017C-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017C_UL_SingleMuon.root' ,  outDir + '/Run2017C_UL_SingleMuon.out'], #117
-#         ['/SingleMuon/Run2017D-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017D_UL_SingleMuon.root' ,  outDir + '/Run2017D_UL_SingleMuon.out'], #47
-    #    ['/SingleMuon/Run2017E-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017E_UL_SingleMuon.root' ,  outDir + '/Run2017E_UL_SingleMuon.out'],
-     #   ['/SingleMuon/Run2017F-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD' ,  outDir + '/Run2017F_UL_SingleMuon.root' ,  outDir + '/Run2017F_UL_SingleMuon.out'], #115
-     #	['/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_WJetsToLNu_2J_UL17_ev.root', outDir + '/PROC_WJetsToLNu_UL17_evwq.out'] #81
-
-#['/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir + '/PROC_WJetsToLNu_0J_UL17_ev.root', outDir + '/PROC_WJetsToLNu_0J_UL17_ev.out'], #81
-#       ['/WJetsToLNu_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM', outDir + '/PROC_WJetsToLNu_1J_UL17_ev.root', outDir + '/PROC_WJetsToLNu_1J_UL17_ev.out'], #81
-     #  ['/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM', outDir + '/PROC_WJetsToLNu_2J_UL17_ev.root', outDir + '/PROC_WJetsToLNu_2J_UL17_ev.out'] #81
-
-
-        # ['/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir+'/PROC_ST_tW_top_5f_ev.root', outDir+'/PROC_ST_tW_top_5f_ev.out' ], #197
-        # ['/ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM', outDir +  '/PROC_ST_tW_antitop_5f_ev.root', outDir +  '/PROC_ST_tW_antitop_5f_ev.out'], #60
-
-"""
-
 
