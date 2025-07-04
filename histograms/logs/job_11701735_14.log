@@ -1,0 +1,99 @@
+000 (11701735.014.000) 2025-04-19 04:34:51 Job submitted from host: <131.225.189.251:9618?addrs=131.225.189.251-9618+[2620-6a-0-8421--e8]-9618&alias=lpcschedd4.fnal.gov&noUDP&sock=schedd_1901_81a0>
+...
+040 (11701735.014.000) 2025-04-19 04:34:54 Started transferring input files
+	Transferring to host: <131.225.188.91:9618?addrs=[2620-6a-0-8421-f0-0-188-91]-9618+131.225.188.91-9618&alias=cmswn2044.fnal.gov&noUDP&sock=slot1_2_3325936_8a49_24859>
+...
+040 (11701735.014.000) 2025-04-19 04:34:54 Finished transferring input files
+...
+040 (11701735.014.000) 2025-04-19 04:34:55 Started transferring output files
+...
+021 (11701735.014.000) 2025-04-19 04:34:55 Error from starter on slot1_2@cmswn2044.fnal.gov:
+	Failed to transfer files: SHADOW at 131.225.189.251 failed to send file(s) to <131.225.188.91:36515>: |Error: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory; STARTER failed to receive file(s) from <131.225.189.251:9618>
+	Code 13 Subcode 2
+...
+004 (11701735.014.000) 2025-04-19 04:34:55 Job was evicted.
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	26392  -  Run Bytes Received By Job
+	Transfer input files failure at access point lpcschedd4 while sending files to execution point slot1_2@cmswn2044.fnal.gov. Details: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 4         4 
+	   Disk (KB)            :       39  5242880   5244410 
+	   GPUs                 :                           0 
+	   Memory (MB)          :              8192      8192 
+...
+012 (11701735.014.000) 2025-04-19 04:34:55 Job was held.
+	Transfer input files failure at access point lpcschedd4 while sending files to execution point slot1_2@cmswn2044.fnal.gov. Details: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory
+	Code 13 Subcode 2
+...
+012 (11701735.014.000) 2025-04-19 06:36:29 Job was held.
+	via condor_hold (by user vsinha)
+	Code 1 Subcode 0
+...
+013 (11701735.014.000) 2025-04-19 06:38:37 Job was released.
+	via condor_release (by user vsinha)
+...
+040 (11701735.014.000) 2025-04-19 06:38:50 Started transferring input files
+	Transferring to host: <131.225.189.19:9618?addrs=[2620-6a-0-8421-f0-0-189-19]-9618+131.225.189.19-9618&alias=cmswn2082.fnal.gov&noUDP&sock=slot1_3_3311_a620_34837>
+...
+040 (11701735.014.000) 2025-04-19 06:38:50 Finished transferring input files
+...
+040 (11701735.014.000) 2025-04-19 06:38:51 Started transferring output files
+...
+021 (11701735.014.000) 2025-04-19 06:38:51 Error from starter on slot1_3@cmswn2082.fnal.gov:
+	Failed to transfer files: SHADOW at 131.225.189.251 failed to send file(s) to <131.225.189.19:44059>: |Error: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory; STARTER failed to receive file(s) from <131.225.189.251:9618>
+	Code 13 Subcode 2
+...
+004 (11701735.014.000) 2025-04-19 06:38:51 Job was evicted.
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	26392  -  Run Bytes Received By Job
+	Transfer input files failure at access point lpcschedd4 while sending files to execution point slot1_3@cmswn2082.fnal.gov. Details: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 4         4 
+	   Disk (KB)            :       40  5242880   5244421 
+	   GPUs                 :                           0 
+	   Memory (MB)          :              8192      8192 
+...
+012 (11701735.014.000) 2025-04-19 06:38:51 Job was held.
+	Transfer input files failure at access point lpcschedd4 while sending files to execution point slot1_3@cmswn2082.fnal.gov. Details: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory
+	Code 13 Subcode 2
+...
+013 (11701735.014.000) 2025-04-19 12:08:03 Job was released.
+	via condor_release (by user vsinha)
+...
+040 (11701735.014.000) 2025-04-19 12:08:30 Started transferring input files
+	Transferring to host: <131.225.188.199:9618?addrs=[2620-6a-0-8421-f0-0-188-199]-9618+131.225.188.199-9618&alias=cmswn2064.fnal.gov&noUDP&sock=slot1_3_2603_cc83_28208>
+...
+040 (11701735.014.000) 2025-04-19 12:08:30 Finished transferring input files
+...
+040 (11701735.014.000) 2025-04-19 12:08:31 Started transferring output files
+...
+021 (11701735.014.000) 2025-04-19 12:08:31 Error from starter on slot1_3@cmswn2064.fnal.gov:
+	Failed to transfer files: SHADOW at 131.225.189.251 failed to send file(s) to <131.225.188.199:46451>: |Error: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory; STARTER failed to receive file(s) from <131.225.189.251:9618>
+	Code 13 Subcode 2
+...
+004 (11701735.014.000) 2025-04-19 12:08:31 Job was evicted.
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	26392  -  Run Bytes Received By Job
+	Transfer input files failure at access point lpcschedd4 while sending files to execution point slot1_3@cmswn2064.fnal.gov. Details: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 4         4 
+	   Disk (KB)            :       43  5242880   5244407 
+	   GPUs                 :                           0 
+	   Memory (MB)          :              8192      8192 
+...
+012 (11701735.014.000) 2025-04-19 12:08:31 Job was held.
+	Transfer input files failure at access point lpcschedd4 while sending files to execution point slot1_3@cmswn2064.fnal.gov. Details: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory
+	Code 13 Subcode 2
+...
+009 (11701735.014.000) 2025-04-20 02:54:43 Job was aborted.
+	via condor_rm (by user vsinha)
+...

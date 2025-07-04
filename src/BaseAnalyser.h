@@ -14,12 +14,13 @@
 class BaseAnalyser: public NanoAODAnalyzerrdframe
 {
 	public:
-		BaseAnalyser(TTree *t, std::string outfilename);
+		BaseAnalyser(TTree *t, std::string outfilename,float crossection);
+		float _crossection;
 		void defineCuts();		//define a series of cuts from defined variables only. you must implement this in your subclassed analysis 
 		void defineMoreVars(); 	//define higher-level variables from basic ones, you must implement this in your subclassed analysis code
 		void bookHists(); 		//book histograms, you must implement this in your subclassed analysis code
 
-		void setTree(TTree *t, std::string outfilename);
+		void setTree(TTree *t, std::string outfilename,float crossection);
 		void setupObjects();
 		void setupAnalysis();
 		// object selectors

@@ -48,10 +48,11 @@ def function_calling_PostProcessor(outdir, rootfileshere, jobconfmod):
     pass
 
 class Nanoaodprocessor:
-    def __init__(self, indir, outdir, jobconfmod, procflags, config):
+    def __init__(self, indir, outdir, jobconfmod, procflags, config,crossection):
         self.outdir = outdir
         self.indir = indir
         self.jobconfmod = jobconfmod
+        self.crossection=crossection
         self.split = procflags['split']
         self.skipold = procflags['skipold']
         self.recursive = procflags['recursive']
@@ -60,7 +61,7 @@ class Nanoaodprocessor:
         self.year = config['year']
         self.runtype = config['runtype']
         self.datatype = config['datatype']
-        self.skipcorrections = procflags.get('skipcorrections', False)  # Added skipcorrections flag
+        self.skipcorrections = procflags.get('skipcorrections', True)  # Added skipcorrections flag
         print("year=", self.year)
 
         # Check if input is a DAS path or local directory
@@ -144,7 +145,7 @@ class Nanoaodprocessor:
                     outfname = outputdirectory + '/' + withoutext + '_analyzed.root'
                     subprocess.run(["./processonefile.py", afile, outfname, self.jobconfmod])
 
-def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
+def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection):
     """
     Runs nanoaod analyzer over ROOT files in indir and outputs into a single ROOT file.
     Now supports both local and remote files via XRootD.
@@ -202,7 +203,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config):
 
 #    aproc = ROOT.BaseAnalyser(t, outputroot)
  #   aproc.setParams(config['year'], config['runtype'], config['datatype'])
-    aproc = ROOT.BaseAnalyser(t, outputroot)
+    aproc = ROOT.BaseAnalyser(t, outputroot,crossection)
 
     try:
         aproc.setParams(config['year'], config['runtype'], config['datatype'])
@@ -249,10 +250,11 @@ if __name__ == '__main__':
     from importlib import import_module
     from argparse import ArgumentParser
 
-    parser = ArgumentParser(usage="%(prog)s inputDir outputDir jobconfmod")
+    parser = ArgumentParser(usage="%(prog)s inputDir outputDir jobconfmod,crossection")
     parser.add_argument("indir")
     parser.add_argument("outdir")
     parser.add_argument("jobconfmod")
+    parser.add_argument("crossection", type=float, help="Cross-section value in pb")
     args = parser.parse_args()
 
     # Load compiled C++ libraries
@@ -271,4 +273,4 @@ if __name__ == '__main__':
         n.process()
     else:
         print("allinone")
-        Nanoaodprocessor_singledir(args.indir, args.outdir, procflags, config)
+        Nanoaodprocessor_singledir(args.indir, args.outdir, procflags, config,args.crossection)

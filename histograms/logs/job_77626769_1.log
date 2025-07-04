@@ -1,0 +1,7 @@
+012 (77626769.001.000) 2025-04-19 04:34:12 Job was held.
+	Transfer input files failure at access point lpcschedd6 while sending files to execution point slot1_10@cmswn2064.fnal.gov. Details: reading from file /uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/histograms/filelist.txt: (errno 2) No such file or directory
+	Code 13 Subcode 2
+...
+009 (77626769.001.000) 2025-04-19 04:34:33 Job was aborted.
+	via condor_rm (by user vsinha)
+...

@@ -20,8 +20,8 @@
 #include "correction.h"
 using correction::CorrectionSet;
 
-BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename)
-:NanoAODAnalyzerrdframe(t, outfilename)
+BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename,float crossection)
+:NanoAODAnalyzerrdframe(t, outfilename),_crossection(crossection)
 {
     //initiliaze the HLT names in your analyzer class
     HLT2024Names= {"HLT_PFHT380_SixJet32_DoubleBTagCSV_p075",
@@ -169,13 +169,13 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodmuonsID", MuonID(4));
-    _rlm = _rlm.Define("iso_loose_mu"," goodmuonsID && Muon_pt_corr>10 && abs(Muon_eta)<2.5 && Muon_pfRelIso04_all<0.25"); //loose muons
-    _rlm = _rlm.Define("iso_loose_mu_pT_collection"," Muon_pt_corr[iso_loose_mu]");
+    _rlm = _rlm.Define("iso_loose_mu"," goodmuonsID && Muon_pt>10 && abs(Muon_eta)<2.5 && Muon_pfRelIso04_all<0.25"); //loose muons
+    _rlm = _rlm.Define("iso_loose_mu_pT_collection"," Muon_pt[iso_loose_mu]");
     _rlm = _rlm.Define("N_iso_loose_mu", "int(iso_loose_mu_pT_collection.size())");
 
  //loose muons
-    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_highPurity && Muon_pt_corr > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID > 0.64");
-      _rlm = _rlm.Define("goodmuons_pt", "Muon_pt_corr[goodmuons]")
+    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_highPurity && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID > 0.64");
+      _rlm = _rlm.Define("goodmuons_pt", "Muon_pt[goodmuons]")
 		 .Define("goodmuons_leading_pt", "int(goodmuons_pt.size())>0 ? static_cast<double>(goodmuons_pt[0]) : numb") 
                 
 		.Define("goodmuons_eta", "Muon_eta[goodmuons]")
@@ -207,10 +207,10 @@ void BaseAnalyser::selectMuons()
 
 
     /*--------------- Reverted isolated Muons ID ---------------*/
-    _rlm = _rlm.Define("rev_iso_mu", "goodmuonsID && Muon_pt_corr > 30 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all > 0.2 && Muon_isGlobal==1");
+    _rlm = _rlm.Define("rev_iso_mu", "goodmuonsID && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all > 0.2 && Muon_isGlobal==1");
 //    _rlm = _rlm.Define("rev_iso_mu","Muon_looseId && Muon_pfRelIso04_all>0.20"); // Reversed Isolated Muon Cut
  // Reversed Isolated Muon Cut
-    _rlm = _rlm.Define("rev_iso_mu_pt_collection", "Muon_pt_corr[rev_iso_mu]")
+    _rlm = _rlm.Define("rev_iso_mu_pt_collection", "Muon_pt[rev_iso_mu]")
                .Define("rev_iso_mu_leading_pt", "int(rev_iso_mu_pt_collection.size())>0 ? rev_iso_mu_pt_collection[0] : numb")
 
                .Define("rev_iso_mu_eta_collection", "Muon_eta[rev_iso_mu]")
@@ -253,8 +253,8 @@ void BaseAnalyser::reconstructWboson()
     /*--------------------- Reconstruct neutrino ---------------------*/
 
     std::cout<<"Reconstructing neutrino from MET"<<std::endl;
-    _rlm = _rlm.Define("nu_pt", "static_cast<float>(goodMET_pt_corr)")
-               .Define("nu_phi", "static_cast<float>(goodMET_phi_corr)")
+    _rlm = _rlm.Define("nu_pt", "static_cast<float>(goodMET_pt)")
+               .Define("nu_phi", "static_cast<float>(goodMET_phi)")
                .Define("nu_phi_double", "static_cast<double>(nu_phi)")
 
                .Define("nu_px", "nu_pt*cos(nu_phi)")
@@ -330,13 +330,13 @@ void BaseAnalyser::selectJets()
     }
 
     _rlm = _rlm.Define("goodJetsID", JetID(6)); //without pt-eta cuts
-//    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt_corr>30.0 && abs(Jet_eta)<2.4 ");
-    _rlm = _rlm.Define("goodJets_high_eta", "Jet_pt_corr>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
-    _rlm = _rlm.Define("goodJets_low_eta", "Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
+//    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
+    _rlm = _rlm.Define("goodJets_high_eta", "Jet_pt>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
+    _rlm = _rlm.Define("goodJets_low_eta", "Jet_pt>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
     _rlm = _rlm.Define("goodJets", " goodJets_high_eta || goodJets_low_eta ");
 
 
-    _rlm = _rlm.Define("goodJets_pt", "Jet_pt_corr[goodJets]")
+    _rlm = _rlm.Define("goodJets_pt", "Jet_pt[goodJets]")
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
                 .Define("goodJets_mass", "Jet_mass[goodJets]")
@@ -581,7 +581,14 @@ void BaseAnalyser::reconstructTop()
 }
 void BaseAnalyser::calculateEvWeight(){
 
-
+if (_isData && !isDefined("evWeight"))
+   {
+      _rlm = _rlm.Define("evWeight", [](){
+             return 1.0;
+       }, {} );
+   }
+if(!_isData ) // Only use genWeight
+{
   //Scale Factors for BTag ID	
   int _case = 1;
   std::vector<std::string> Jets_vars_names = {"Selected_jethadflav", "Selected_jeteta",  "Selected_jetpt"};  
@@ -602,16 +609,26 @@ void BaseAnalyser::calculateEvWeight(){
   std::vector<std::string> Electron_vars_names = {"goodElectrons_eta", "goodElectrons_pt"};
   std::string output_ele_column_name = "ele_SF_";
   _rlm = calculateEleSF(_rlm, Electron_vars_names, output_ele_column_name);
+  auto sumgenweight = _rd.Sum("genWeight");
+  float lumi=39700;
+  double lumifactor = (_crossection * lumi) / (*sumgenweight);
+  _rlm = _rlm.Define("Lumifactor", [lumifactor]() {
+    return lumifactor;
+    });
+   std::cout << "[DEBUG] In Analyze. Cross-section = " << _crossection << std::endl;
+   std::cout << "[DEBUG] In Analyze. lumifactor = " << lumifactor << std::endl;
 
-//   _rlm = _rlm.Define("evWeight_wobtagSF", " pugenWeight * muon_SF_central * ele_SF_central"); 
-//  _rlm = _rlm.Define("totbtagSF", "btag_SF_bcflav_central * btag_SF_lflav_central"); 
-  //Total event Weight:
+  _rlm=_rlm .Define("evWeight", "genWeight * Lumifactor");  	
 
-  //Prefiring Weight for 2016 and 2017
-  //Total event Weight:
-//  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
+        // Optional: Print first few values to check
+        auto w_snapshot = _rlm.Take<double>("evWeight");
+        std::cout << "[DEBUG] First 5 evWeight values:\n";
+        for (int i = 0; i < std::min(5, (int)w_snapshot->size()); ++i) {
+            std::cout << "  evWeight[" << i << "] = " << w_snapshot->at(i) << std::endl;
+        }
+  //  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
   //_rlm = _rlm.Define("evWeight", " puWeight * muon_SF_central * ele_SF_central * btag_SF_central"); 
-    _rlm = _rlm.Define("evWeight", "1");
+  }
 }
 //MET
 
@@ -623,16 +640,16 @@ void BaseAnalyser::selectMET()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-   _rlm = _rlm.Define("goodMET", "MET_pt_corr>=20")  // Boolean flag
-          .Define("goodMET_pt_corr", "goodMET ? MET_pt_corr : numb")  // Assign numb for events failing cut
-          .Define("goodMET_phi_corr", "goodMET ? MET_phi_corr : numb ");
+   _rlm = _rlm.Define("goodMET", "MET_pt>=20")  // Boolean flag
+          .Define("goodMET_pt", "goodMET ? MET_pt : numb")  // Assign numb for events failing cut
+          .Define("goodMET_phi", "goodMET ? MET_phi : numb ");
 
     //            .Define("goodMET_eta","MET_eta[goodMET]")
    //
-     //           .Define("goodMET_phi_corr","MET_phi_corr[goodMET]");
-                //.Define("NgoodMET","int(goodMET_pt_corr.size())");
-    //_rlm = _rlm.Define("goodMet", "MET_sumEt>600 && MET_pt_corr>5");
-    //_rlm = _rlm.Define("goodMET_pt_corr", "MET_pt_corr[goodMet]");
+     //           .Define("goodMET_phi","MET_phi[goodMET]");
+                //.Define("NgoodMET","int(goodMET_pt.size())");
+    //_rlm = _rlm.Define("goodMet", "MET_sumEt>600 && MET_pt>5");
+    //_rlm = _rlm.Define("goodMET_pt", "MET_pt[goodMet]");
 
     
 }
@@ -683,34 +700,34 @@ void BaseAnalyser::Background_Estimation()
 //           .Define("muon_isolation_collection","Muon_pfRelIso04_all[muon_2j0t]");
 //           .Define("muon_isolation", "int(muon_isolation_collection.size())>0 ? muon_isolation_collection[0] : numb");
 std::cout << "Type of muon_isolation_collection: " 
-          << _rlm.GetColumnType("Muon_pt_corr") 
+          << _rlm.GetColumnType("Muon_pt") 
           << std::endl;
 _rlm = _rlm.Define("muon_isolation", "region_2j0t && muonChannel  ? static_cast<double>(Muon_pfRelIso04_all[0]) : numb");
 _rlm = _rlm.Define("ele_isolation", "region_2j0t && electronChannel ? static_cast<double>(Electron_pfRelIso03_all[0]) : numb");
 _rlm = _rlm.Define("ele_isolation_barrel", "region_2j0t && electronChannel && abs(Electron_eta[0])<1.47 ?static_cast<double>(Electron_pfRelIso03_all[0]) : numb");
 _rlm = _rlm.Define("ele_isolation_endcap", "region_2j0t && electronChannel && abs(Electron_eta[0])>1.6 ?static_cast<double>(Electron_pfRelIso03_all[0]) : numb");
-_rlm = _rlm.Define("MET_pt_2j0t_muon", "region_2j0t && muonChannel ?static_cast<double>(MET_pt_corr) : numb");
-_rlm = _rlm.Define("MET_pt_2j0t_ele_barrel", "region_2j0t && electronChannel && abs(Electron_eta[0])<1.47 ? static_cast<double>(MET_pt_corr) : numb");
-_rlm = _rlm.Define("MET_pt_2j0t_ele_endcap", "region_2j0t && electronChannel && abs(Electron_eta[0])>1.47 ? static_cast<double>(MET_pt_corr) : numb");
-_rlm = _rlm.Define("Pt_2j0t_muon", "region_2j0t && muonChannel ? static_cast<double>(Muon_pt_corr[0]) : numb");
+_rlm = _rlm.Define("MET_pt_2j0t_muon", "region_2j0t && muonChannel ?static_cast<double>(MET_pt) : numb");
+_rlm = _rlm.Define("MET_pt_2j0t_ele_barrel", "region_2j0t && electronChannel && abs(Electron_eta[0])<1.47 ? static_cast<double>(MET_pt) : numb");
+_rlm = _rlm.Define("MET_pt_2j0t_ele_endcap", "region_2j0t && electronChannel && abs(Electron_eta[0])>1.47 ? static_cast<double>(MET_pt) : numb");
+_rlm = _rlm.Define("Pt_2j0t_muon", "region_2j0t && muonChannel ? static_cast<double>(Muon_pt[0]) : numb");
 _rlm = _rlm.Define("eta_2j0t_muon", "region_2j0t && muonChannel ? static_cast<double>(Muon_eta[0]) : numb");
 _rlm = _rlm.Define("eta_2j0t_ele", "region_2j0t && electronChannel ? static_cast<double>(Electron_eta[0]) : numb");
-_rlm = _rlm.Define("delphi_2j0t_muon", "region_2j0t && muonChannel ? static_cast<double>(goodmuons_leading_phi-MET_phi_corr) : numb");
-_rlm = _rlm.Define("delphi_2j0t_ele", "region_2j0t && electronChannel ? static_cast<double>(goodElectrons_leading_phi-MET_phi_corr) : numb");
-_rlm = _rlm.Define("delphi_2j0t_ele_barrel", "region_2j0t && electronChannel && abs(Electron_eta[0])<1.47 ? static_cast<double>(goodElectrons_leading_phi-MET_phi_corr) : numb");
-_rlm = _rlm.Define("delphi_2j0t_ele_endcap", "region_2j0t && electronChannel && abs(Electron_eta[0])>1.47? static_cast<double>(goodElectrons_leading_phi-MET_phi_corr) : numb");
+_rlm = _rlm.Define("delphi_2j0t_muon", "region_2j0t && muonChannel ? static_cast<double>(goodmuons_leading_phi-MET_phi) : numb");
+_rlm = _rlm.Define("delphi_2j0t_ele", "region_2j0t && electronChannel ? static_cast<double>(goodElectrons_leading_phi-MET_phi) : numb");
+_rlm = _rlm.Define("delphi_2j0t_ele_barrel", "region_2j0t && electronChannel && abs(Electron_eta[0])<1.47 ? static_cast<double>(goodElectrons_leading_phi-MET_phi) : numb");
+_rlm = _rlm.Define("delphi_2j0t_ele_endcap", "region_2j0t && electronChannel && abs(Electron_eta[0])>1.47? static_cast<double>(goodElectrons_leading_phi-MET_phi) : numb");
 
 
 
 
 
 
-_rlm = _rlm.Define("bdt_MET_pt_muon_2j0t", "region_2j0t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
-_rlm = _rlm.Define("bdt_MET_pt_muon_2j1t", "region_2j1t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
-_rlm = _rlm.Define("bdt_MET_pt_muon_3j2t", "region_3j2t && muonChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
-_rlm = _rlm.Define("bdt_MET_pt_ele_2j0t", "region_2j0t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
-_rlm = _rlm.Define("bdt_MET_pt_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
-_rlm = _rlm.Define("bdt_MET_pt_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? MET_pt_corr : numb");
+_rlm = _rlm.Define("bdt_MET_pt_muon_2j0t", "region_2j0t && muonChannel && Wboson_transversMass>=50 ? MET_pt : numb");
+_rlm = _rlm.Define("bdt_MET_pt_muon_2j1t", "region_2j1t && muonChannel && Wboson_transversMass>=50 ? MET_pt : numb");
+_rlm = _rlm.Define("bdt_MET_pt_muon_3j2t", "region_3j2t && muonChannel && Wboson_transversMass>=50 ? MET_pt : numb");
+_rlm = _rlm.Define("bdt_MET_pt_ele_2j0t", "region_2j0t && electronChannel && Wboson_transversMass>=50 ? MET_pt : numb");
+_rlm = _rlm.Define("bdt_MET_pt_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? MET_pt : numb");
+_rlm = _rlm.Define("bdt_MET_pt_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? MET_pt : numb");
 
 _rlm = _rlm.Define("bdt_wboson_muon_2j0t", "region_2j0t && muonChannel ? Wboson_transversMass : numb");
 _rlm = _rlm.Define("bdt_wboson_muon_2j1t", "region_2j1t && muonChannel ? Wboson_transversMass : numb");
@@ -834,7 +851,7 @@ void BaseAnalyser::defineMoreVars()
 
     //jet
     addVartoStore("nJet");
-    addVartoStore("Jet_pt_corr");
+    addVartoStore("Jet_pt");
     addVartoStore("NgoodJets");
     addVartoStore("goodJets_pt");
     addVartoStore("Selected_jetpt");
@@ -846,11 +863,11 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("good_bjetdeepjet");
     
     //jetmet corr
-    addVartoStore("Jet_pt_corr_corr");
+    addVartoStore("Jet_pt");
     addVartoStore("lep_phi");
-    addVartoStore("Jet_pt_corr_down");
+    addVartoStore("Jet_pt_down");
     addVartoStore("Jet_pt_relerror");
-    addVartoStore("MET_pt_corr");
+    addVartoStore("MET_pt");
     addVartoStore("MET_pt");
 
     if(!_isData){
@@ -987,11 +1004,11 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("bdt_MET_pt_ele_3j2t");
     
    addVartoStore("evWeight");
-   addVartoStore("Jet_pt_corr");
-    addVartoStore("nJet");
-    addVartoStore("evWeight");
-    addVartoStore("genWeight");
-    addVartoStore("genEventSumw");
+   //addVartoStore("Jet_pt");
+    //addVartoStore("nJet");
+    //addVartoStore("evWeight");
+    //addVartoStore("genWeight");
+    //addVartoStore("genEventSumw");
 
     addVartoStore("ncleanbjetspass");
    /* addVartoStore("top_mass_2j1t");
@@ -1021,7 +1038,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("region_3j2t");
     addVartoStore("muonChannel");
     addVartoStore("electronChannel");
-    addVartoStore("MET_pt_corr");
+    addVartoStore("MET_pt");
     addVartoStore("top_mass");
     addVartoStore("specJet_leading_eta");
     addVartoStore("bdt_delR");
@@ -1108,7 +1125,7 @@ void BaseAnalyser::bookHists()
 
     
 }
-void BaseAnalyser::setTree(TTree *t, std::string outfilename)
+void BaseAnalyser::setTree(TTree *t, std::string outfilename,float crossection)
 {
 	if (debug){
         std::cout<< "================================//=================================" << std::endl;
@@ -1118,6 +1135,7 @@ void BaseAnalyser::setTree(TTree *t, std::string outfilename)
 
 	_rd = ROOT::RDataFrame(*t);
 	_rlm = RNode(_rd);
+	_crossection=crossection;
 	_outfilename = outfilename;
 	_hist1dinfovector.clear();
 	_th1dhistos.clear();
@@ -1142,9 +1160,7 @@ void BaseAnalyser::setupObjects()
         defineRegion();
         spectatorJets();
 
-	if(!_isData){
-	  this->calculateEvWeight(); // PU, genweight and BTV and Mu and Ele
-	}
+	calculateEvWeight(); // PU, genweight and BTV and Mu and Ele
 	selectMET();
         reconstructWboson();
         reconstructTop();
@@ -1165,25 +1181,6 @@ void BaseAnalyser::setupAnalysis()
     // Event weight for data it's always one. For MC, it depends on the sign
     //=====================================================================================================//
    
-	_rlm = _rlm.Define("one", "1.0");
-	
-	if (_isData && !isDefined("evWeight"))
-	{
-		_rlm = _rlm.Define("evWeight", [](){
-				return 1.0;
-			}, {} );
-	}
-	if(!_isData ) // Only use genWeight
-	  {
-//	    _rlm = _rlm.Define("evWeight", "genWeight");
-	    
-//	    std::cout<<"Using evWeight = genWeight"<<std::endl;
-
-	    auto sumgenweight = _rd.Sum("genWeight");
-	    string sumofgenweight = Form("%f",*sumgenweight);
-	    _rlm = _rlm.Define("genEventSumw",sumofgenweight.c_str());
-	    std::cout<<"Sum of genWeights = "<<sumofgenweight.c_str()<<std::endl;
-	  }
 	
 	defineCuts();
 	defineMoreVars();
