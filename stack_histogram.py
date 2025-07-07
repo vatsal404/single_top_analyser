@@ -1,0 +1,134 @@
+import uproot
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+# Define file groups
+file_groups = {
+    "ttbar": ["TTbar_SemiLept.root", "TTbar_Dilept.root"],
+    "wjets": ["WtoLNu.root"],
+    "signal": ["TbarBQ_t_channel.root", "TBbarQ_t_channel.root"],
+    "drell_yan": ["DYjetsM10to50.root", "DYJetsM50.root"],
+    "other": ["ZZto2L2Q.root", "ZZto2LNu.root","ZZto4L.root","WWto2L2Nu.root","WZto3LNu.root","WWW_4F.root","WWZ_4F.root","WZZ.root","ZZZ.root","TTGJets_PTG-10to100.root","TTGJets_PTG-100to200.root","TTGJets_PTG-200.root","TTLNu-1Jets.root"],
+    "schannel": ["TbarBtoLminusNuB_s_channel.root", "TBbartoLplusNuBbar_s_channel.root"],
+    "single_tW": ["TbarWplusto2L2Nu.root", "TWminusto2L2Nu.root", "TbarWplustoLNu2Q.root", "TWminustoLNu2Q.root"]
+}
+
+data_file = "data.root"
+variable = "bdt_top_muon_2j1t"
+bins = np.linspace(0, 500, 50)
+
+colors = {
+    "ttbar": "red",
+    "wjets": "blue",
+    "signal": "green",
+    "drell_yan": "orange",
+    "other": "gray",
+    "schannel": "purple",
+    "single_tW": "brown"
+}
+
+# Store histograms
+hist_data = {}
+
+# Loop through MC groups
+for group_name, files in file_groups.items():
+    values = []
+    weights = []
+    print(f"Processing group: {group_name}")
+    for filename in files:
+        if not os.path.exists(filename):
+            print(f"  [Warning] File not found: {filename}")
+            continue
+        try:
+            with uproot.open(filename) as file:
+                tree = file["outputTree"]
+                available_branches = tree.keys()
+
+                if variable not in available_branches:
+                    print(f"  [Skip] {variable} not in {filename}")
+                    continue
+                if "evWeight" not in available_branches:
+                    print(f"  [Skip] evWeight not in {filename}")
+                    continue
+
+                arr = tree.arrays([variable, "evWeight"], library="np")
+                if len(arr[variable]) == 0:
+                    print(f"  [Skip] No entries in {variable} in {filename}")
+                    continue
+
+                values.append(arr[variable])
+                weights.append(arr["evWeight"])
+        except Exception as e:
+            print(f"  [Error] Failed to read {filename}: {e}")
+            continue
+
+    if values:
+        all_vals = np.concatenate(values)
+        all_weights = np.concatenate(weights)
+        hist, _ = np.histogram(all_vals, bins=bins, weights=all_weights)
+        hist_data[group_name] = hist
+    else:
+        print(f"  [Note] No data collected for group {group_name}")
+        hist_data[group_name] = np.zeros(len(bins) - 1)
+
+# === Load Data ===
+print(f"Processing group: data")
+data_vals = []
+try:
+    with uproot.open(data_file) as file:
+        tree = file["outputTree"]
+        available_branches = tree.keys()
+
+        if variable not in available_branches:
+            print(f"  [Error] Variable {variable} not found in data file.")
+            data_hist = np.zeros(len(bins) - 1)
+        else:
+            arr = tree.arrays([variable], library="np")
+            if len(arr[variable]) == 0:
+                print(f"  [Note] No entries in data file.")
+                data_hist = np.zeros(len(bins) - 1)
+            else:
+                data_vals = arr[variable]
+                data_hist, _ = np.histogram(data_vals, bins=bins)
+except Exception as e:
+    print(f"  [Error] Failed to read data file: {e}")
+    data_hist = np.zeros(len(bins) - 1)
+
+# === Plot Stacked Histogram and Ratio ===
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex=True,
+                               gridspec_kw={'height_ratios': [3, 1]})
+
+# --- Stack Plot ---
+bottom = np.zeros_like(bins[:-1])
+for group_name in file_groups.keys():
+    ax1.bar(bins[:-1], hist_data[group_name], width=np.diff(bins), bottom=bottom,
+            color=colors[group_name], label=group_name, align='edge')
+    bottom += hist_data[group_name]
+
+# Overlay data as points
+bin_centers = 0.5 * (bins[:-1] + bins[1:])
+ax1.errorbar(bin_centers, data_hist, yerr=np.sqrt(data_hist), fmt='o', color='black', label='Data')
+
+ax1.set_ylabel("Events")
+ax1.set_title(f"Stacked Histogram of {variable}")
+ax1.legend()
+ax1.grid(True)
+
+# --- Ratio Plot ---
+mc_total = np.sum([hist_data[group] for group in file_groups], axis=0)
+ratio = np.divide(data_hist, mc_total, out=np.zeros_like(data_hist, dtype=float), where=mc_total > 0)
+ratio_err = np.divide(np.sqrt(data_hist), mc_total, out=np.zeros_like(data_hist, dtype=float), where=mc_total > 0)
+
+ax2.errorbar(bin_centers, ratio, yerr=ratio_err, fmt='o', color='black')
+ax2.axhline(1.0, color='red', linestyle='--')
+ax2.set_ylabel("Data / MC")
+ax2.set_xlabel(variable)
+ax2.grid(True)
+ax2.set_ylim(0, 2)
+
+plt.tight_layout()
+output_name = f"stacked_ratio_{variable}.png"
+plt.savefig(output_name)
+print(f" Saved plot with ratio as {output_name}")
+
