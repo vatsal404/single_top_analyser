@@ -1,8 +1,0 @@
-WARNING: In non-interactive mode release checks e.g. deprecated releases, production architectures are disabled.
-Warning: Branch Ngood_bjets not found in the tree.
-Warning: Branch ele_isolation not found in the tree.
-Warning: Branch muon_isolation not found in the tree.
-Warning: Branch ncleanjetspass not found in the tree.
-[0B/0B][100%][==================================================][0B/s]  
-Run: [ERROR] Server responded with an error: [3016] Unable to open - you specified a directory as target file name /store/user/vsinha/processed_histograms_bdt/; Is a directory (destination)
-

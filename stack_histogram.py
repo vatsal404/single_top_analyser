@@ -15,8 +15,8 @@ file_groups = {
 }
 
 data_file = "data.root"
-variable = "bdt_top_muon_2j1t"
-bins = np.linspace(0, 500, 50)
+variable = "bdt_specJet_3j2t_leading_eta_muon"
+bins = np.linspace(-5, 5, 50)
 
 colors = {
     "ttbar": "red",

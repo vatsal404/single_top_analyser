@@ -76,7 +76,7 @@ void BaseAnalyser::defineCuts()
 //	addCuts("region_2j1t","1");
 //    addCuts("ncleanjetspass>0","00");
 	addCuts(setHLT(),"00"); //HLT cut buy checking HLT names in the root file
-
+        addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter","000");
 }
 //===============================Find Good Electrons===========================================//
 //: Define Good Electrons in rdata frame
@@ -524,6 +524,9 @@ std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
 	        _rlm = _rlm.Define("selected_cleanbjet_4vec",::generate_single_4vec, {"Selected_bjet_leading_pt", "Selected_bjet_leading_eta", "Selected_bjet_leading_phi", "Selected_bjet_leading_mass"});
                 _rlm = _rlm.Define("selected_cleanbjet_TL4vec",:: generate_TLorentzVector,{"Selected_bjet_leading_pt", "Selected_bjet_leading_eta", "Selected_bjet_leading_phi", "Selected_bjet_leading_mass"});
 		
+                _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi");
+                auto Nentryi_before = _rlm.Count();
+
 
     if(!_isData){
             _rlm= _rlm .Define("Selected_bjethadflav", "Selected_jethadflav[btagcuts2]");
@@ -640,7 +643,7 @@ void BaseAnalyser::selectMET()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-   _rlm = _rlm.Define("goodMET", "MET_pt>=20")  // Boolean flag
+   _rlm = _rlm.Define("goodMET", "MET_pt>=30")  // Boolean flag
           .Define("goodMET_pt", "goodMET ? MET_pt : numb")  // Assign numb for events failing cut
           .Define("goodMET_phi", "goodMET ? MET_phi : numb ");
 
@@ -926,9 +929,9 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("w_pt"); */
    
 // my variables start drom here -------------------------------------------------------------------------	   
-  //  addVartoStore("muon_isolation");
-    //addVartoStore("ele_isolation");
-   /* addVartoStore("goodElectrons_leading_pt");
+    addVartoStore("muon_isolation");
+    addVartoStore("vetoed_jets");
+    addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
     addVartoStore("goodElectrons_leading_phi");
     addVartoStore("goodmuons_leading_pt");
@@ -937,7 +940,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("good_bjet_leading_pt");
     addVartoStore("good_bjet_leading_phi");
     addVartoStore("good_bjet_leading_eta");
-    addVartoStore("goodJets_btagpass_bcflav_pt");
+   /* addVartoStore("goodJets_btagpass_bcflav_pt");
     addVartoStore("goodJets_btagpass_bcflav_eta");
     addVartoStore("goodJets_all_bcflav_pt");
     addVartoStore("goodJets_all_bcflav_eta");

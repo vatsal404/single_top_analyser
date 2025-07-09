@@ -1,2 +1,0 @@
-/store/user/vsinha/bdt_variables/PROCESSED_DYJetsToLL_M-50_UL17.root 4895.0 97436981.0
-

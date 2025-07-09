@@ -54,7 +54,7 @@ public:
 	bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON
 	void selectFatJets();
 
-	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype/*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,*/,string muon_roch_fname, string muon_fname, string muon_hlt_type, string muon_reco_type, string muon_id_type, string muon_iso_type, string electron_fname, string electron_reco_type, string electron_id_type, string jercfname, string jerctag, string jercunctag);
+	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype,/*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,,string muon_roch_fname*/ string muon_fname, string muon_hlt_type,/* string muon_reco_type*/ string muon_id_type, string muon_iso_type, string electron_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag, string jercunctag,string jet_veto_f_name);
 	void setupJetMETCorrection(string fname, string jettag);
 	void applyJetMETCorrections();
     
@@ -80,7 +80,7 @@ public:
 	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var = "muon_SF_");
 	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var = "ele_SF_");
 	ROOT::RDF::RNode applyPrefiringWeight(RNode _rlm, std::string output_var="prefiring_SF_");
-
+        ROOT::RDF::RNode applyJetVetoMap(ROOT::RDF::RNode _rlm,const std::string& eta_var,const std::string& phi_var, const std::string& output_var = "vetoed_jets");
 	void setupCuts_and_Hists();
 	void drawHists(RNode t);
 	void run(bool saveAll=true, string outtreename="outputTree");
@@ -128,9 +128,10 @@ public:
 	string _muon_reco_type;
 	string _muon_id_type;
 	string _muon_iso_type;
-	string _electron_reco_type;
+	string _electron_reco_type1;
+	string _electron_reco_type2;
 	string _electron_id_type;
-	
+	string _jet_veto_f_name;
 	
 	TFile *_outrootfile;
 	vector<string> _outrootfilenames;
@@ -173,6 +174,7 @@ public:
 	std::shared_ptr<const correction::CompoundCorrection> _jetCorrector; // just the combined L1L2L3 correction
 	std::shared_ptr<const correction::Correction> _jetCorrectionUnc; // for uncertainty corresponding to the jet corrector
 
+        std::unique_ptr<correction::CorrectionSet>_correction_jetveto;
 	// btag correction
 	std::unique_ptr<correction::CorrectionSet> _correction_btag1;
 //	TFile *f_btagEff;
