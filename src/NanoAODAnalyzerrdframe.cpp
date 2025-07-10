@@ -324,14 +324,95 @@ void NanoAODAnalyzerrdframe::applyMuPtCorrection() //data and MC
   }
 }
 
+void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
+{
+  std::cout << "Apply Electron Pt correction" << std::endl;
+
+      if (!_correction_electronss) {
+        std::cerr << "Electron corrections file not loaded!" << std::endl;
+        return; // or throw exception
+    }
+    // Apply scale correction (used in both MC and data)
+   static auto scale_corr = _correction_electronss->at("Scale");
+
+   static auto smear_corr = _correction_electronss->at("Smearing");
+        std::cout << "0" << std::endl;
+
+  if (_isData)
+  {
+auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
+                                 const ROOT::VecOps::RVec<float> &scEta,
+                                 const ROOT::VecOps::RVec<float> &r9,
+                                 const ROOT::VecOps::RVec<UChar_t> &seedGain,
+                                 unsigned int run) -> ROOT::VecOps::RVec<float> {
+    ROOT::VecOps::RVec<float> result;
+    for (size_t i = 0; i < pt.size(); ++i) {
+        float factor = scale_corr->evaluate({"scale", std::to_string(run), scEta[i], r9[i], std::abs(scEta[i]), pt[i], seedGain[i]});
+        result.emplace_back(pt[i] * factor);
+    }
+    return result;
+};
+
+    
+  std::cout << "3" << std::endl;
+
+    _rlm = _rlm.Define("Electron_pt_corr", scale_lambda, {"Electron_pt", "Electron_eta", "Electron_r9", "Electron_seedGain", "run"});
+  }
+  else
+  {
+    auto smear_lambda = [smear_corr](const floats &pt, const floats &scEta, const floats &r9) -> std::tuple<floats, floats, floats> 
+    {
+      floats nominal, smear_up, smear_down;
+      size_t N = pt.size();
+      nominal.reserve(N);
+      smear_up.reserve(N);
+      smear_down.reserve(N);
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::normal_distribution<float> gauss(0.0, 1.0);
+
+      for (size_t i = 0; i < N; ++i) {
+        float smear_val = smear_corr->evaluate({"smear", pt[i], r9[i], std::abs(scEta[i])});
+        float smear_unc = smear_corr->evaluate({"esmear", pt[i], r9[i], std::abs(scEta[i])});
+        float rand = gauss(gen);
+
+        float nominal_corr = pt[i] * (1.0 + smear_val * rand);
+        float up_corr = pt[i] * (1.0 + (smear_val + smear_unc) * rand);
+        float down_corr = pt[i] * (1.0 + (smear_val - smear_unc) * rand);
+
+    nominal.emplace_back(nominal_corr);
+    smear_up.emplace_back(up_corr);
+    smear_down.emplace_back(down_corr);
+  }
+
+  return std::make_tuple(nominal, smear_up, smear_down);
+};
+
+_rlm = _rlm.Define("Electron_pt_corr_triple", smear_lambda, {"Electron_pt", "Electron_eta", "Electron_r9"})
+           .Define("Electron_pt_corr",           "std::get<0>(Electron_pt_corr_triple)")
+           .Define("Electron_pt_corr_smearUp",   "std::get<1>(Electron_pt_corr_triple)")
+           .Define("Electron_pt_corr_smearDown", "std::get<2>(Electron_pt_corr_triple)");
 
 
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, /*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,, string muon_roch_fname*/ string muon_fname, string muonhlttype,/* string muonrecotype*/string muonidtype,string muonisotype,string electron_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag, string jercunctag,string jet_veto_f_name)
+  }
+};
+
+
+
+
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, /*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,, string muon_roch_fname*/ string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;
+         _correction_electronss = correction::CorrectionSet::from_file(electron_SSF);
+         _electron_SSF=electron_SSF;
+
 	if (_isData) _jsonOK = readgoodjson(goodjsonfname); // read golden json file
 //	std::cout << "Rochester correction files: " << muon_roch_fname << std::endl;
+         _correction_jetveto = correction::CorrectionSet::from_file(jet_veto_f_name);
+	 cout<< "Jrt veto JSON FILE : " <<  jet_veto_f_name << endl;
+         assert(_correction_jetveto->validate());
+         _jet_veto_tag = jet_veto_tag;
 //	_Roch_corr.init(muon_roch_fname);
 	if (!_isData) {
 	  // using correctionlib
@@ -360,7 +441,8 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	  cout<< "ELECTRON RECO type in JSON  : " << _electron_reco_type1 << endl;
 	  cout<< "ELECTRONID type in JSON  : " << _electron_id_type << endl;
 	  assert(_correction_electron->validate());
-	  
+	  //electron scale and smearing correction
+ 
 	  // btag corrections
 	  _correction_btag1 = correction::CorrectionSet::from_file(btvfname);
 	  _btvtype = btvtype;
@@ -371,8 +453,6 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	  hname_btagEff_lflav = dynamic_cast<TH2D*>(f_btagEff->Get(hname_btagEff_lflav.c_str()));
 */
 
-	  _correction_jetveto = correction::CorrectionSet::from_file(jet_veto_f_name);
-	   assert(_correction_jetveto->validate());
 	  // pile up weights
 	  _correction_pu = correction::CorrectionSet::from_file(pufname);
 	  assert(_correction_pu->validate());
@@ -399,6 +479,7 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	setupJetMETCorrection(jercfname, _jerctag);
 	applyJetMETCorrections();
 	applyMuPtCorrection();
+        applyElectronPtCorrection();
 }
 /*double NanoAODAnalyzerrdframe::getBTaggingEff(double hadflav, double eta, double pt){
   double efficiency = 1.0;
@@ -581,10 +662,10 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 			std::string column_name = output_var + variation;
 			_rlm = _rlm.Define(column_name, [btagweightgenerator_case1, variation](const ROOT::VecOps::RVec<UChar_t> &hadflav, const ROOT::VecOps::RVec<float> &etas, const ROOT::VecOps::RVec<float> &pts)
 							   {
-	  float weight = btagweightgenerator_case1(hadflav, etas, pts, variation);// Get the weight for the corresponding variation
-	  return weight; }, Jets_vars_names); // after all cuts, remove overlapped
+	                 float weight = btagweightgenerator_case1(hadflav, etas, pts, variation);// Get the weight for the corresponding variation
+	                  return weight; }, Jets_vars_names); // after all cuts, remove overlapped
 			std::cout << "BJet SF column name: " << column_name << std::endl;
-			if (isDefined("column_name"))
+			if (isDefined(column_name))
 			{
 				std::cout << "BJet SF column: " << column_name << " is saved in the Node." << std::endl;
 			}
@@ -679,7 +760,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
       std::string column_name_id = output_var+"id_" + variation;
       _rlm = _rlm.Define(column_name_id, [this, muon_weightgenerator, variation](const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts) {
 	  float weight = muon_weightgenerator(_muon_id_type, etas, pts, variation); // Get the weight for the corresponding variation
-	  //std::cout << "Muon HLT weight (" << variation << "): " << weight << std::endl;
+	  //std::cout << "Muon id  weight (" << variation << "): " << weight << std::endl;
 	  return weight;
 	}, Muon_vars);
 
@@ -687,7 +768,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
       std::string column_name_iso = output_var+"iso_" + variation;
       _rlm = _rlm.Define(column_name_iso, [this, muon_weightgenerator, variation](const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts) {
 	  float weight = muon_weightgenerator(_muon_iso_type, etas, pts, variation); // Get the weight for the corresponding variation
-	  //std::cout << "Muon HLT weight (" << variation << "): " << weight << std::endl;
+	  //std::cout << "Muon iso weight (" << variation << "): " << weight << std::endl;
 	  return weight;
 	}, Muon_vars);
 
@@ -749,19 +830,19 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<
 
 	std::string column_name_reco = output_var + "reco_" + variation;
         _rlm = _rlm.Define(column_name_reco,
-  [this, electron_weightgenerator, variation](const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts) {
-    ROOT::VecOps::RVec<float> weights(pts.size());
+        [this, electron_weightgenerator, variation](const ROOT::VecOps::RVec<float>& etas, const ROOT::VecOps::RVec<float>& pts) {
+             ROOT::VecOps::RVec<float> weights(pts.size());
 
-    for (size_t i = 0; i < pts.size(); ++i) {
-      std::string reco_type = (pts[i] < 75.0) ? _electron_reco_type1 : _electron_reco_type2;
+             for (size_t i = 0; i < pts.size(); ++i) {
+                 std::string reco_type = (pts[i] < 75.0) ? _electron_reco_type1 : _electron_reco_type2;
 
       // Wrap each eta and pt into RVec of size 1 for individual eval
-      ROOT::VecOps::RVec<float> eta_single = { etas[i] };
-      ROOT::VecOps::RVec<float> pt_single = { pts[i] };
+                 ROOT::VecOps::RVec<float> eta_single = { etas[i] };
+                 ROOT::VecOps::RVec<float> pt_single = { pts[i] };
 
-      weights[i] = electron_weightgenerator(reco_type, eta_single, pt_single, variation);
+                 weights[i] = electron_weightgenerator(reco_type, eta_single, pt_single, variation);
     }
-     return std::accumulate(weights.begin(), weights.end(), 1.0f, std::multiplies<float>());
+         return std::accumulate(weights.begin(), weights.end(), 1.0f, std::multiplies<float>());
   }, Ele_vars);
     
 
@@ -803,7 +884,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
         ROOT::VecOps::RVec<bool> mask(etas.size(), true);
 
         // Get the correction object inside the lambda
-        auto veto_corr = _correction_jetveto->at("Summer22_23Sep2023_RunCD_V1");
+        auto veto_corr = _correction_jetveto->at(_jet_veto_tag);
         std::string veto_type = "jetvetomap";
 
         for (size_t i = 0; i < etas.size(); ++i) {
@@ -1145,17 +1226,17 @@ void NanoAODAnalyzerrdframe::setParams(int year, string runtype, int datatype)
         cout << "Analysing through Run 2018" << endl;
     }
 
-	if(_runtype.find("UL") != std::string::npos){
-        _isUL = true;
-        cout << "Ultra Legacy Selected " << endl;
+	if(_runtype.find("PreEE") != std::string::npos){
+        _isPreEE = true;
+        cout << "PreEE Selected " << endl;
         std::cout<< "-------------------------------------------------------------------" << std::endl;
-    }else if(_runtype.find("ReReco") != std::string::npos){
-        _isReReco = true;
-        cout << " ReReco  Selected!" << endl;
+    }else if(_runtype.find("PostEE") != std::string::npos){
+        _isPostEE = true;
+        cout << "PostEE  Selected!" << endl;
         std::cout<< "-------------------------------------------------------------------" << std::endl;
     }
-    if (!_isUL && !_isReReco){
-        std::cout<< "Default run version : UL or ReReco is not selected! "<< std::endl;
+    if (!_isPreEE && !_isPostEE){
+        std::cout<< "Default run version :PreEE or PostEE is not selected! "<< std::endl;
         std::cout<< "-------------------------------------------------------------------" << std::endl;
     }
 

@@ -54,7 +54,7 @@ public:
 	bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON
 	void selectFatJets();
 
-	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype,/*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,,string muon_roch_fname*/ string muon_fname, string muon_hlt_type,/* string muon_reco_type*/ string muon_id_type, string muon_iso_type, string electron_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag, string jercunctag,string jet_veto_f_name);
+	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype,/*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,,string muon_roch_fname*/ string muon_fname, string muon_hlt_type, string muon_id_type, string muon_iso_type, string electron_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag, string jercunctag,string jet_veto_f_name,string jet_veto_tag, string electron_SSF);
 	void setupJetMETCorrection(string fname, string jettag);
 	void applyJetMETCorrections();
     
@@ -92,8 +92,8 @@ public:
 	int _year;
 	string _runtype;
 	int _datatype;
-	bool _isUL =false;
-	bool _isReReco = false;
+	bool _isPreEE =false;
+	bool _isPostEE = false;
 	bool _isData;
 	TTree* _atree;
 	bool debug = true;
@@ -132,7 +132,8 @@ public:
 	string _electron_reco_type2;
 	string _electron_id_type;
 	string _jet_veto_f_name;
-	
+        string _jet_veto_tag;
+	string _electron_SSF;
 	TFile *_outrootfile;
 	vector<string> _outrootfilenames;
 	RNode _rlm;
@@ -168,15 +169,17 @@ public:
 
 	//electron correction
 	std::unique_ptr<correction::CorrectionSet> _correction_electron ;
-
+	void applyElectronPtCorrection();
 	// JERC scale factors
 	std::unique_ptr<correction::CorrectionSet> _correction_jerc; // json containing all forms of corrections and uncertainties
 	std::shared_ptr<const correction::CompoundCorrection> _jetCorrector; // just the combined L1L2L3 correction
 	std::shared_ptr<const correction::Correction> _jetCorrectionUnc; // for uncertainty corresponding to the jet corrector
-
+        // jet veto map application
         std::unique_ptr<correction::CorrectionSet>_correction_jetveto;
 	// btag correction
 	std::unique_ptr<correction::CorrectionSet> _correction_btag1;
+	std::unique_ptr<correction::CorrectionSet> _correction_electronss;
+
 //	TFile *f_btagEff;
 //	TH2D *hist_btagEff_bcflav;
 //	TH2D *hist_btagEff_lflav;

@@ -623,15 +623,10 @@ if(!_isData ) // Only use genWeight
 
   _rlm=_rlm .Define("evWeight", "genWeight * Lumifactor");  	
 
-        // Optional: Print first few values to check
-        auto w_snapshot = _rlm.Take<double>("evWeight");
-        std::cout << "[DEBUG] First 5 evWeight values:\n";
-        for (int i = 0; i < std::min(5, (int)w_snapshot->size()); ++i) {
-            std::cout << "  evWeight[" << i << "] = " << w_snapshot->at(i) << std::endl;
         }
   //  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
   //_rlm = _rlm.Define("evWeight", " puWeight * muon_SF_central * ele_SF_central * btag_SF_central"); 
-  }
+  
 }
 //MET
 
