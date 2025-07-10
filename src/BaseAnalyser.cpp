@@ -466,7 +466,7 @@ void BaseAnalyser::removeOverlaps()
 	_rlm = _rlm.Define("checkOverlap", checkoverlap, {"goodJets_4vecs","lepton_forOverlapCheck"});
 //        _rlm = _rlm.Define("checkOverlap", "ROOT::RVec<int>(numb, 1)");
 	
-std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
+//std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
 
   //  _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodmuons_4vecs"});
 	_rlm =	_rlm.Define("Selected_jeteta", "goodJets_eta[checkOverlap]")
@@ -524,8 +524,8 @@ std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
 	        _rlm = _rlm.Define("selected_cleanbjet_4vec",::generate_single_4vec, {"Selected_bjet_leading_pt", "Selected_bjet_leading_eta", "Selected_bjet_leading_phi", "Selected_bjet_leading_mass"});
                 _rlm = _rlm.Define("selected_cleanbjet_TL4vec",:: generate_TLorentzVector,{"Selected_bjet_leading_pt", "Selected_bjet_leading_eta", "Selected_bjet_leading_phi", "Selected_bjet_leading_mass"});
 		
-                _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi");
-                auto Nentryi_before = _rlm.Count();
+                _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi").Filter("!vetoed_jets");
+           //std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
 
 
     if(!_isData){

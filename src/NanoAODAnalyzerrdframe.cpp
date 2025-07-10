@@ -54,7 +54,7 @@ void NanoAODAnalyzerrdframe::setTree(TTree *t, std::string outfilename)
 	_hist1dinfovector.clear();
 	_th1dhistos.clear();
 	_varstostore.clear();
-	//_hist1dinfovector.clear();
+	_hist1dinfovector.clear();
 	_hist2dinfovector.clear();
 	_th2dhistos.clear();
 	_selections.clear();
@@ -336,7 +336,6 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
    static auto scale_corr = _correction_electronss->at("Scale");
 
    static auto smear_corr = _correction_electronss->at("Smearing");
-        std::cout << "0" << std::endl;
 
   if (_isData)
   {
@@ -354,7 +353,6 @@ auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
 };
 
     
-  std::cout << "3" << std::endl;
 
     _rlm = _rlm.Define("Electron_pt_corr", scale_lambda, {"Electron_pt", "Electron_eta", "Electron_r9", "Electron_seedGain", "run"});
   }
@@ -405,6 +403,8 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 {
     cout << "set up Corrections!" << endl;
          _correction_electronss = correction::CorrectionSet::from_file(electron_SSF);
+	 cout<< "Electron scaling and smearing filename   : " << electron_SSF << endl;
+
          _electron_SSF=electron_SSF;
 
 	if (_isData) _jsonOK = readgoodjson(goodjsonfname); // read golden json file
@@ -445,6 +445,8 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
  
 	  // btag corrections
 	  _correction_btag1 = correction::CorrectionSet::from_file(btvfname);
+	  cout<< "btv correction filename: " << btvfname << endl;
+
 	  _btvtype = btvtype;
 	  assert(_correction_btag1->validate());
 /*
@@ -455,6 +457,8 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 
 	  // pile up weights
 	  _correction_pu = correction::CorrectionSet::from_file(pufname);
+	  cout<< "Pileup correction filename  : " << pufname << endl;
+
 	  assert(_correction_pu->validate());
 	  _putag = putag;
 	  auto punominal = [this](float x) { return pucorrection(_correction_pu, _putag, "nominal", x); };
@@ -478,7 +482,7 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	
 	setupJetMETCorrection(jercfname, _jerctag);
 	applyJetMETCorrections();
-	applyMuPtCorrection();
+//	applyMuPtCorrection();
         applyElectronPtCorrection();
 }
 /*double NanoAODAnalyzerrdframe::getBTaggingEff(double hadflav, double eta, double pt){
@@ -874,12 +878,13 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<
     }
     return _rlm;
 }
-
+/*
 ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
                                                           const std::string& eta_var,
                                                           const std::string& phi_var,
 							  const std::string& output_var) {
-    auto vetoed = [this](const ROOT::VecOps::RVec<float>& etas,
+    std::cout << "Applying Jet veto map..." << std::endl;  // ← Now only prints once
+    	auto vetoed = [this](const ROOT::VecOps::RVec<float>& etas,
                          const ROOT::VecOps::RVec<float>& phis) {
         ROOT::VecOps::RVec<bool> mask(etas.size(), true);
 
@@ -895,6 +900,32 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
     };
 
     return _rlm.Define(output_var, vetoed, {eta_var, phi_var});
+
+}
+*/
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
+                                                          const std::string& eta_var,
+                                                          const std::string& phi_var,
+                                                          const std::string& output_var) {
+    std::cout << "Applying Jet veto map..." << std::endl;
+
+    auto is_vetoed_event = [this](const ROOT::VecOps::RVec<float>& etas,
+                                  const ROOT::VecOps::RVec<float>& phis) -> bool {
+        // Get the correction object
+        auto veto_corr = _correction_jetveto->at(_jet_veto_tag);
+        std::string veto_type = "jetvetomap";
+
+        for (size_t i = 0; i < etas.size(); ++i) {
+            double veto_val = veto_corr->evaluate({veto_type, etas[i], phis[i]});
+            if (veto_val != 0) {
+                return true;  // At least one jet in vetoed region
+            }
+        }
+        return false;  // No jet in vetoed region
+    };
+
+    // Define a new column with a single boolean per event
+    return _rlm.Define(output_var, is_vetoed_event, {eta_var, phi_var});
 }
 
 
