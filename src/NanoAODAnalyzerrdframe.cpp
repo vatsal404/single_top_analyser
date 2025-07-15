@@ -323,7 +323,7 @@ void NanoAODAnalyzerrdframe::applyMuPtCorrection() //data and MC
     
   }
 }
-
+/*
 void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
 {
   std::cout << "Apply Electron Pt correction" << std::endl;
@@ -358,7 +358,8 @@ auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
   }
   else
   {
-    auto smear_lambda = [smear_corr](const floats &pt, const floats &scEta, const floats &r9) -> std::tuple<floats, floats, floats> 
+    auto smear_lambda = [smear_corr](const RVec<Float_t> &pt, const RVec<Float_t> &scEta, const RVec<Float_t> &r9)
+    -> std::tuple<RVec<Float_t>, RVec<Float_t>, RVec<Float_t>> 
     {
       floats nominal, smear_up, smear_down;
       size_t N = pt.size();
@@ -391,11 +392,177 @@ _rlm = _rlm.Define("Electron_pt_corr_triple", smear_lambda, {"Electron_pt", "Ele
            .Define("Electron_pt_corr_smearUp",   "std::get<1>(Electron_pt_corr_triple)")
            .Define("Electron_pt_corr_smearDown", "std::get<2>(Electron_pt_corr_triple)");
 
+std::cout << "Type of Electron_pt: " << _rlm.GetColumnType("Electron_pt") << std::endl;
+std::cout << "Type of Electron_pt_corr: " << _rlm.GetColumnType("Electron_pt_corr") << std::endl;
 
   }
 };
 
+*/
+/*void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
+{
+    std::cout << "Apply Electron Pt correction" << std::endl;
 
+    if (!_correction_electronss) {
+        std::cerr << "Electron corrections file not loaded!" << std::endl;
+        return;
+    }
+
+    static auto scale_corr = _correction_electronss->at("Scale");
+    static auto smear_corr = _correction_electronss->at("Smearing");
+
+    if (_isData) {
+        auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
+                                         const ROOT::VecOps::RVec<float> &scEta,
+                                         const ROOT::VecOps::RVec<float> &r9,
+                                         const ROOT::VecOps::RVec<UChar_t> &seedGain,
+                                         unsigned int run) -> ROOT::VecOps::RVec<float> {
+            ROOT::VecOps::RVec<float> result;
+            result.reserve(pt.size());
+
+            for (size_t i = 0; i < pt.size(); ++i) {
+                float factor = scale_corr->evaluate(
+                    {"scale", std::to_string(run), scEta[i], r9[i], std::abs(scEta[i]), pt[i], seedGain[i]});
+                result.emplace_back(pt[i] * factor);
+            }
+            return result;
+        };
+
+        _rlm = _rlm.Define("Electron_pt_corr", scale_lambda,
+                           {"Electron_pt", "Electron_eta", "Electron_r9", "Electron_seedGain", "run"});
+    }
+    else {
+        // Fix: use ROOT::VecOps::RVec<Float_t>
+        using ROOT::VecOps::RVec;
+
+
+auto smear_nominal = [smear_corr](const RVec<float> &pt,
+                                   const RVec<float> &scEta,
+                                   const RVec<float> &r9) {
+    RVec<float> out;
+    std::mt19937 gen(std::random_device{}());
+    std::normal_distribution<float> gauss(0.0, 1.0);
+    
+    for (size_t i = 0; i < pt.size(); ++i) {
+        float smear_val = smear_corr->evaluate({"rho", std::abs(scEta[i]), r9[i]});
+        float rand = gauss(gen);
+        float smeared_pt = pt[i] * (1.0 + smear_val * rand);
+        out.emplace_back(smeared_pt);
+    }
+    
+    return out;
+};
+
+// Define smeared pt column in RDataFrame
+_rlm = _rlm.Define("Electron_pt_corr", smear_nominal, {"Electron_pt", "Electron_eta", "Electron_r9"});
+
+// Take values of corrected pt
+auto electronCorrVec = _rlm.Take<RVec<float>>("Electron_pt_corr");
+
+// Print first 5 events
+std::cout << "First 5 events of Electron_pt_corr:" << std::endl;
+for (size_t i = 0; i < std::min<size_t>(5, electronCorrVec->size()); ++i) {
+    std::cout << "  Event [" << i << "] -> [";
+    for (const auto& val : electronCorrVec->at(i)) {
+        std::cout << val << ", ";
+    }
+    std::cout << "]" << std::endl;
+}
+
+    
+    }
+}
+*/
+void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
+{
+    std::cout << "Apply Electron Pt correction" << std::endl;
+
+    if (!_correction_electronss) {
+        std::cerr << "Electron corrections file not loaded!" << std::endl;
+        return;
+    }
+
+    using ROOT::VecOps::RVec;
+    using floats = RVec<float>;
+
+    auto scale_corr = _correction_electronss->at("Scale");
+    auto smear_corr = _correction_electronss->at("Smearing");
+
+    if (_isData) {
+       auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
+                                 const ROOT::VecOps::RVec<float> &scEta,
+                                 const ROOT::VecOps::RVec<float> &r9,
+                                 const ROOT::VecOps::RVec<UChar_t> &seedGain,
+                                 unsigned int run) -> ROOT::VecOps::RVec<float>
+{
+    ROOT::VecOps::RVec<float> result;
+    result.reserve(pt.size());
+
+    for (size_t i = 0; i < pt.size(); ++i) {
+        try {
+            float gain = static_cast<int>(seedGain[i]);
+            float eta = std::abs(scEta[i]);
+            float et = pt[i];  // Et = pt in barrel-endcap electrons, unless corrected separately
+
+         float factor = scale_corr->evaluate({
+	    "total_correction",
+	    static_cast<int>(seedGain[i]),
+	    static_cast<float>(run),
+	    std::abs(scEta[i]),
+	    r9[i],
+	    pt[i]
+	});
+
+            result.emplace_back(pt[i] * factor);
+        } catch (const std::exception &e) {
+            std::cerr << "Error evaluating scale correction at index " << i << ": " << e.what() << std::endl;
+            result.emplace_back(pt[i]);  // fallback to uncorrected
+        }
+    }
+
+    return result;
+
+};
+_rlm = _rlm.Define("Electron_pt_corr", scale_lambda,
+                   {"Electron_pt", "Electron_eta", "Electron_r9", "Electron_seedGain", "run"});
+
+    }
+    else {
+        auto smear_lambda = [smear_corr](const floats &pt,
+                                         const floats &scEta,
+                                         const floats &r9) -> std::tuple<floats, floats, floats>
+        {
+            floats nominal, smear_up, smear_down;
+            size_t N = pt.size();
+            nominal.reserve(N);
+            smear_up.reserve(N);
+            smear_down.reserve(N);
+
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::normal_distribution<float> gauss(0.0, 1.0);
+
+            for (size_t i = 0; i < N; ++i) {
+                float eta = std::abs(scEta[i]);
+                float smear_val = smear_corr->evaluate({"rho", eta, r9[i]});
+                float smear_unc = smear_corr->evaluate({"err_rho", eta, r9[i]});
+                float rand = gauss(gen);
+
+                nominal.emplace_back(pt[i] * (1.0 + smear_val * rand));
+                smear_up.emplace_back(pt[i] * (1.0 + (smear_val + smear_unc) * rand));
+                smear_down.emplace_back(pt[i] * (1.0 + (smear_val - smear_unc) * rand));
+            }
+
+            return std::make_tuple(nominal, smear_up, smear_down);
+        };
+
+        _rlm = _rlm.Define("Electron_pt_corr_triple", smear_lambda,
+                           {"Electron_pt", "Electron_eta", "Electron_r9"})
+                   .Define("Electron_pt_corr", "std::get<0>(Electron_pt_corr_triple)")
+                   .Define("Electron_pt_corr_smearUp", "std::get<1>(Electron_pt_corr_triple)")
+                   .Define("Electron_pt_corr_smearDown", "std::get<2>(Electron_pt_corr_triple)");
+    }
+}
 
 
 void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, /*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,, string muon_roch_fname*/ string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF)
@@ -926,6 +1093,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
 
     // Define a new column with a single boolean per event
     return _rlm.Define(output_var, is_vetoed_event, {eta_var, phi_var});
+
 }
 
 
@@ -1089,76 +1257,8 @@ void NanoAODAnalyzerrdframe::addCuts(string cut, string idx)
 	_cutinfovector.push_back({cut, idx});
 }
 
-/*
-void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
-{
 
 
-	vector<RNodeTree *> rntends;
-	_rnt.getRNodeLeafs(rntends);
-	_rnt.Print();
-    cout << rntends.size() << endl;
-
-
-	for (auto arnt: rntends)
-	{
-		string nodename = arnt->getIndex();
-		string outname = _outfilename;
-		if (rntends.size()>1) outname.replace(outname.find(".root"), 5, "_"+nodename+".root");
-		_outrootfilenames.push_back(outname);
-		RNode *arnode = arnt->getRNode();
-		std::cout<< "-------------------------------------------------------------------" << std::endl;
-                cout<<"cut : " ;
-                cout << arnt->getIndex();
-		if (saveAll) {
-			arnode->Snapshot(outtreename, outname);
-		}
-		else {
-            cout << " --writing branches" << endl;
-			std::cout<< "-------------------------------------------------------------------" << std::endl;
-			for (auto bname: _varstostorepertree[nodename])
-			{
-				cout << bname << endl;
-			}
-			arnode->Snapshot(outtreename, outname, _varstostorepertree[nodename]);
-		}
-		std::cout<< "-------------------------------------------------------------------" << std::endl;
-		cout << "Creating output root file :  " << endl;
-		cout << outname << " ";
-		cout<<endl;
-		std::cout<< "-------------------------------------------------------------------" << std::endl;
-		_outrootfile = new TFile(outname.c_str(), "UPDATE");
-		cout << "Writing histograms...   " << endl;
-		std::cout<< "-------------------------------------------------------------------" << std::endl;
-		for (auto &h : _th1dhistos)
-		{
-			if (h.second.GetPtr() != nullptr) {
-				h.second.GetPtr()->Print();
-				h.second.GetPtr()->Write();
-			}
-		}
-		//for 2D histograms
-		for (auto &h : _th2dhistos)
-		{
-			if (h.second.GetPtr() != nullptr) {
-				h.second.GetPtr()->Print();
-				h.second.GetPtr()->Write();
-			}
-		}
-
-
-		/*TH1F* hPDFWeights = new TH1F("LHEPdfWeightSum", "LHEPdfWeightSum", 103, 0, 1);
-        for (size_t i=0; i<PDFWeights.size(); i++){
-            hPDFWeights->SetBinContent(i+1, PDFWeights[i]);
-		}*/
-/*		_outrootfile->Write(0, TObject::kOverwrite);
-		_outrootfile->Close();
-	}
-    std::cout<< "-------------------------------------------------------------------" << std::endl;
-    std::cout << "END...  :) " << std::endl; 
-
-}
-*/
 
 
 void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
@@ -1226,16 +1326,13 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 				h.second.GetPtr()->Write();
 			}
 		}
-		/*TH1F* hPDFWeights = new TH1F("LHEPdfWeightSum", "LHEPdfWeightSum", 103, 0, 1);
-		for (size_t i=0; i<PDFWeights.size(); i++){
-			hPDFWeights->SetBinContent(i+1, PDFWeights[i]);
-		}*/
 		_outrootfile->Write(0, TObject::kOverwrite);
 		_outrootfile->Close();
 	}
 	std::cout << "-------------------------------------------------------------------" << std::endl;
 	std::cout << "END...  :) " << std::endl;
 }
+
 
 void NanoAODAnalyzerrdframe::setParams(int year, string runtype, int datatype)
 {

@@ -64,19 +64,28 @@ void BaseAnalyser::defineCuts()
 	auto Nentry = _rlm.Count();
 	// This is how you can express a range of the first 100 entries
 	//_rlm = _rlm.Range(0, 100000);
+
     auto Nentry_100 = _rlm.Count();
-	std::cout<< "-------------------------------------------------------------------" << std::endl;
+	std::cout<< "---------------------------------------4----------------------------" << std::endl;
     cout << "Usage of ranges:\n"
         << " - All entries: " << *Nentry << endl;
 		//<< " - Entries from 0 to 100: " << *Nentry_100 << endl;
 	std::cout<< "-------------------------------------------------------------------" << std::endl;
+        std::cout<< "--------------------------------0-----------------------------------" << std::endl;
 
 	//MinimalSelection to filter events
 	addCuts("nElectron+nMuon>=1 && nJet>1 && PV_npvsGood>=1", "0");
+        std::cout<< "------------------------------------1-------------------------------" << std::endl;
+
 //	addCuts("region_2j1t","1");
 //    addCuts("ncleanjetspass>0","00");
+
 	addCuts(setHLT(),"00"); //HLT cut buy checking HLT names in the root file
-        addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter","000");
+        std::cout<< "--------------------------------------2-----------------------------" << std::endl;
+
+	addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter","000");
+        std::cout<< "---------------------------------------3----------------------------" << std::endl;
+
 }
 //===============================Find Good Electrons===========================================//
 //: Define Good Electrons in rdata frame
@@ -93,8 +102,8 @@ void BaseAnalyser::selectElectrons()
     _rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
    
     _rlm = _rlm.Define("goodElectronsID", "Electron_cutBased==4"); //without pt-eta cuts
-    _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt>35.0 && abs(Electron_eta+Electron_deltaEtaSC)<2.5 && Electron_pfRelIso03_all<0.0588 && Electron_mvaIso_WP90==1");
-    _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt[goodElectrons]")
+    _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt_corr>35.0 && abs(Electron_eta+Electron_deltaEtaSC)<2.5 && Electron_pfRelIso03_all<0.0588 && Electron_mvaIso_WP90==1");
+    _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt_corr[goodElectrons]")
 		.Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[0]) : numb")
 
                 .Define("goodElectrons_eta", "Electron_eta[goodElectrons]")
@@ -235,6 +244,7 @@ void BaseAnalyser::selectMuons()
     _rlm = _rlm.Define("rev_iso_mu_4vec", ::generate_single_4vec, {"rev_iso_mu_leading_pt", "rev_iso_mu_leading_eta", "rev_iso_mu_leading_phi", "rev_iso_mu_leading_mass"});
     _rlm = _rlm.Define("rev_iso_mu_TL4vec", ::generate_TLorentzVector, {"rev_iso_mu_leading_pt", "rev_iso_mu_leading_eta", "rev_iso_mu_leading_phi", "rev_iso_mu_leading_mass"});
     _rlm = _rlm.Define("rev_iso_mu_4vecs", ::generate_4vec, {"rev_iso_mu_pt_collection", "rev_iso_mu_eta_collection", "rev_iso_mu_phi_collection", "rev_iso_mu_mass_collection"});
+
 
 }
 
@@ -399,6 +409,7 @@ void BaseAnalyser::selectJets()
 	.Define("goodJets_all_lflav_pt", "goodJets_pt[all_lflav_goodJets]")
 	.Define("goodJets_all_lflav_eta", "goodJets_eta[all_lflav_goodJets]");
     }
+
 }
 
 void BaseAnalyser::spectatorJets()
@@ -466,7 +477,6 @@ void BaseAnalyser::removeOverlaps()
 	_rlm = _rlm.Define("checkOverlap", checkoverlap, {"goodJets_4vecs","lepton_forOverlapCheck"});
 //        _rlm = _rlm.Define("checkOverlap", "ROOT::RVec<int>(numb, 1)");
 	
-//std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
 
   //  _rlm = _rlm.Define("muonjetoverlap", checkoverlap, {"goodJets_4vecs","goodmuons_4vecs"});
 	_rlm =	_rlm.Define("Selected_jeteta", "goodJets_eta[checkOverlap]")
@@ -523,9 +533,9 @@ void BaseAnalyser::removeOverlaps()
 			.Define("cleanbjet4vecs", ::generate_4vec, {"Selected_bjetpt", "Selected_bjeteta", "Selected_bjetphi", "Selected_bjetmass"});
 	        _rlm = _rlm.Define("selected_cleanbjet_4vec",::generate_single_4vec, {"Selected_bjet_leading_pt", "Selected_bjet_leading_eta", "Selected_bjet_leading_phi", "Selected_bjet_leading_mass"});
                 _rlm = _rlm.Define("selected_cleanbjet_TL4vec",:: generate_TLorentzVector,{"Selected_bjet_leading_pt", "Selected_bjet_leading_eta", "Selected_bjet_leading_phi", "Selected_bjet_leading_mass"});
-		
                 _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi").Filter("!vetoed_jets");
            //std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
+
 
 
     if(!_isData){
@@ -533,6 +543,8 @@ void BaseAnalyser::removeOverlaps()
 
 
     }
+
+
 }
 
 
@@ -697,9 +709,6 @@ void BaseAnalyser::Background_Estimation()
 
 //           .Define("muon_isolation_collection","Muon_pfRelIso04_all[muon_2j0t]");
 //           .Define("muon_isolation", "int(muon_isolation_collection.size())>0 ? muon_isolation_collection[0] : numb");
-std::cout << "Type of muon_isolation_collection: " 
-          << _rlm.GetColumnType("Muon_pt") 
-          << std::endl;
 _rlm = _rlm.Define("muon_isolation", "region_2j0t && muonChannel  ? static_cast<double>(Muon_pfRelIso04_all[0]) : numb");
 _rlm = _rlm.Define("ele_isolation", "region_2j0t && electronChannel ? static_cast<double>(Electron_pfRelIso03_all[0]) : numb");
 _rlm = _rlm.Define("ele_isolation_barrel", "region_2j0t && electronChannel && abs(Electron_eta[0])<1.47 ?static_cast<double>(Electron_pfRelIso03_all[0]) : numb");
@@ -805,6 +814,9 @@ _rlm = _rlm.Define("bdt_WHelicity_muon_3j2t", "region_3j2t &&  muonChannel && Wb
 _rlm = _rlm.Define("bdt_WHelicity_ele_2j1t", "region_2j1t &&  electronChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
 _rlm = _rlm.Define("bdt_WHelicity_ele_2j0t", "region_2j0t &&  electronChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
 _rlm = _rlm.Define("bdt_WHelicity_ele_3j2t", "region_3j2t &&  electronChannel && Wboson_transversMass>=50 ? bdt_WHelicity : numb");
+
+
+
 
 }
 //=============================define variables==================================================//
@@ -925,7 +937,7 @@ void BaseAnalyser::defineMoreVars()
    
 // my variables start drom here -------------------------------------------------------------------------	   
     addVartoStore("muon_isolation");
-    addVartoStore("vetoed_jets");
+/*    addVartoStore("vetoed_jets");
     addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
     addVartoStore("goodElectrons_leading_phi");
@@ -934,7 +946,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodmuons_leading_phi");
     addVartoStore("good_bjet_leading_pt");
     addVartoStore("good_bjet_leading_phi");
-    addVartoStore("good_bjet_leading_eta");
+    addVartoStore("good_bjet_leading_eta");*/
    /* addVartoStore("goodJets_btagpass_bcflav_pt");
     addVartoStore("goodJets_btagpass_bcflav_eta");
     addVartoStore("goodJets_all_bcflav_pt");
@@ -951,7 +963,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("rev_iso_mu_leading_eta");
     addVartoStore("rev_iso_mu_leading_phi");
     addVartoStore("bjet_mass");*/
-    addVartoStore("lepton_charge");    
+    /*addVartoStore("lepton_charge");    
     addVartoStore("bdt_wboson_QCDele_2j1t");
     addVartoStore("bdt_wboson_muon_2j1t");
     addVartoStore("bdt_wboson_QCDmuon_2j1t");
@@ -1006,9 +1018,9 @@ void BaseAnalyser::defineMoreVars()
     //addVartoStore("nJet");
     //addVartoStore("evWeight");
     //addVartoStore("genWeight");
-    //addVartoStore("genEventSumw");
+    //addVartoStore("genEventSumw");*/
 
-    addVartoStore("ncleanbjetspass");
+ //   addVartoStore("ncleanbjetspass");
    /* addVartoStore("top_mass_2j1t");
     addVartoStore("top_mass_2j1t_ele");
     addVartoStore("top_mass_2j1t_muon");
@@ -1018,7 +1030,7 @@ void BaseAnalyser::defineMoreVars()
    // addVartoStore("top_pt");
     addVartoStore("evWeight");*/
 
-
+/*
     addVartoStore("Wboson_transversMass");
     addVartoStore("Wboson_transversemass_ele");
     addVartoStore("Wboson_transversemass_ele_barrel");
@@ -1045,7 +1057,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("bdt_WHelicity");
     
     addVartoStore("QCDmuonChannel");
-    addVartoStore("QCDelectronChannel");
+    addVartoStore("QCDelectronChannel");*/
      // addVartoStore("genWeight");
     //addVartoStore("top_pt");
     //addVartoStore("w_pt");
@@ -1163,6 +1175,11 @@ void BaseAnalyser::setupObjects()
         reconstructWboson();
         reconstructTop();
 	Background_Estimation();
+    auto Nentry_2 = _rlm.Count();
+        std::cout<< "---------------------------------------4----------------------------" << std::endl;
+    cout << "Usage of ranges:\n"
+        << " - All entries: " << *Nentry_2 << endl;
+
 }
 
 void BaseAnalyser::setupAnalysis()

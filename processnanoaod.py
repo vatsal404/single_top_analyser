@@ -215,7 +215,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection)
         raise
 
     # Handle corrections with expanded configuration
-    skipcorrections = procflags.get('skipcorrections', True)
+    skipcorrections = procflags.get('skipcorrections', False)
     if not skipcorrections:
         print("Applying corrections...")
         aproc.setupCorrections(
@@ -237,7 +237,15 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection)
             config['jercfname'],
             config['jerctag'],
             config['jercunctag']
-        )
+            config['jercunctag']
+            config['jercunctag']
+            config['jercunctag']
+            config['jercunctag']
+            config['jercunctag']
+
+            
+            
+)
     else:
         print("Skipping corrections step")
 

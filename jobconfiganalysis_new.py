@@ -26,36 +26,40 @@ config = {
 
         # good json file
         # 'goodjson': 'data/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt',
-        'goodjson' : 'data/Legacy_RunII/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt',
+        'goodjson' : 'data/Cert_Collisions2022_355100_362760_Golden.json',
 
         # pileup weight for MC
-        'pileupfname': 'data/LUM/2017_UL/puWeights.json',
+        'pileupfname': 'data/LUM/2022_preEE/puWeights.json',
 
-        'pileuptag': 'Collisions17_UltraLegacy_goldenJSON',
+        'pileuptag': 'Collisions2022_355100_357900_eraBCD_GoldenJson',
 
         # json filename for BTV correction
-        'btvfname': 'data/BTV/2017_UL/btagging.json',
+        'btvfname': 'data/BTV/2022_preEE/btagging.json',
 
         # BTV correction type
         'btvtype': 'deepJet_shape',
 
         # json file name for JERC
-        'jercfname': 'data/JERC/UL17_jerc.json',
+        'jercfname': 'data/JERC/2022_preEE/jet_jerc.json',
 
         # conbined correction type for jets
-        'jerctag': 'Summer19UL17_V5_MC_L1L2L3Res_AK4PFchs', 
+        'jerctag': 'Summer22_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi', 
 
         # jet uncertainty 
-        'jercunctag': 'Summer19UL17_V5_MC_Total_AK4PFchs', 
+        'jercunctag': 'Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi', 
         'muon_roch_fname': 'data/MUO/2017_UL/RoccoR2017UL.txt',
-        'muon_fname': 'data/MUO/2017_UL/muon_Z.json.gz',
-        'muonHLTtype': 'NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight',
+        'muon_fname': 'data/MUON/2022_preEE/muon_Z.json.gz',
+        'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
         'muonRECOtype': 'NUM_TrackerMuons_DEN_genTracks',
-        'muonIDtype': 'NUM_MediumID_DEN_TrackerMuons',
-        'muonISOtype': 'NUM_TightRelIso_DEN_MediumID',
-        'electron_fname': 'data/EGM/2017_UL/electron.json.gz',
-        'electron_reco_type': 'RecoAbove20',
-        'electron_id_type': 'Tight'
+        'muonIDtype': 'NUM_TightID_DEN_TrackerMuons',
+        'muonISOtype': 'NUM_TightPFIso_DEN_TightID',
+        'electron_fname': 'data/EGM/2022_preEE/electron.json.gz',
+        'electron_reco_type1': 'Reco20to75',
+        'electron_reco_type2' =  'RecoAbove75',
+        'electron_id_type': 'wp90iso',
+        'jet_veto_f_name':'scalefactors/jetvetomaps.json',
+        'jet_veto_tag' : 'Summer22_23Sep2023_RunCD_V1',
+        'electron_SSF' :'data/EGM/2022_preEE/electronSS.json',
         }
 
 # processing options
