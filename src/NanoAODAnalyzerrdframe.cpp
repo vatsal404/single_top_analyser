@@ -323,156 +323,6 @@ void NanoAODAnalyzerrdframe::applyMuPtCorrection() //data and MC
     
   }
 }
-/*
-void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
-{
-  std::cout << "Apply Electron Pt correction" << std::endl;
-
-      if (!_correction_electronss) {
-        std::cerr << "Electron corrections file not loaded!" << std::endl;
-        return; // or throw exception
-    }
-    // Apply scale correction (used in both MC and data)
-   static auto scale_corr = _correction_electronss->at("Scale");
-
-   static auto smear_corr = _correction_electronss->at("Smearing");
-
-  if (_isData)
-  {
-auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
-                                 const ROOT::VecOps::RVec<float> &scEta,
-                                 const ROOT::VecOps::RVec<float> &r9,
-                                 const ROOT::VecOps::RVec<UChar_t> &seedGain,
-                                 unsigned int run) -> ROOT::VecOps::RVec<float> {
-    ROOT::VecOps::RVec<float> result;
-    for (size_t i = 0; i < pt.size(); ++i) {
-        float factor = scale_corr->evaluate({"scale", std::to_string(run), scEta[i], r9[i], std::abs(scEta[i]), pt[i], seedGain[i]});
-        result.emplace_back(pt[i] * factor);
-    }
-    return result;
-};
-
-    
-
-    _rlm = _rlm.Define("Electron_pt_corr", scale_lambda, {"Electron_pt", "Electron_eta", "Electron_r9", "Electron_seedGain", "run"});
-  }
-  else
-  {
-    auto smear_lambda = [smear_corr](const RVec<Float_t> &pt, const RVec<Float_t> &scEta, const RVec<Float_t> &r9)
-    -> std::tuple<RVec<Float_t>, RVec<Float_t>, RVec<Float_t>> 
-    {
-      floats nominal, smear_up, smear_down;
-      size_t N = pt.size();
-      nominal.reserve(N);
-      smear_up.reserve(N);
-      smear_down.reserve(N);
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::normal_distribution<float> gauss(0.0, 1.0);
-
-      for (size_t i = 0; i < N; ++i) {
-        float smear_val = smear_corr->evaluate({"smear", pt[i], r9[i], std::abs(scEta[i])});
-        float smear_unc = smear_corr->evaluate({"esmear", pt[i], r9[i], std::abs(scEta[i])});
-        float rand = gauss(gen);
-
-        float nominal_corr = pt[i] * (1.0 + smear_val * rand);
-        float up_corr = pt[i] * (1.0 + (smear_val + smear_unc) * rand);
-        float down_corr = pt[i] * (1.0 + (smear_val - smear_unc) * rand);
-
-    nominal.emplace_back(nominal_corr);
-    smear_up.emplace_back(up_corr);
-    smear_down.emplace_back(down_corr);
-  }
-
-  return std::make_tuple(nominal, smear_up, smear_down);
-};
-
-_rlm = _rlm.Define("Electron_pt_corr_triple", smear_lambda, {"Electron_pt", "Electron_eta", "Electron_r9"})
-           .Define("Electron_pt_corr",           "std::get<0>(Electron_pt_corr_triple)")
-           .Define("Electron_pt_corr_smearUp",   "std::get<1>(Electron_pt_corr_triple)")
-           .Define("Electron_pt_corr_smearDown", "std::get<2>(Electron_pt_corr_triple)");
-
-std::cout << "Type of Electron_pt: " << _rlm.GetColumnType("Electron_pt") << std::endl;
-std::cout << "Type of Electron_pt_corr: " << _rlm.GetColumnType("Electron_pt_corr") << std::endl;
-
-  }
-};
-
-*/
-/*void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
-{
-    std::cout << "Apply Electron Pt correction" << std::endl;
-
-    if (!_correction_electronss) {
-        std::cerr << "Electron corrections file not loaded!" << std::endl;
-        return;
-    }
-
-    static auto scale_corr = _correction_electronss->at("Scale");
-    static auto smear_corr = _correction_electronss->at("Smearing");
-
-    if (_isData) {
-        auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
-                                         const ROOT::VecOps::RVec<float> &scEta,
-                                         const ROOT::VecOps::RVec<float> &r9,
-                                         const ROOT::VecOps::RVec<UChar_t> &seedGain,
-                                         unsigned int run) -> ROOT::VecOps::RVec<float> {
-            ROOT::VecOps::RVec<float> result;
-            result.reserve(pt.size());
-
-            for (size_t i = 0; i < pt.size(); ++i) {
-                float factor = scale_corr->evaluate(
-                    {"scale", std::to_string(run), scEta[i], r9[i], std::abs(scEta[i]), pt[i], seedGain[i]});
-                result.emplace_back(pt[i] * factor);
-            }
-            return result;
-        };
-
-        _rlm = _rlm.Define("Electron_pt_corr", scale_lambda,
-                           {"Electron_pt", "Electron_eta", "Electron_r9", "Electron_seedGain", "run"});
-    }
-    else {
-        // Fix: use ROOT::VecOps::RVec<Float_t>
-        using ROOT::VecOps::RVec;
-
-
-auto smear_nominal = [smear_corr](const RVec<float> &pt,
-                                   const RVec<float> &scEta,
-                                   const RVec<float> &r9) {
-    RVec<float> out;
-    std::mt19937 gen(std::random_device{}());
-    std::normal_distribution<float> gauss(0.0, 1.0);
-    
-    for (size_t i = 0; i < pt.size(); ++i) {
-        float smear_val = smear_corr->evaluate({"rho", std::abs(scEta[i]), r9[i]});
-        float rand = gauss(gen);
-        float smeared_pt = pt[i] * (1.0 + smear_val * rand);
-        out.emplace_back(smeared_pt);
-    }
-    
-    return out;
-};
-
-// Define smeared pt column in RDataFrame
-_rlm = _rlm.Define("Electron_pt_corr", smear_nominal, {"Electron_pt", "Electron_eta", "Electron_r9"});
-
-// Take values of corrected pt
-auto electronCorrVec = _rlm.Take<RVec<float>>("Electron_pt_corr");
-
-// Print first 5 events
-std::cout << "First 5 events of Electron_pt_corr:" << std::endl;
-for (size_t i = 0; i < std::min<size_t>(5, electronCorrVec->size()); ++i) {
-    std::cout << "  Event [" << i << "] -> [";
-    for (const auto& val : electronCorrVec->at(i)) {
-        std::cout << val << ", ";
-    }
-    std::cout << "]" << std::endl;
-}
-
-    
-    }
-}
-*/
 void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
 {
     std::cout << "Apply Electron Pt correction" << std::endl;
@@ -815,12 +665,12 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 					continue;
 				if (hadflav[i] != 0)
 				{
-					double bcjets_weights = _correction_btag1->at("deepJet_mujets")->evaluate({variation, "T", hadflav[i], std::fabs(etas[i]), pts[i]});
+					double bcjets_weights = _correction_btag1->at("particleNet_shape")->evaluate({variation, hadflav[i], std::fabs(etas[i]), pts[i],0.6734});
 					btagWeight *= bcjets_weights;
 				}
 				else
 				{
-					double lightjets_weights = _correction_btag1->at("deepJet_incl")->evaluate({variation, "T", hadflav[i], std::fabs(etas[i]), pts[i]});
+					double lightjets_weights = _correction_btag1->at("particleNet_shape")->evaluate({variation, hadflav[i], std::fabs(etas[i]), pts[i],0.673et});
 					btagWeight *= lightjets_weights;
 				}
 			}
@@ -895,7 +745,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
 
       for (std::size_t i = 0; i < pts.size(); i++) {
 	//std::cout << "Muon abs_eta:" << std::fabs(etas[i]) << " pt: " << pts[i] << std::endl;
-	double w = _correction_muon->at(muon_type)->evaluate({std::to_string(_year)+"_"+_runtype, std::fabs(etas[i]), pts[i], variation}); 
+	double w = _correction_muon->at(muon_type)->evaluate({std::fabs(etas[i]), pts[i], variation}); 
 	muonHLT_w *= w;
 	//std::cout << "Individual HLT weight (muon " << i << "): " << w << std::endl;
 	//std::cout << "Cumulative HLT weight after muon " << i << ": " << muonHLT_w << std::endl;
@@ -904,7 +754,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
     };
 
     //'sf' is nominal, and 'systup' and 'systdown' are up/down variations with total stat+-syst uncertainties. Individual systs are also available (in these cases syst only, not sf +/- syst
-    std::vector<std::string> variations = {"sf", "systup", "systdown","syst"};
+    std::vector<std::string> variations = {"nominal", "systup", "systdown","syst"};
 
 
     //cout<<"Generate MUONHLT weight"<<endl;
@@ -944,7 +794,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
 	}, Muon_vars);
 
       std::string column_name = output_var;
-      if(variation=="sf"){
+      if(variation=="nominal"){
 	column_name += "central";
       }
       else if(variation=="systup"){
@@ -977,7 +827,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<
 
       for (std::size_t i = 0; i < pts.size(); i++) {
 	
-	double w = _correction_electron->at("UL-Electron-ID-SF")->evaluate({std::to_string(_year), variation, eletype, std::fabs(etas[i]), pts[i]}); 
+	double w = _correction_electron->at("Electron-ID-SF")->evaluate({"2022Re-recoBCD", variation, eletype, std::fabs(etas[i]), pts[i]}); 
 	electronReco_w *= w;
 	//std::cout << "Individual weight (electron " << i << "): " << w << std::endl;
 	//std::cout << "Cumulative weight after electron " << i << ": " << electronId_w << std::endl;

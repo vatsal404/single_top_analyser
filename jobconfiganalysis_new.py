@@ -55,7 +55,7 @@ config = {
         'muonISOtype': 'NUM_TightPFIso_DEN_TightID',
         'electron_fname': 'data/EGM/2022_preEE/electron.json.gz',
         'electron_reco_type1': 'Reco20to75',
-        'electron_reco_type2' =  'RecoAbove75',
+        'electron_reco_type2' :  'RecoAbove75',
         'electron_id_type': 'wp90iso',
         'jet_veto_f_name':'scalefactors/jetvetomaps.json',
         'jet_veto_tag' : 'Summer22_23Sep2023_RunCD_V1',

@@ -224,10 +224,10 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection)
             config['pileuptag'],
             config['btvfname'],
             config['btvtype'],
-            config['muon_roch_fname'],
+          #  config['muon_roch_fname'],
             config['muon_fname'],
             config['muonHLTtype'],
-            config['muonRECOtype'],
+          #  config['muonRECOtype'],
             config['muonIDtype'],
             config['muonISOtype'],
             config['electron_fname'],
@@ -236,12 +236,12 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection)
             config['electron_id_type'],
             config['jercfname'],
             config['jerctag'],
-            config['jercunctag']
-            config['jercunctag']
-            config['jercunctag']
-            config['jercunctag']
-            config['jercunctag']
-            config['jercunctag']
+            config['jercunctag'],
+            config['jet_veto_f_name'],
+            config['jet_veto_tag'],
+            config['electron_SSF']
+       
+     
 
             
             

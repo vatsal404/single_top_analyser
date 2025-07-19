@@ -66,25 +66,19 @@ void BaseAnalyser::defineCuts()
 	//_rlm = _rlm.Range(0, 100000);
 
     auto Nentry_100 = _rlm.Count();
-	std::cout<< "---------------------------------------4----------------------------" << std::endl;
     cout << "Usage of ranges:\n"
         << " - All entries: " << *Nentry << endl;
 		//<< " - Entries from 0 to 100: " << *Nentry_100 << endl;
-	std::cout<< "-------------------------------------------------------------------" << std::endl;
-        std::cout<< "--------------------------------0-----------------------------------" << std::endl;
 
 	//MinimalSelection to filter events
 	addCuts("nElectron+nMuon>=1 && nJet>1 && PV_npvsGood>=1", "0");
-        std::cout<< "------------------------------------1-------------------------------" << std::endl;
 
 //	addCuts("region_2j1t","1");
 //    addCuts("ncleanjetspass>0","00");
 
 	addCuts(setHLT(),"00"); //HLT cut buy checking HLT names in the root file
-        std::cout<< "--------------------------------------2-----------------------------" << std::endl;
 
 	addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter","000");
-        std::cout<< "---------------------------------------3----------------------------" << std::endl;
 
 }
 //===============================Find Good Electrons===========================================//
@@ -130,8 +124,8 @@ void BaseAnalyser::selectElectrons()
 
 
     /*-----------------revert isolated Electron----------*/
-    _rlm = _rlm.Define("rev_iso_el", "Electron_cutBased<=2 && Electron_pt>32 && abs(Electron_eta+Electron_deltaEtaSC)<2.1 && Electron_pfRelIso03_all<0.85");
-    _rlm = _rlm.Define("rev_iso_el_pt_collection", "Electron_pt[rev_iso_el]")
+    _rlm = _rlm.Define("rev_iso_el", "Electron_cutBased<=2 && Electron_pt_corr>32 && abs(Electron_eta+Electron_deltaEtaSC)<2.1 && Electron_pfRelIso03_all<0.85");
+    _rlm = _rlm.Define("rev_iso_el_pt_collection", "Electron_pt_corr[rev_iso_el]")
                .Define("rev_iso_el_leading_pt", "int(rev_iso_el_pt_collection.size())>0 ? rev_iso_el_pt_collection[0] : numb")
 
                .Define("rev_iso_el_eta_collection", "Electron_eta[rev_iso_el]")
@@ -158,8 +152,8 @@ void BaseAnalyser::selectElectrons()
 
 
    /*--------------- veto Electron ID ---------------*/
-    _rlm = _rlm.Define("veto_el", "Electron_cutBased>=1 && Electron_pt>15 && abs(Electron_eta+Electron_deltaEtaSC)<2.5");
-    _rlm = _rlm.Define("veto_el_pt_collection", "Electron_pt[veto_el]")
+    _rlm = _rlm.Define("veto_el", "Electron_cutBased>=1 && Electron_pt_corr>15 && abs(Electron_eta+Electron_deltaEtaSC)<2.5");
+    _rlm = _rlm.Define("veto_el_pt_collection", "Electron_pt_corr[veto_el]")
                .Define("N_veto_el", "int(veto_el_pt_collection.size())");
 
 
@@ -341,12 +335,12 @@ void BaseAnalyser::selectJets()
 
     _rlm = _rlm.Define("goodJetsID", JetID(6)); //without pt-eta cuts
 //    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
-    _rlm = _rlm.Define("goodJets_high_eta", "Jet_pt>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
-    _rlm = _rlm.Define("goodJets_low_eta", "Jet_pt>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
+    _rlm = _rlm.Define("goodJets_high_eta", "Jet_pt_corr>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
+    _rlm = _rlm.Define("goodJets_low_eta", "Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
     _rlm = _rlm.Define("goodJets", " goodJets_high_eta || goodJets_low_eta ");
 
 
-    _rlm = _rlm.Define("goodJets_pt", "Jet_pt[goodJets]")
+    _rlm = _rlm.Define("goodJets_pt", "Jet_pt_corr[goodJets]")
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
                 .Define("goodJets_mass", "Jet_mass[goodJets]")
@@ -633,11 +627,12 @@ if(!_isData ) // Only use genWeight
    std::cout << "[DEBUG] In Analyze. Cross-section = " << _crossection << std::endl;
    std::cout << "[DEBUG] In Analyze. lumifactor = " << lumifactor << std::endl;
 
-  _rlm=_rlm .Define("evWeight", "genWeight * Lumifactor");  	
+  //_rlm=_rlm .Define("evWeight", ""Lumifactor * pugenWeight*");  	
+  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central* ele_SF_central*btag_SF_central"); 
 
         }
-  //  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
-  //_rlm = _rlm.Define("evWeight", " puWeight * muon_SF_central * ele_SF_central * btag_SF_central"); 
+//  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
+//  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_central"); 
   
 }
 //MET
@@ -650,9 +645,9 @@ void BaseAnalyser::selectMET()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-   _rlm = _rlm.Define("goodMET", "MET_pt>=30")  // Boolean flag
-          .Define("goodMET_pt", "goodMET ? MET_pt : numb")  // Assign numb for events failing cut
-          .Define("goodMET_phi", "goodMET ? MET_phi : numb ");
+   _rlm = _rlm.Define("goodMET", "PuppiMET_pt>=30")  // Boolean flag
+          .Define("goodMET_pt", "goodMET ? PuppiMET_phi : numb")  // Assign numb for events failing cut
+          .Define("goodMET_phi", "goodMET ? PuppiMET_phi : numb ");
 
     //            .Define("goodMET_eta","MET_eta[goodMET]")
    //
@@ -937,7 +932,7 @@ void BaseAnalyser::defineMoreVars()
    
 // my variables start drom here -------------------------------------------------------------------------	   
     addVartoStore("muon_isolation");
-/*    addVartoStore("vetoed_jets");
+    addVartoStore("vetoed_jets");
     addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
     addVartoStore("goodElectrons_leading_phi");
@@ -946,7 +941,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodmuons_leading_phi");
     addVartoStore("good_bjet_leading_pt");
     addVartoStore("good_bjet_leading_phi");
-    addVartoStore("good_bjet_leading_eta");*/
+    addVartoStore("good_bjet_leading_eta");
    /* addVartoStore("goodJets_btagpass_bcflav_pt");
     addVartoStore("goodJets_btagpass_bcflav_eta");
     addVartoStore("goodJets_all_bcflav_pt");
@@ -963,7 +958,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("rev_iso_mu_leading_eta");
     addVartoStore("rev_iso_mu_leading_phi");
     addVartoStore("bjet_mass");*/
-    /*addVartoStore("lepton_charge");    
+    addVartoStore("lepton_charge");    
     addVartoStore("bdt_wboson_QCDele_2j1t");
     addVartoStore("bdt_wboson_muon_2j1t");
     addVartoStore("bdt_wboson_QCDmuon_2j1t");
@@ -1013,22 +1008,19 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("bdt_MET_pt_ele_2j1t");
     addVartoStore("bdt_MET_pt_ele_3j2t");
     
-   addVartoStore("evWeight");
-   //addVartoStore("Jet_pt");
-    //addVartoStore("nJet");
     //addVartoStore("evWeight");
     //addVartoStore("genWeight");
     //addVartoStore("genEventSumw");*/
 
  //   addVartoStore("ncleanbjetspass");
-   /* addVartoStore("top_mass_2j1t");
+    addVartoStore("top_mass_2j1t");
     addVartoStore("top_mass_2j1t_ele");
     addVartoStore("top_mass_2j1t_muon");
     addVartoStore("top_mass_2j0t");
     addVartoStore("top_mass_3j2t");
     addVartoStore("top_mass");
-   // addVartoStore("top_pt");
-    addVartoStore("evWeight");*/
+    addVartoStore("top_pt");
+    addVartoStore("evWeight");
 
 /*
     addVartoStore("Wboson_transversMass");
@@ -1176,7 +1168,6 @@ void BaseAnalyser::setupObjects()
         reconstructTop();
 	Background_Estimation();
     auto Nentry_2 = _rlm.Count();
-        std::cout<< "---------------------------------------4----------------------------" << std::endl;
     cout << "Usage of ranges:\n"
         << " - All entries: " << *Nentry_2 << endl;
 
