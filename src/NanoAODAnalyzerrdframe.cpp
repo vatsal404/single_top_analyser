@@ -670,7 +670,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 				}
 				else
 				{
-					double lightjets_weights = _correction_btag1->at("particleNet_shape")->evaluate({variation, hadflav[i], std::fabs(etas[i]), pts[i],0.673et});
+					double lightjets_weights = _correction_btag1->at("particleNet_shape")->evaluate({variation, hadflav[i], std::fabs(etas[i]), pts[i],0.6734});
 					btagWeight *= lightjets_weights;
 				}
 			}

@@ -619,7 +619,7 @@ if(!_isData ) // Only use genWeight
   std::string output_ele_column_name = "ele_SF_";
   _rlm = calculateEleSF(_rlm, Electron_vars_names, output_ele_column_name);
   auto sumgenweight = _rd.Sum("genWeight");
-  float lumi=39700;
+  float lumi=7890;
   double lumifactor = (_crossection * lumi) / (*sumgenweight);
   _rlm = _rlm.Define("Lumifactor", [lumifactor]() {
     return lumifactor;
