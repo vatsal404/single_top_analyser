@@ -60,32 +60,6 @@ tar -xzf package.tar.gz
 
 cat $log_file
 
-# Check if the output file exists before copying
-if [ -f "${output_file}" ]; then
-    echo "Copying file ${output_file} to EOS..."
-    xrdcp -f $output_file ${eos_output_dir}$(basename $output_file)
-
-    # Verify transfer
-    xrdfs root://cmseos.fnal.gov/ stat ${eos_output_dir}$(basename $output_file)
-    if [ $? -eq 0 ]; then
-        echo "File successfully copied to EOS: ${eos_output_dir}$(basename $output_file)"
-    else
-        echo "Error: Failed to copy file to EOS"
-        exit 1
-    fi
-else
-    echo "Error: Local output file not found: $output_file"
-    exit 1
-fi
-
-# Cleanup if running in Condor
-if [ -n "${_CONDOR_SCRATCH_DIR}" ]; then
-    echo "Cleaning up scratch directory..."
-    rm -rf ${_CONDOR_SCRATCH_DIR}/*
-    echo "Job Completed and scratch directory cleaned."
-else
-    echo "Running locally, no cleanup needed."
-fi
 
 echo "Job Completed."
 

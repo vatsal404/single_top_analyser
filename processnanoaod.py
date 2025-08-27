@@ -12,6 +12,13 @@ from multiprocessing import Process
 import cppyy
 import ROOT
 
+def is_filelist(path):
+    """
+    Check if the input path is a text file (list of files) or a ROOT file/directory.
+    Returns True if path looks like a text file containing a file list.
+    """
+    return os.path.isfile(path) and path.endswith(".txt")
+
 def get_root_file_paths(indir, xrootd_prefix="root://cmsxrootd.fnal.gov/"):
     """
     Function to retrieve ROOT file paths using dasgoclient.
@@ -153,11 +160,14 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection)
     if not re.match('.*\.root', outputroot):
         print("Output file should be a root file! Quitting")
         exit(-1)
-
     rootfilestoprocess = []
     is_das_path = is_valid_das_path(indir)
-
-    if is_das_path:
+    if is_filelist(indir):
+        
+        print(f"READ root files from batch list:\n{indir}\n")
+        with open(indir) as f:
+           rootfilestoprocess = [l.strip() for l in f if l.strip() and not l.startswith("#")]
+    elif is_das_path:
         print(f"COLLECT root files from DAS dataset:\n{indir}\n")
         rootfilestoprocess = get_root_file_paths(indir)
     else:
@@ -195,7 +205,19 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection)
 
     t = ROOT.TChain(intreename)
     for afile in rootfilestoprocess:
-        t.Add(afile)
+        try:
+            # Try opening the file remotely/local
+            ftest = ROOT.TFile.Open(afile)
+            if ftest and not ftest.IsZombie() and ftest.GetSize() > 0:
+                t.Add(afile)
+                print(f"  OK: {afile}")
+            else:
+                print(f"  SKIP (bad or empty): {afile}")
+            if ftest:
+                ftest.Close()
+        except Exception as e:
+            print(f"  SKIP (exception: {e}): {afile}")
+
     nevents = t.GetEntries()
     print("-------------------------------------------------------------------")
     print("Total Number of Entries:", nevents)

@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <typeinfo>
 #include <random>
-
 #include "TCanvas.h"
 #include "Math/GenVector/VectorUtil.h"
 #include <vector>
@@ -373,8 +372,10 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
     return result;
 
 };
+_rlm = _rlm.Define("Electron_eta_supercluster", "Electron_eta + Electron_deltaEtaSC");
+
 _rlm = _rlm.Define("Electron_pt_corr", scale_lambda,
-                   {"Electron_pt", "Electron_eta", "Electron_r9", "Electron_seedGain", "run"});
+                   {"Electron_pt", "Electron_eta_supercluster", "Electron_r9", "Electron_seedGain", "run"});
 
     }
     else {
@@ -405,9 +406,10 @@ _rlm = _rlm.Define("Electron_pt_corr", scale_lambda,
 
             return std::make_tuple(nominal, smear_up, smear_down);
         };
+      _rlm = _rlm.Define("Electron_eta_supercluster", "Electron_eta + Electron_deltaEtaSC");
 
         _rlm = _rlm.Define("Electron_pt_corr_triple", smear_lambda,
-                           {"Electron_pt", "Electron_eta", "Electron_r9"})
+                           {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"})
                    .Define("Electron_pt_corr", "std::get<0>(Electron_pt_corr_triple)")
                    .Define("Electron_pt_corr_smearUp", "std::get<1>(Electron_pt_corr_triple)")
                    .Define("Electron_pt_corr_smearDown", "std::get<2>(Electron_pt_corr_triple)");
@@ -895,31 +897,6 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<
     }
     return _rlm;
 }
-/*
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
-                                                          const std::string& eta_var,
-                                                          const std::string& phi_var,
-							  const std::string& output_var) {
-    std::cout << "Applying Jet veto map..." << std::endl;  // ← Now only prints once
-    	auto vetoed = [this](const ROOT::VecOps::RVec<float>& etas,
-                         const ROOT::VecOps::RVec<float>& phis) {
-        ROOT::VecOps::RVec<bool> mask(etas.size(), true);
-
-        // Get the correction object inside the lambda
-        auto veto_corr = _correction_jetveto->at(_jet_veto_tag);
-        std::string veto_type = "jetvetomap";
-
-        for (size_t i = 0; i < etas.size(); ++i) {
-            double veto_val = veto_corr->evaluate({veto_type, etas[i], phis[i]});
-            if (veto_val != 0) mask[i] = false;  // Veto this jet
-        }
-        return mask;
-    };
-
-    return _rlm.Define(output_var, vetoed, {eta_var, phi_var});
-
-}
-*/
 ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
                                                           const std::string& eta_var,
                                                           const std::string& phi_var,
