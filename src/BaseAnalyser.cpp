@@ -95,8 +95,11 @@ void BaseAnalyser::selectElectrons()
     std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
     std::cout<< "================================//=================================" << std::endl;
     }
-    _rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
-   
+
+   std::cout<< "================================0/=================================" << std::endl;
+_rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
+   std::cout<< "================================1/=================================" << std::endl;
+
     _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt_corr>35.0 && abs(Electron_eta)<2.5 &&  Electron_mvaIso_WP90==1");
     _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt_corr[goodElectrons]")
 		.Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[0]) : numb")
@@ -120,6 +123,7 @@ void BaseAnalyser::selectElectrons()
 
 		.Define("goodElectrons_idx", ::good_idx, {"goodElectrons"})
                 .Define("NgoodElectrons", "int(goodElectrons_pt.size())");
+std::cout<< "================================/3/=================================" << std::endl;
 
     //-------------------------------------------------------
     //generate electron 4vector from selected good Electrons

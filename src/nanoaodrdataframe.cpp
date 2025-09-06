@@ -49,13 +49,15 @@ c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_Tun
 	string muonIDtype = "NUM_TightID_DEN_TrackerMuons";
 	string muonISOtype = "NUM_TightPFIso_DEN_TightID";
 	string electron_fname = "data/EGM/2022_preEE/electron.json.gz";
-	string electron_reco_type1 = "Reco20to75";
+	string electronHlt_fname = "data/EGM/2022_preEE/electronHlt.json.gz";
+    string electronHlt_type="HLT_SF_Ele30_TightID";
+    string electron_reco_type1 = "Reco20to75";
 	string electron_reco_type2 =  "RecoAbove75";
 	string electron_id_type = "wp90iso";
         string jet_veto_f_name="scalefactors/jetvetomaps.json";
         string jet_veto_tag = "Summer22_23Sep2023_RunCD_V1";
         string electron_SSF = "data/EGM/2022_preEE/electronSS.json";
-	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,/* muon_roch_fname,*/ muon_fname, muonHLTtype, /*muonRECOtype*/ muonIDtype, muonISOtype, electron_fname, electron_reco_type1,electron_reco_type2, electron_id_type, jercfname, jerctag, jercunctag,jet_veto_f_name,jet_veto_tag,electron_SSF);
+	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,/* muon_roch_fname,*/ muon_fname, muonHLTtype, /*muonRECOtype*/ muonIDtype, muonISOtype, electron_fname,electronHlt_fname,electronHlt_type, electron_reco_type1,electron_reco_type2, electron_id_type, jercfname, jerctag, jercunctag,jet_veto_f_name,jet_veto_tag,electron_SSF);
 
 	nanoaodrdf.setupObjects();
 	nanoaodrdf.setupAnalysis();
