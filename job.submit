@@ -1,6 +1,6 @@
 universe=vanilla
 executable=runjob.sh
-arguments= $(input_dir) $(output_file) $(stderr_file) $(crossection)
+arguments= $(input_dir) $(output_file) $(stderr_file) $(crossection) $(sumgenWeight)
 
 output=logs/$(ClusterId).out
 error=logs/$(ClusterId).err
@@ -16,4 +16,4 @@ request_memory=8 GB
 request_disk= 20 GB
 
 
-queue input_dir, output_file, stderr_file,crossection from crashed_jobs.txt
+queue input_dir, output_file, stderr_file,crossection,sumgenWeight from sample_list_split.txt

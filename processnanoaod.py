@@ -152,7 +152,7 @@ class Nanoaodprocessor:
                     outfname = outputdirectory + '/' + withoutext + '_analyzed.root'
                     subprocess.run(["./processonefile.py", afile, outfname, self.jobconfmod])
 
-def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection):
+def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,sumgenWeight):
     """
     Runs nanoaod analyzer over ROOT files in indir and outputs into a single ROOT file.
     Now supports both local and remote files via XRootD.
@@ -205,27 +205,29 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection)
 
     t = ROOT.TChain(intreename)
     for afile in rootfilestoprocess:
-        try:
-            # Try opening the file remotely/local
-            ftest = ROOT.TFile.Open(afile)
-            if ftest and not ftest.IsZombie() and ftest.GetSize() > 0:
-                t.Add(afile)
-                print(f"  OK: {afile}")
-            else:
-                print(f"  SKIP (bad or empty): {afile}")
-            if ftest:
-                ftest.Close()
-        except Exception as e:
-            print(f"  SKIP (exception: {e}): {afile}")
+        t.Add(afile)
 
+#    for afile in rootfilestoprocess:
+#        try:
+#            # Try opening the file remotely/local
+#            ftest = ROOT.TFile.Open(afile)
+#            if ftest and not ftest.IsZombie() and ftest.GetSize() > 0:
+#                t.Add(afile)
+#                print(f"  OK: {afile}")
+#            else:
+#                print(f"  SKIP (bad or empty): {afile}")
+#            if ftest:
+#                ftest.Close()
+#        except Exception as e:
+#            print(f"  SKIP (exception: {e}): {afile}")
     nevents = t.GetEntries()
     print("-------------------------------------------------------------------")
     print("Total Number of Entries:", nevents)
     print("-------------------------------------------------------------------")
-
+    
 #    aproc = ROOT.BaseAnalyser(t, outputroot)
  #   aproc.setParams(config['year'], config['runtype'], config['datatype'])
-    aproc = ROOT.BaseAnalyser(t, outputroot,crossection)
+    aproc = ROOT.BaseAnalyser(t, outputroot,crossection,sumgenWeight)
 
     try:
         aproc.setParams(config['year'], config['runtype'], config['datatype'])
@@ -281,11 +283,12 @@ if __name__ == '__main__':
     from importlib import import_module
     from argparse import ArgumentParser
 
-    parser = ArgumentParser(usage="%(prog)s inputDir outputDir jobconfmod,crossection")
+    parser = ArgumentParser(usage="%(prog)s inputDir outputDir jobconfmod,crossection,sumgenWeight")
     parser.add_argument("indir")
     parser.add_argument("outdir")
     parser.add_argument("jobconfmod")
     parser.add_argument("crossection", type=float, help="Cross-section value in pb")
+    parser.add_argument("sumgenWeight",type=float)
     args = parser.parse_args()
 
     # Load compiled C++ libraries
@@ -304,4 +307,4 @@ if __name__ == '__main__':
         n.process()
     else:
         print("allinone")
-        Nanoaodprocessor_singledir(args.indir, args.outdir, procflags, config,args.crossection)
+        Nanoaodprocessor_singledir(args.indir, args.outdir, procflags, config,args.crossection,args.sumgenWeight)

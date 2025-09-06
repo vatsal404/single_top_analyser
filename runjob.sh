@@ -5,6 +5,7 @@ input_dir=$1
 output_file=$2  # Now this will be the output file name (e.g., output.root)
 stderr_file=$3  # Define the log file name
 crossection=$4
+sumgenWeight=$5
 # Configuration variables
 jobconfmod="jobconfiganalysis_new"
 eos_output_dir="/eos/uscms/store/user/vsinha/results"
@@ -56,7 +57,7 @@ echo "Final output file path: ${local_output_path}"
 tar -xzf package.tar.gz
 
 # Run the analysis job
-./processnanoaod.py $input_dir $local_output_path $jobconfmod $crossection > $log_file 2>&1 || { echo "Error: Processing failed"; exit 1; }
+./processnanoaod.py $input_dir $local_output_path $jobconfmod $crossection $sumgenWeight> $log_file 2>&1 || { echo "Error: Processing failed"; exit 1; }
 
 cat $log_file
 

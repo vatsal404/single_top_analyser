@@ -20,8 +20,8 @@
 #include "correction.h"
 using correction::CorrectionSet;
 
-BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename,float crossection)
-:NanoAODAnalyzerrdframe(t, outfilename),_crossection(crossection)
+BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename,float crossection,float sumgenWeight)
+:NanoAODAnalyzerrdframe(t, outfilename),_crossection(crossection),_sumgenWeight(sumgenWeight)
 {
     //initiliaze the HLT names in your analyzer class
     HLT2024Names= {"HLT_PFHT380_SixJet32_DoubleBTagCSV_p075",
@@ -65,10 +65,9 @@ void BaseAnalyser::defineCuts()
 	// This is how you can express a range of the first 100 entries
 	//_rlm = _rlm.Range(0, 100000);
 
-    auto Nentry_100 = _rlm.Count();
+//    auto Nentry_100 = _rlm.Count();
 //    cout << "Usage of ranges:\n"
-//        << " - All entries: " << *Nentry << endl;
-		//<< " - Entries from 0 to 100: " << *Nentry_100 << endl;
+//		<< " - Entries from 0 to 100: " << *Nentry_100 << endl;
 
 	//MinimalSelection to filter events
 	addCuts("nElectron+nMuon>=1 && nJet>1 && PV_npvsGood>=1", "0");
@@ -80,6 +79,9 @@ void BaseAnalyser::defineCuts()
 
 	addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter","000");
 
+//    auto Nentry_105 = _rlm.Count();
+//    cout << "Usage of ranges:\n"
+//		<< " - Entries from 0 to 100: " << *Nentry_105 << endl;
 }
 //===============================Find Good Electrons===========================================//
 //: Define Good Electrons in rdata frame
@@ -176,7 +178,7 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodmuonsID", MuonID(4));
-    _rlm = _rlm.Define("iso_loose_mu"," goodmuonsID && Muon_pt>10 && abs(Muon_eta)<2.5 && Muon_pfRelIso04_all<0.25"); //loose muons
+    _rlm = _rlm.Define("iso_loose_mu","  Muon_pt>10 && abs(Muon_eta)<2.5 && Muon_pfRelIso04_all<0.25"); //loose muons
     _rlm = _rlm.Define("iso_loose_mu_pT_collection"," Muon_pt[iso_loose_mu]");
     _rlm = _rlm.Define("N_iso_loose_mu", "int(iso_loose_mu_pT_collection.size())");
 
@@ -338,7 +340,7 @@ void BaseAnalyser::selectJets()
     }
 
     _rlm = _rlm.Define("goodJetsID", JetID(6)); //without pt-eta cuts
-//    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30.0 && abs(Jet_eta)<2.4 ");
+//    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt_corr>30.0 && abs(Jet_eta)<2.4 ");
     _rlm = _rlm.Define("goodJets_high_eta", "Jet_pt_corr>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
     _rlm = _rlm.Define("goodJets_low_eta", "Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
     _rlm = _rlm.Define("goodJets", " goodJets_high_eta || goodJets_low_eta ");
@@ -489,7 +491,17 @@ void BaseAnalyser::removeOverlaps()
 		.Define("ncleanjetspass", "int(Selected_jetpt.size())")
 		.Define("cleanjet4vecs", ::generate_4vec, {"Selected_jetpt", "Selected_jeteta", "Selected_jetphi", "Selected_jetmass"});
 
+//      auto Nentry_101 = _rd.Count();
+//        cout << "Usage of ranges:\n"
+//            << " - Entries from 0 to 100: " << *Nentry_101 << endl;
+    
+
                 _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi").Filter("!vetoed_jets");
+
+//      auto Nentry_102 = _rlm.Count();
+//        cout << "Usage of ranges:\n"
+//            << " - Entries from 0 to 100: " << *Nentry_102 << endl;
+
 
         _rlm =  _rlm.Define("Selected_jeteta_mineta_index", "ArgMin(Selected_jeteta)")
                    .Define("Selected_jet_leading_eta", "int(Selected_jeteta.size())>0 ? Selected_jeteta[Selected_jeteta_mineta_index] : numb")
@@ -603,7 +615,7 @@ if (_isData && !isDefined("evWeight"))
              return 1.0;
        }, {} );
    }
-if(!_isData ) // Only use genWeight
+if (!_isData) // Only use genWeight
 {
   //Scale Factors for BTag ID	
   int _case = 1;
@@ -627,22 +639,22 @@ if(!_isData ) // Only use genWeight
   _rlm = calculateEleSF(_rlm, Electron_vars_names, output_ele_column_name);
   auto sumgenweight = _rd.Sum("genWeight");
   float lumi=7980;
-  double lumifactor = (_crossection * lumi) / (*sumgenweight);
+  double lumifactor = (_crossection * lumi) / (_sumgenWeight);
   _rlm = _rlm.Define("Lumifactor", [lumifactor]() {
     return lumifactor;
     });
-   std::cout << "[DEBUG] In Analyze. Cross-section = " << _crossection << std::endl;
    std::cout << "[DEBUG] In Analyze. lumifactor = " << lumifactor << std::endl;
 
-  //_rlm=_rlm .Define("evWeight", ""Lumifactor * pugenWeight*");  	
-     _rlm = _rlm.Define("lepton_SF_central", "muonChannel ? muon_SF_central : electronChannel ? ele_SF_central : numb");
+  _rlm=_rlm .Define("evWeight", "Lumifactor * genWeight");  	
+//     _rlm = _rlm.Define("lepton_SF_central", "muonChannel ? muon_SF_central : electronChannel ? ele_SF_central : 1");
 
-   _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* lepton_SF_central * btag_SF_central"); 
+//    _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* lepton_SF_central * btag_SF_central"); 
 
-        }
+        
 //  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
  // _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_central"); 
-  
+ } 
+
 }
 //MET
 
@@ -914,9 +926,9 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodmuons_leading_phi_2j0b");
     addVartoStore("goodmuons_leading_phi_2j1b");
     addVartoStore("goodmuons_leading_phi_3j2b");
-   // addVartoStore("goodMET_pt");
+    addVartoStore("genWeight");
     //addVartoStore("goodMET_phi");
-    //addVartoStore("NgoodJets");
+    addVartoStore("genEventSumw");
     addVartoStore("goodjet_e_phi_2j1b");
     addVartoStore("goodjet_e_phi_2j0b");
     addVartoStore("goodjet_e_phi_3j2b");
@@ -1013,7 +1025,7 @@ void BaseAnalyser::bookHists()
 
     
 }
-void BaseAnalyser::setTree(TTree *t, std::string outfilename,float crossection)
+void BaseAnalyser::setTree(TTree *t, std::string outfilename,float crossection,float sumgenWeight)
 {
 	if (debug){
         std::cout<< "================================//=================================" << std::endl;
@@ -1024,6 +1036,7 @@ void BaseAnalyser::setTree(TTree *t, std::string outfilename,float crossection)
 	_rd = ROOT::RDataFrame(*t);
 	_rlm = RNode(_rd);
 	_crossection=crossection;
+    _sumgenWeight=sumgenWeight;
 	_outfilename = outfilename;
 	_hist1dinfovector.clear();
 	_th1dhistos.clear();
@@ -1053,8 +1066,8 @@ void BaseAnalyser::setupObjects()
         reconstructTop();
 	Background_Estimation();
     auto Nentry_2 = _rlm.Count();
-    //cout << "Usage of ranges:\n"
-      //  << " - All entries: " << *Nentry_2 << endl;
+//    cout << "Usage of ranges:\n"
+//        << " - All entries: " << *Nentry_2 << endl;
 
 }
 
@@ -1071,8 +1084,12 @@ void BaseAnalyser::setupAnalysis()
     //==========================================event/gen/ weights==========================================//
     // Event weight for data it's always one. For MC, it depends on the sign
     //=====================================================================================================//
-   
-	
+  if(!_isData){ 
+		    auto sumgenweight1 = _rd.Sum("genWeight");
+	    string sumofgenweight = Form("%f",*sumgenweight1);
+	    _rlm = _rlm.Define("genEventSumw",sumofgenweight.c_str());
+	    std::cout<<"Sum of genWeights = "<<sumofgenweight.c_str()<<std::endl;
+}
 	defineCuts();
 	defineMoreVars();
 	bookHists();

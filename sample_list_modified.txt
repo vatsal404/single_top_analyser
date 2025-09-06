@@ -1,2 +1,2 @@
-/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM PROCESSED_DYJetsToLL_M-50_UL17.root PROCESSED_DYJetsToLL_M-50_UL17.out
-
+/EGamma/Run2022C-16Dec2023-v1/NANOAOD  Data_Ele_c.root  Data_Ele_c.out  1
+/Muon/Run2022D-16Dec2023-v1/NANOAOD  Data_Mu_d.root  Data_Mu_d.out  1
