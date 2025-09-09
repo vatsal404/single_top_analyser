@@ -36,11 +36,12 @@ c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_Tun
 	string pileuptag = "Collisions2022_355100_357900_eraBCD_GoldenJson";
 	string btvfname = "data/BTV/2022_preEE/btagging.json";
 	string btvtype = "deepJet_shape";
-//	string fname_btagEff = "data/BTV/2017_UL/BtaggingEfficiency.root";
+//	string fname_btagEff = "data/BTV/2017_UL/BtaggingEfficiency.root";Summer22_22Sep2023_RunCD_V2_DATA_L1L2L3Res_AK4PFPuppi
 //	string hname_btagEff_bcflav = "h_btagEff_bcflav";
 //	string hname_btagEff_lflav = "h_btagEff_lflav";
 	string jercfname = "data/JERC/2022_preEE/jet_jerc.json";
-	string jerctag = "Summer22_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi";
+	string jerctag = "Summer22_22Sep2023_RunCD_V2_DATA_L1L2L3Res_AK4PFPuppi";
+    string jettagMC = "Summer22_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi";
 	string jercunctag = "Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi";
 	string muon_roch_fname = "data/MUO/2017_UL/RoccoR2017UL.txt";
 	string muon_fname = "data/MUON/2022_preEE/muon_Z.json.gz";
@@ -57,7 +58,7 @@ c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_Tun
         string jet_veto_f_name="scalefactors/jetvetomaps.json";
         string jet_veto_tag = "Summer22_23Sep2023_RunCD_V1";
         string electron_SSF = "data/EGM/2022_preEE/electronSS.json";
-	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,/* muon_roch_fname,*/ muon_fname, muonHLTtype, /*muonRECOtype*/ muonIDtype, muonISOtype, electron_fname,electronHlt_fname,electronHlt_type, electron_reco_type1,electron_reco_type2, electron_id_type, jercfname, jerctag, jercunctag,jet_veto_f_name,jet_veto_tag,electron_SSF);
+	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,/* muon_roch_fname,*/ muon_fname, muonHLTtype, /*muonRECOtype*/ muonIDtype, muonISOtype, electron_fname,electronHlt_fname,electronHlt_type, electron_reco_type1,electron_reco_type2, electron_id_type, jercfname, jerctag,jettagMC, jercunctag,jet_veto_f_name,jet_veto_tag,electron_SSF);
 
 	nanoaodrdf.setupObjects();
 	nanoaodrdf.setupAnalysis();

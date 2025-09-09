@@ -158,7 +158,7 @@ void NanoAODAnalyzerrdframe::selectFatJets()
 }
 
 
-void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag) //data
+void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,string jettagMC) //data
 {
 
     cout << "SETUP JETMET correction" << endl;
@@ -167,7 +167,13 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag) 
 	assert(_correction_jerc->validate()); //the assert functionality : check if the parameters passed to a function are valid =1:true
 	// correction type(jobconfiganalysis.py)
 	cout<<"JERC JSON file : " << fname<<endl;
-	_jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON (JEC,compound)compoundLevel="L1L2L3Res"
+    if (_isData){
+        _jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON (JEC,compound)compoundLevel="L1L2L3Res"
+    }
+    else {
+        cout<<"JERC JSON file : " << fname<<endl;
+        _jetCorrector = _correction_jerc->compound().at(jettagMC);
+    }
 	cout<< "JET tag in JSON : " << jettag << endl;
 	_jetCorrectionUnc = _correction_jerc->at(_jercunctag);
 	cout<< "JET uncertainity tag in JSON  : " << _jercunctag << endl;
@@ -417,7 +423,7 @@ _rlm = _rlm.Define("Electron_pt_corr", scale_lambda,
 }
 
 
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, /*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,, string muon_roch_fname*/ string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string electronHlt_fname,string electronHlt_type,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF)
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, /*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,, string muon_roch_fname*/ string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string electronHlt_fname,string electronHlt_type,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;
@@ -503,9 +509,10 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	    }
 	}
 	_jerctag = jerctag;
+    _jerctagMC=jerctagMC;
 	_jercunctag = jercunctag;
 	
-	setupJetMETCorrection(jercfname, _jerctag);
+	setupJetMETCorrection(jercfname, _jerctag,_jerctagMC);
 	applyJetMETCorrections();
 //	applyMuPtCorrection();
         applyElectronPtCorrection();
