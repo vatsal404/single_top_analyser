@@ -598,7 +598,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 	}
       }
       return btagWeight_lflav;
-    };
+    ;
     // btag weight for each variation individually
     std::vector<std::string> variations = {"central", "up", "down", "up_correlated", "down_correlated", "up_uncorrelated", "down_uncorrelated", "up_statistic", "down_statistic"}; 
     for (const std::string& variation : variations) {

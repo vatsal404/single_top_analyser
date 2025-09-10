@@ -46,7 +46,8 @@ config = {
         'jerctag': 'Summer22_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi', 
 
         # jet uncertainty 
-        'jercunctag': 'Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi', 
+        'jercunctag': 'Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi',
+        'jettagMC' :'Summer22_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi',
         'muon_roch_fname': 'data/MUO/2017_UL/RoccoR2017UL.txt',
         'muon_fname': 'data/MUON/2022_preEE/muon_Z.json.gz',
         'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
@@ -54,6 +55,8 @@ config = {
         'muonIDtype': 'NUM_TightID_DEN_TrackerMuons',
         'muonISOtype': 'NUM_TightPFIso_DEN_TightID',
         'electron_fname': 'data/EGM/2022_preEE/electron.json.gz',
+        'electronHlt_fname':'data/EGM/2022_preEE/electronHlt.json.gz',
+        'electronHlt_type':'HLT_SF_Ele30_TightID',
         'electron_reco_type1': 'Reco20to75',
         'electron_reco_type2' :  'RecoAbove75',
         'electron_id_type': 'wp90iso',
