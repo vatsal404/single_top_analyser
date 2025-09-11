@@ -264,7 +264,7 @@ void BaseAnalyser::reconstructWboson()
     std::cout<< "================================//=================================" << std::endl;
     }
 
-    /*--------------------- Reconstruct neutrino ---------------------*/
+//*--------------------- Reconstruct neutrino ---------------------*/
 
     std::cout<<"Reconstructing neutrino from MET"<<std::endl;
     _rlm = _rlm.Define("nu_pt", "static_cast<float>(goodMET_pt)")
@@ -302,21 +302,11 @@ void BaseAnalyser::reconstructWboson()
 
    //  _rlm = _rlm.Define("Wboson_transversMass", "sqrt(pow(lepton_TL4vec.Pt()+nu_pt,2)-pow(nu_pt*cos(nu_phi)+lepton_TL4vec.Px(),2) - pow(nu_pt*sin(nu_phi)+lepton_TL4vec.Py(),2))");
     _rlm = _rlm.Define("delta_phi_lep_nu", ::calculate_deltaPhi_scalars, {"lep_phi", "nu_phi_double"})
-    .Define("Wboson_transversMass", "sqrt(2*lepton_TL4vec.Pt()*nu_pt*(1-cos(delta_phi_lep_nu)))")
-    .Define("Wboson_transversMass_45", "sqrt(2*45*nu_pt*(1-cos(delta_phi_lep_nu)))");
+    .Define("Wboson_transversMass", "sqrt(2*lepton_TL4vec.Pt()*nu_pt*(1-cos(delta_phi_lep_nu)))");
 
-    _rlm=_rlm.Define("Wboson_transversemass_ele","electronChannel && region_2j0t ? Wboson_transversMass : numb");
-    _rlm=_rlm.Define("Wboson_transversemass_ele_barrel","electronChannel && region_2j0t && lep_eta<1.47 ? Wboson_transversMass : numb");
-    _rlm=_rlm.Define("Wboson_transversemass_ele_endcap","electronChannel && region_2j0t && lep_eta>1.47 ? Wboson_transversMass : numb");
-
-    _rlm=_rlm.Define("Wboson_transversemass_muon","muonChannel && region_2j0t ? Wboson_transversMass : numb");
    // _rlm=_rlm.Define("Wboson_transversemass_QCDele","QCDelectronChannel && region_2j0t ? Wboson_transversMass : numb");
        // _rlm=_rlm.Define("Wboson_transversemass_QCDele","QCDelectronChannel && region_2j0t ? Wboson_transversMass : numb");
 
-    _rlm=_rlm.Define("Wboson_transversemass_QCDele_barrel","QCDelectronChannel && region_2j0t && lep_eta<1.47 ? Wboson_transversMass : numb");
-    _rlm=_rlm.Define("Wboson_transversemass_QCDele_endcap","QCDelectronChannel && region_2j0t && lep_eta>1.47 ? Wboson_transversMass : numb");
-
-    _rlm=_rlm.Define("Wboson_transversemass_QCDmuon","QCDmuonChannel && region_2j0t ? Wboson_transversMass : numb");
 
 }
 
@@ -349,7 +339,7 @@ void BaseAnalyser::selectJets()
     _rlm = _rlm.Define("goodJets_high_eta","goodJetsID && Jet_pt_corr>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
 
     _rlm = _rlm.Define("goodJets_low_eta", "goodJetsID && Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
-    _rlm = _rlm.Define("goodJets", " goodJets_high_eta || goodJets_low_eta ");
+    _rlm = _rlm.Define("goodJets", " goodJets_low_eta || goodJets_high_eta ");
 
 
     _rlm = _rlm.Define("goodJets_pt", "Jet_pt_corr[goodJets]")
@@ -383,7 +373,7 @@ void BaseAnalyser::selectJets()
       .Define("good_bjetmass", "goodJets_mass[btagcuts]")
       .Define("good_bjet_leading_mass", "int(good_bjetmass.size()) > 0 ? good_bjetmass[good_bjet_maxpt_index] : numb")
 
-      .Define("good_bjetdeepjet", "goodJets_deepjetbtag[btagcuts]");
+      .Define("good_bjetdeepjet", "goodJets_jetdeepbtag[btagcuts]");
     if(!_isData){
 
     _rlm = _rlm.Define("good_bjethadflav", "goodJets_hadflav[btagcuts]");
@@ -397,7 +387,7 @@ void BaseAnalyser::selectJets()
 
     if(!_isData){
       //For Btagging Efficiency    
-      _rlm = _rlm.Define("btagpass_bcflav_goodJets", "goodJets_deepjetbtag>0.7476 && goodJets_hadflav!=0") //0.2783 -medium, 0.7 - tight 
+      _rlm = _rlm.Define("btagpass_bcflav_goodJets", "goodJets_jetdeepbtag>0.7476 && goodJets_hadflav!=0") //0.2783 -medium, 0.7 - tight 
 	.Define("goodJets_btagpass_bcflav_pt", "goodJets_pt[btagpass_bcflav_goodJets]")
 	.Define("goodJets_btagpass_bcflav_eta", "goodJets_eta[btagpass_bcflav_goodJets]");
       
@@ -406,7 +396,7 @@ void BaseAnalyser::selectJets()
 	.Define("goodJets_all_bcflav_eta", "goodJets_eta[all_bcflav_goodJets]");
       
       
-      _rlm = _rlm.Define("btagpass_lflav_goodJets", "goodJets_deepjetbtag>0.7476 && goodJets_hadflav==0") //0.2783 -medium, 0.7 - tight 
+      _rlm = _rlm.Define("btagpass_lflav_goodJets", "goodJets_jetdeepbtag>0.7476 && goodJets_hadflav==0") //0.2783 -medium, 0.7 - tight 
 	.Define("goodJets_btagpass_lflav_pt", "goodJets_pt[btagpass_lflav_goodJets]")
 	.Define("goodJets_btagpass_lflav_eta", "goodJets_eta[btagpass_lflav_goodJets]");
       
@@ -430,7 +420,7 @@ void BaseAnalyser::spectatorJets()
     
                // First get the filtered collections
                .Define("specJet_eta_collection", "Selected_jeteta[specJet]")
-	       .Define("specJet_maxeta_index", "ArgMax(specJet_eta_collection)")
+	       .Define("specJet_maxeta_index", "ArgMax(abs(specJet_eta_collection))")
                // Then get the leading values, checking collection size first
                .Define("specJet_leading_eta", "specJet_eta_collection.size() > 0 ? specJet_eta_collection[specJet_maxeta_index] : numb")
                
@@ -492,7 +482,7 @@ void BaseAnalyser::removeOverlaps()
 
 		.Define("Selected_jetmass", "goodJets_mass[checkOverlap]")
 
-		.Define("Selected_jetbtag", "goodJets_deepjetbtag[checkOverlap]") //
+		.Define("Selected_jetbtag", "goodJets_jetdeepbtag[checkOverlap]") //
 		.Define("ncleanjetspass", "int(Selected_jetpt.size())")
 		.Define("cleanjet4vecs", ::generate_4vec, {"Selected_jetpt", "Selected_jeteta", "Selected_jetphi", "Selected_jetmass"});
 
@@ -507,8 +497,8 @@ void BaseAnalyser::removeOverlaps()
 //        cout << "Usage of ranges:\n"
 //            << " - Entries from 0 to 100: " << *Nentry_102 << endl;
 
-
-        _rlm =  _rlm.Define("Selected_jeteta_mineta_index", "ArgMin(Selected_jeteta)")
+// the following code is written to construct top quark in 2j0t region
+        _rlm =  _rlm.Define("Selected_jeteta_mineta_index", "ArgMin(abs(Selected_jeteta))")
                    .Define("Selected_jet_leading_eta", "int(Selected_jeteta.size())>0 ? Selected_jeteta[Selected_jeteta_mineta_index] : numb")
 
                 .Define("Selected_jet_leading_phi", "int(Selected_jetphi.size())>0 ? Selected_jetphi[Selected_jeteta_mineta_index] : numb")
@@ -603,12 +593,6 @@ void BaseAnalyser::reconstructTop()
                .Define("topQuark_TL4vec", "Wboson_4vec + bQuark_forReco");
 
     _rlm = _rlm.Define("top_mass","topQuark_TL4vec.M()" )
-               .Define("top_mass_2j1t_ele","electronChannel && region_2j1t ? top_mass : numb")
-               .Define("top_mass_2j1t_muon","muonChannel && region_2j1t ? top_mass : numb")
-
-               .Define("top_mass_2j0t","Wboson_transversMass >50 && region_2j0t ? top_mass : numb")
-               .Define("top_mass_3j2t","Wboson_transversMass >50 && region_3j2t ? top_mass : numb")
-
                .Define("top_pt", "Wboson_transversMass>50 ? topQuark_TL4vec.Pt() : numb");
 
 }
@@ -806,24 +790,24 @@ _rlm = _rlm.Define("bdt_MET_pt_ele_2j0t", "region_2j0t && electronChannel && Wbo
 _rlm = _rlm.Define("bdt_MET_pt_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? MET_pt : numb");
 _rlm = _rlm.Define("bdt_MET_pt_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? MET_pt : numb");
 
-_rlm = _rlm.Define("bdt_wboson_muon_2j0t", "region_2j0t && muonChannel ? Wboson_transversMass : numb");
-_rlm = _rlm.Define("bdt_wboson_muon_2j1t", "region_2j1t && muonChannel ? Wboson_transversMass : numb");
-_rlm = _rlm.Define("bdt_wboson_muon_3j2t", "region_3j2t && muonChannel ? Wboson_transversMass : numb");
-_rlm = _rlm.Define("bdt_wboson_ele_2j0t", "region_2j0t && electronChannel ? Wboson_transversMass : numb");
-_rlm = _rlm.Define("bdt_wboson_ele_2j1t", "region_2j1t && electronChannel ? Wboson_transversMass : numb");
-_rlm = _rlm.Define("bdt_wboson_ele_3j2t", "region_3j2t && electronChannel ? Wboson_transversMass : numb");
-_rlm = _rlm.Define("bdt_wboson_QCDele_2j1t", "region_2j1t && QCDelectronChannel ? Wboson_transversMass : numb");
-_rlm = _rlm.Define("bdt_wboson_QCDmuon_2j1t", "region_2j1t && QCDmuonChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("wboson_muon_2j0t", "region_2j0t && muonChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("wboson_muon_2j1t", "region_2j1t && muonChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("wboson_muon_3j2t", "region_3j2t && muonChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("wboson_ele_2j0t", "region_2j0t && electronChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("wboson_ele_2j1t", "region_2j1t && electronChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("wboson_ele_3j2t", "region_3j2t && electronChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("wboson_QCDele_2j1t", "region_2j1t && QCDelectronChannel ? Wboson_transversMass : numb");
+_rlm = _rlm.Define("wboson_QCDmuon_2j1t", "region_2j1t && QCDmuonChannel ? Wboson_transversMass : numb");
 
 
-_rlm = _rlm.Define("bdt_top_muon_2j0t", "region_2j0t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
-_rlm = _rlm.Define("bdt_top_muon_2j1t", "region_2j1t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
-_rlm = _rlm.Define("bdt_top_muon_3j2t", "region_3j2t && muonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
-_rlm = _rlm.Define("bdt_top_ele_2j0t", "region_2j0t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
-_rlm = _rlm.Define("bdt_top_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
-_rlm = _rlm.Define("bdt_top_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
-_rlm = _rlm.Define("bdt_top_QCDmuon_2j1t", "region_2j1t && QCDmuonChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
-_rlm = _rlm.Define("bdt_top_QCDele_2j1t", "region_2j1t && QCDelectronChannel && Wboson_transversMass>=50 ? top_mass-172.5 : numb");
+_rlm = _rlm.Define("top_muon_2j0t", "region_2j0t && muonChannel && Wboson_transversMass>=50 ? top_mass  : numb");
+_rlm = _rlm.Define("top_muon_2j1t", "region_2j1t && muonChannel && Wboson_transversMass>=50 ? top_mass  : numb");
+_rlm = _rlm.Define("top_muon_3j2t", "region_3j2t && muonChannel && Wboson_transversMass>=50 ? top_mass  : numb");
+_rlm = _rlm.Define("top_ele_2j0t", "region_2j0t && electronChannel && Wboson_transversMass>=50 ? top_mass  : numb");
+_rlm = _rlm.Define("top_ele_2j1t", "region_2j1t && electronChannel && Wboson_transversMass>=50 ? top_mass  : numb");
+_rlm = _rlm.Define("top_ele_3j2t", "region_3j2t && electronChannel && Wboson_transversMass>=50 ? top_mass  : numb");
+_rlm = _rlm.Define("top_QCDmuon_2j1t", "region_2j1t && QCDmuonChannel && Wboson_transversMass>=50 ? top_mass  : numb");
+_rlm = _rlm.Define("top_QCDele_2j1t", "region_2j1t && QCDelectronChannel && Wboson_transversMass>=50 ? top_mass  : numb");
 
 
 
@@ -964,14 +948,19 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodMET_u_pt_2j0b");
     addVartoStore("goodMET_u_pt_3j2b");
 
-    addVartoStore("goodMET_e_phi_2j1b");
-    addVartoStore("goodMET_e_phi_2j0b");
-    addVartoStore("goodMET_e_phi_3j2b");
-    addVartoStore("goodMET_u_phi_2j1b");
-    addVartoStore("goodMET_u_phi_2j0b");
-    addVartoStore("goodMET_u_phi_3j2b");
-    
+    addVartoStore("wboson_muon_2j0t");
+    addVartoStore("wboson_muon_2j1t");
+    addVartoStore("wboson_muon_3j2t");
+    addVartoStore("wboson_ele_2j0t");
+    addVartoStore("wboson_ele_2j1t");
+    addVartoStore("wboson_ele_3j2t");
 
+    addVartoStore("top_muon_2j0t");
+    addVartoStore("top_muon_2j1t");
+    addVartoStore("top_muon_3j2t");
+    addVartoStore("top_ele_2j0t");
+    addVartoStore("top_ele_2j1t");
+    addVartoStore("top_ele_3j2t");
 
 } 
 

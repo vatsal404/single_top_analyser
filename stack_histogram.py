@@ -23,7 +23,11 @@ variables = [
     "goodMET_e_pt_2j1b", "goodMET_e_pt_2j0b", "goodMET_e_pt_3j2b",
     "goodMET_u_pt_2j1b", "goodMET_u_pt_2j0b", "goodMET_u_pt_3j2b",
     "goodMET_e_phi_2j1b", "goodMET_e_phi_2j0b", "goodMET_e_phi_3j2b",
-    "goodMET_u_phi_2j1b", "goodMET_u_phi_2j0b", "goodMET_u_phi_3j2b"
+    "goodMET_u_phi_2j1b", "goodMET_u_phi_2j0b", "goodMET_u_phi_3j2b",
+    "wboson_muon_2j0t","wboson_muon_2j1t","wboson_muon_3j2t",
+    "wboson_ele_2j0t","wboson_ele_2j1t","wboson_ele_3j2t",
+    "top_muon_2j0t","top_muon_2j1t","top_muon_3j2t",
+    "top_ele_2j0t","top_ele_2j0t","top_ele_2j0t"
 ]
 
 # Define file groups (MC + Data)
@@ -63,8 +67,10 @@ for variable in variables:
         bins = np.linspace(0, 200, 40)  # pT: 0–200 GeV, 40 bins
     elif "eta" in var_lower or "phi" in var_lower:
         bins = np.linspace(-5, 5, 40)  # eta/phi: -5 to 5, 40 bins
+    elif "wboson" in var_lower :
+        bins = np.linspace(0, 200, 40)  # eta/phi: -5 to 5, 40 bins
     else:
-        bins = np.linspace(0, 300, 30)  # default binning
+        bins = np.linspace(0, 300, 40)  # default binning
 
     # Store histograms
     hist_data = {}
