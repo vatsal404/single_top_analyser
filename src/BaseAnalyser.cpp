@@ -345,7 +345,9 @@ void BaseAnalyser::selectJets()
 
     _rlm = _rlm.Define("goodJetsID", "Jet_jetId == 6"); //without pt-eta cuts
 //    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt_corr>30.0 && abs(Jet_eta)<2.4 ");
-    _rlm = _rlm.Define("goodJets_high_eta", "goodJetsID && Jet_pt_corr>30.0 && (abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
+//    _rlm = _rlm.Define("goodJets_high_eta", "goodJetsID && Jet_pt_corr>30.0 && (abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
+    _rlm = _rlm.Define("goodJets_high_eta","goodJetsID && Jet_pt_corr>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
+
     _rlm = _rlm.Define("goodJets_low_eta", "goodJetsID && Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
     _rlm = _rlm.Define("goodJets", " goodJets_high_eta || goodJets_low_eta ");
 
@@ -361,7 +363,6 @@ void BaseAnalyser::selectJets()
 }
     //goot jets deep-b tag
 	_rlm = _rlm.Define("goodJets_jetdeepbtag", "Jet_btagPNetB[goodJets]")
-                .Define("goodJets_deepjetbtag", "Jet_btagDeepFlavB[goodJets]")
                 .Define("NgoodJets", "int(goodJets_pt.size())")
                 .Define("goodJets_4vecs", ::generate_4vec, {"goodJets_pt", "goodJets_eta", "goodJets_phi", "goodJets_mass"});
 
