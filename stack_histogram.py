@@ -27,7 +27,15 @@ variables = [
     "wboson_muon_2j0t","wboson_muon_2j1t","wboson_muon_3j2t",
     "wboson_ele_2j0t","wboson_ele_2j1t","wboson_ele_3j2t",
     "top_muon_2j0t","top_muon_2j1t","top_muon_3j2t",
-    "top_ele_2j0t","top_ele_2j0t","top_ele_2j0t"
+    "top_ele_2j0t","top_ele_2j0t","top_ele_2j0t",
+    "goodElectrons_leading_pt_3j2b_A","goodElectrons_leading_pt_3j2b_B","goodElectrons_leading_pt_3j2b_C","goodElectrons_leading_pt_3j2b_D",
+    "goodElectrons_leading_eta_3j2b_A","goodElectrons_leading_eta_3j2b_B","goodElectrons_leading_eta_3j2b_C","goodElectrons_leading_eta_3j2b_D",
+    "goodElectrons_leading_phi_3j2b_A","goodElectrons_leading_phi_3j2b_B","goodElectrons_leading_phi_3j2b_C","goodElectrons_leading_phi_3j2b_D",
+     "goodmuons_leading_pt_3j2b_A","goodmuons_leading_pt_3j2b_B","goodmuons_leading_pt_3j2b_C","goodmuons_leading_pt_3j2b_D",
+    "goodmuons_leading_eta_3j2b_A","goodmuons_leading_eta_3j2b_B","goodmuons_leading_eta_3j2b_C","goodmuons_leading_eta_3j2b_D",
+    "goodmuons_leading_phi_3j2b_A","goodmuons_leading_phi_3j2b_B","goodmuons_leading_phi_3j2b_C","goodmuons_leading_phi_3j2b_D",
+    
+   
 ]
 
 # Define file groups (MC + Data)
@@ -64,13 +72,13 @@ for variable in variables:
     # Dynamic binning selection based on variable name
     var_lower = variable.lower()
     if "pt" in var_lower:
-        bins = np.linspace(0, 200, 40)  # pT: 0–200 GeV, 40 bins
+        bins = np.linspace(0, 200, 30)  # pT: 0–200 GeV, 40 bins
     elif "eta" in var_lower or "phi" in var_lower:
-        bins = np.linspace(-5, 5, 40)  # eta/phi: -5 to 5, 40 bins
+        bins = np.linspace(-5, 5, 30)  # eta/phi: -5 to 5, 40 bins
     elif "wboson" in var_lower :
-        bins = np.linspace(0, 200, 40)  # eta/phi: -5 to 5, 40 bins
+        bins = np.linspace(0, 200, 30)  # eta/phi: -5 to 5, 40 bins
     else:
-        bins = np.linspace(0, 300, 40)  # default binning
+        bins = np.linspace(0, 500, 40)  # default binning
 
     # Store histograms
     hist_data = {}

@@ -25,4 +25,6 @@ plot_ratio_150.0/
 *.root
 das/
 nanoaodrdataframe
+data/
+logs/
 *.txt

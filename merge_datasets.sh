@@ -17,6 +17,6 @@ for prefix in $prefixes; do
     echo "Merging files for dataset: $prefix"
     hadd -f "$OUTPUT_DIR/${prefix}.root" ${prefix}_b*.root
 done
-
+hadd -f $OUTPUT_DIR/data.root $OUTPUT_DIR/Data*.root
 echo "Merging complete. All merged files are in: $OUTPUT_DIR"
 
