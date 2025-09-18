@@ -188,12 +188,12 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodmuonsID", MuonID(4));
-    _rlm = _rlm.Define("iso_loose_mu","  Muon_pt>10 && abs(Muon_eta)<2.5 && Muon_mvaTTH<0.64"); //loose muons
+    _rlm = _rlm.Define("iso_loose_mu","  Muon_pt>10 && abs(Muon_eta)<2.5 && Muon_mvaMuID<0.64"); //loose muons
     _rlm = _rlm.Define("iso_loose_mu_pT_collection"," Muon_pt[iso_loose_mu]");
     _rlm = _rlm.Define("N_iso_loose_mu", "int(iso_loose_mu_pT_collection.size())");
 
  //loose muons
-    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_highPurity && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_mvaTTH>0.64");
+    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_highPurity && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID>0.64");
     _rlm = _rlm.Define("goodmuons_pt", "Muon_pt[goodmuons]")
 		 .Define("goodmuons_leading_pt", "int(goodmuons_pt.size())>0 ? static_cast<double>(goodmuons_pt[0]) : numb") 
                 
@@ -226,7 +226,7 @@ void BaseAnalyser::selectMuons()
 
 
     /*--------------- Reverted isolated Muons ID ---------------*/
-    _rlm = _rlm.Define("rev_iso_mu", "goodmuonsID && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_mvaTTH < 0.64 && Muon_isGlobal==1");
+    _rlm = _rlm.Define("rev_iso_mu", "goodmuonsID && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID < 0.64 && Muon_isGlobal==1");
 //    _rlm = _rlm.Define("rev_iso_mu","Muon_looseId && Muon_pfRelIso04_all>0.20"); // Reversed Isolated Muon Cut
  // Reversed Isolated Muon Cut
     _rlm = _rlm.Define("rev_iso_mu_pt_collection", "Muon_pt[rev_iso_mu]")
