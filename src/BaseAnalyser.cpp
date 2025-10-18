@@ -667,7 +667,7 @@ void BaseAnalyser::selectMET()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-   _rlm = _rlm.Define("goodMET", "PuppiMET_pt>=30")  // Boolean flag
+   _rlm = _rlm.Define("goodMET", "PuppiMET_pt")  // Boolean flag
           .Define("goodMET_pt", "goodMET ? PuppiMET_pt : numb")  // Assign numb for events failing cut
           .Define("goodMET_phi", "goodMET ? PuppiMET_phi : numb ");
 
@@ -1064,9 +1064,10 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodmuons_leading_phi_3j2b_B");
     addVartoStore("goodmuons_leading_phi_3j2b_C");
     addVartoStore("goodmuons_leading_phi_3j2b_D");
-//    addVartoStore("PuppiMET_pt_ele");
-  //  addVartoStore("Wboson_transversMass_ele");
-    //addVartoStore("Electron_pfRelIso03_all_ele");
+    addVartoStore("PuppiMET_pt_corr");
+    addVartoStore("PuppiMET_phi_corr");
+    addVartoStore("PuppiMET_pt");
+    addVartoStore("PuppiMET_phi");
 } 
 
 void BaseAnalyser::bookHists()

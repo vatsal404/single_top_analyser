@@ -58,7 +58,8 @@ c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_Tun
         string jet_veto_f_name="scalefactors/jetvetomaps.json";
         string jet_veto_tag = "Summer22_23Sep2023_RunCD_V1";
         string electron_SSF = "data/EGM/2022_preEE/electronSS.json";
-	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,/* muon_roch_fname,*/ muon_fname, muonHLTtype, /*muonRECOtype*/ muonIDtype, muonISOtype, electron_fname,electronHlt_fname,electronHlt_type, electron_reco_type1,electron_reco_type2, electron_id_type, jercfname, jerctag,jettagMC, jercunctag,jet_veto_f_name,jet_veto_tag,electron_SSF);
+        string metpt_fname = "data/JERC/2022_preEE/met_xyCorrections_2022_2022.json";
+	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,/* muon_roch_fname,*/ muon_fname, muonHLTtype, /*muonRECOtype*/ muonIDtype, muonISOtype, electron_fname,electronHlt_fname,electronHlt_type, electron_reco_type1,electron_reco_type2, electron_id_type, jercfname, jerctag,jettagMC, jercunctag,jet_veto_f_name,jet_veto_tag,electron_SSF,metpt_fname );
 
 	nanoaodrdf.setupObjects();
 	nanoaodrdf.setupAnalysis();
