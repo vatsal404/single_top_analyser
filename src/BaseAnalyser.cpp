@@ -106,8 +106,8 @@ void BaseAnalyser::selectElectrons()
 _rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
    std::cout<< "================================1/=================================" << std::endl;
 
-    _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt_corr>35.0 && abs(Electron_eta)<2.5 &&  Electron_mvaIso_WP90==1");
-    _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt_corr[goodElectrons]")
+    _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt>35.0 && abs(Electron_eta)<2.5 &&  Electron_mvaIso>0.9");
+    _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt[goodElectrons]")
 		.Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[0]) : numb")
 
                 .Define("goodElectrons_deltaEtaSC", "Electron_deltaEtaSC[goodElectrons]")
@@ -140,8 +140,8 @@ std::cout<< "================================/3/================================
 
 
     /*-----------------revert isolated Electron----------*/
-    _rlm = _rlm.Define("rev_iso_el", "Electron_cutBased<=2 && Electron_pt_corr>32 && abs(Electron_eta+Electron_deltaEtaSC)<2.1 && Electron_mvaIso_WP90==0");
-    _rlm = _rlm.Define("rev_iso_el_pt_collection", "Electron_pt_corr[rev_iso_el]")
+    _rlm = _rlm.Define("rev_iso_el", "Electron_cutBased<=3 && Electron_pt>35 && abs(Electron_eta)<2.5 && Electron_mvaIso<=0.9");
+    _rlm = _rlm.Define("rev_iso_el_pt_collection", "Electron_pt[rev_iso_el]")
                .Define("rev_iso_el_leading_pt", "int(rev_iso_el_pt_collection.size())>0 ? rev_iso_el_pt_collection[0] : numb")
 
                .Define("rev_iso_el_eta_collection", "Electron_eta[rev_iso_el]")
@@ -168,8 +168,8 @@ std::cout<< "================================/3/================================
 
 
    /*--------------- veto Electron ID ---------------*/
-    _rlm = _rlm.Define("veto_el", "Electron_cutBased>=1 && Electron_pt_corr>15 && abs(Electron_eta+Electron_deltaEtaSC)<2.5");
-    _rlm = _rlm.Define("veto_el_pt_collection", "Electron_pt_corr[veto_el]")
+    _rlm = _rlm.Define("veto_el", "Electron_cutBased>=1 && Electron_pt>15 && abs(Electron_eta+Electron_deltaEtaSC)<2.5");
+    _rlm = _rlm.Define("veto_el_pt_collection", "Electron_pt[veto_el]")
                .Define("N_veto_el", "int(veto_el_pt_collection.size())");
 
 
@@ -188,13 +188,14 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodmuonsID", MuonID(4));
-    _rlm = _rlm.Define("iso_loose_mu","  Muon_pt>10 && abs(Muon_eta)<2.5 && Muon_mvaMuID<0.64"); //loose muons
-    _rlm = _rlm.Define("iso_loose_mu_pT_collection"," Muon_pt[iso_loose_mu]");
+    _rlm = _rlm.Define("iso_loose_mu","  Muon_pt_corr>10 && abs(Muon_eta)<2.5 "); //loose muons
+    _rlm = _rlm.Define("iso_loose_mu_pT_collection"," Muon_pt_corr[iso_loose_mu]");
     _rlm = _rlm.Define("N_iso_loose_mu", "int(iso_loose_mu_pT_collection.size())");
 
  //loose muons
-    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_highPurity && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID>0.64");
-    _rlm = _rlm.Define("goodmuons_pt", "Muon_pt[goodmuons]")
+    _rlm = _rlm.Define("goodmuons", "goodmuonsID &&  Muon_isGlobal==1 && Muon_pt_corr > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID>0.64");
+    _rlm = _rlm.Define("goodmuons_pt", "Muon_pt_corr[goodmuons]")
+
 		 .Define("goodmuons_leading_pt", "int(goodmuons_pt.size())>0 ? static_cast<double>(goodmuons_pt[0]) : numb") 
                 
 		.Define("goodmuons_eta", "Muon_eta[goodmuons]")
@@ -226,10 +227,10 @@ void BaseAnalyser::selectMuons()
 
 
     /*--------------- Reverted isolated Muons ID ---------------*/
-    _rlm = _rlm.Define("rev_iso_mu", "goodmuonsID && Muon_pt > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID < 0.64 && Muon_isGlobal==1");
+    _rlm = _rlm.Define("rev_iso_mu", "goodmuonsID && Muon_pt_corr > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID < 0.64 && Muon_isGlobal==1");
 //    _rlm = _rlm.Define("rev_iso_mu","Muon_looseId && Muon_pfRelIso04_all>0.20"); // Reversed Isolated Muon Cut
  // Reversed Isolated Muon Cut
-    _rlm = _rlm.Define("rev_iso_mu_pt_collection", "Muon_pt[rev_iso_mu]")
+    _rlm = _rlm.Define("rev_iso_mu_pt_collection", "Muon_pt_corr[rev_iso_mu]")
                .Define("rev_iso_mu_leading_pt", "int(rev_iso_mu_pt_collection.size())>0 ? rev_iso_mu_pt_collection[0] : numb")
 
                .Define("rev_iso_mu_eta_collection", "Muon_eta[rev_iso_mu]")
@@ -579,10 +580,14 @@ void BaseAnalyser::defineRegion()
     _rlm = _rlm.Define("region", "region_2j1t == 1 ? 0.0 : region_2j0t == 1 ? 1.0 : region_3j2t == 1 ? 2.0 :-1.0");
 */
 
+
+_rlm = _rlm.Define("region_2j2t", "ncleanjetspass == 2 && ncleanbjetspass == 2");
 _rlm = _rlm.Define("region_2j1t", "ncleanjetspass == 2 && ncleanbjetspass == 1");
 _rlm = _rlm.Define("region_2j0t", "ncleanjetspass== 2 && ncleanbjetspass == 0");
-_rlm = _rlm.Define("region_3j2t", "ncleanjetspass== 3 && ncleanbjetspass >= 1");
-
+_rlm = _rlm.Define("region_3j2t", "ncleanjetspass== 3 && ncleanbjetspass == 1");
+_rlm = _rlm.Define("region_3j1t", "ncleanjetspass== 3 && ncleanbjetspass == 1");
+_rlm = _rlm.Define("region_4j2t", "ncleanjetspass== 4 && ncleanbjetspass == 2");
+_rlm = _rlm.Define("region_4j1t", "ncleanjetspass== 4 && ncleanbjetspass == 1");
 }
 
 void BaseAnalyser::reconstructTop()
@@ -646,14 +651,14 @@ if (!_isData) // Only use genWeight
     });
    std::cout << "[DEBUG] In Analyze. lumifactor = " << lumifactor << std::endl;
 
-  _rlm=_rlm .Define("evWeight", "Lumifactor * genWeight");  	
-//     _rlm = _rlm.Define("lepton_SF_central", "muonChannel ? muon_SF_central : electronChannel ? ele_SF_central : 1");
+//  _rlm=_rlm .Define("evWeight", "Lumifactor * genWeight");  	
+     _rlm = _rlm.Define("lepton_SF_central", "(muonChannel || QCDmuonChannel)? muon_SF_central : (electronChannel || QCDelectronChannel) ? ele_SF_central : 1");
 
-//    _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* lepton_SF_central * btag_SF_central"); 
+   //_rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* lepton_SF_central");// * btag_SF_central"); 
 
         
 //  _rlm = _rlm.Define("evWeight", " pugenWeight * prefiring_SF_central * btag_SF_bcflav_central * btag_SF_lflav_central * muon_SF_central * ele_SF_central"); 
- // _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_central"); 
+  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * btag_SF_central"); 
  } 
 
 }
@@ -667,9 +672,9 @@ void BaseAnalyser::selectMET()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-   _rlm = _rlm.Define("goodMET", "PuppiMET_pt")  // Boolean flag
-          .Define("goodMET_pt", "goodMET ? PuppiMET_pt : numb")  // Assign numb for events failing cut
-          .Define("goodMET_phi", "goodMET ? PuppiMET_phi : numb ");
+   _rlm = _rlm.Define("goodMET", "PuppiMET_pt_corr")  // Boolean flag
+          .Define("goodMET_pt", "goodMET ? PuppiMET_pt_corr : numb")  // Assign numb for events failing cut
+          .Define("goodMET_phi", "goodMET ? PuppiMET_phi_corr : numb ");
 
     //            .Define("goodMET_eta","MET_eta[goodMET]")
    //
@@ -731,7 +736,7 @@ void BaseAnalyser::Background_Estimation()
  _rlm = _rlm.Define("Region_C_muon", "muonChannel && Wboson_transversMass<50");
  _rlm = _rlm.Define("Region_D_muon", "QCDmuonChannel && Wboson_transversMass<50");
 
-_rlm =_rlm.Define("PuppiMET_pt_ele","electronChannel ? PuppiMET_pt : numb");
+_rlm =_rlm.Define("PuppiMET_pt_corr_ele","electronChannel ? PuppiMET_pt_corr : numb");
 
 _rlm =_rlm.Define("Wboson_transversMass_ele","electronChannel ? Wboson_transversMass : numb");
 _rlm =_rlm.Define("Electron_pfRelIso03_all_ele","electronChannel ? Electron_pfRelIso03_all[0] : numb");
@@ -1066,8 +1071,28 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodmuons_leading_phi_3j2b_D");
     addVartoStore("PuppiMET_pt_corr");
     addVartoStore("PuppiMET_phi_corr");
-    addVartoStore("PuppiMET_pt");
-    addVartoStore("PuppiMET_phi");
+    addVartoStore("goodmuons_pt");
+
+    addVartoStore("Wboson_transversMass");
+    addVartoStore("region_3j1t");
+    addVartoStore("region_3j2t");
+    addVartoStore("region_2j1t");
+    addVartoStore("region_2j2t");
+    addVartoStore("region_4j1t");
+    addVartoStore("region_4j2t");
+    addVartoStore("ele_SF_central");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
+    addVartoStore("");
 } 
 
 void BaseAnalyser::bookHists()

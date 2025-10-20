@@ -24,7 +24,7 @@ int main(void) {
 //	c1.Add("root://xrootd-cms.infn.it//store/mc/RunIISummer20UL17NanoAODv9/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2/2810000/8EDF6CCF-B922-2B40-8889-B0CD442F88CC.root")
 //
 c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/670acfa8-2b1a-4ec5-932b-0512e54fd5f8.root");
-	//c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"); // MC
+//	c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"); // MC
         //c1.Add("root://xrootd-cms.infn.it//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/a921644d-6ceb-4bc3-81c9-fddd5c7b1edb.root"); // tw
 
 	BaseAnalyser nanoaodrdf(&c1, "test.root",2,2);
@@ -43,7 +43,7 @@ c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_Tun
 	string jerctag = "Summer22_22Sep2023_RunCD_V2_DATA_L1L2L3Res_AK4PFPuppi";
     string jettagMC = "Summer22_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi";
 	string jercunctag = "Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi";
-	string muon_roch_fname = "data/MUO/2017_UL/RoccoR2017UL.txt";
+	string muon_roch_fname = "data/MUON/2022_preEE/muon_scalesmearing.json";
 	string muon_fname = "data/MUON/2022_preEE/muon_Z.json.gz";
 	string muonHLTtype = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight";
 //	string muonRECOtype = "NUM_TrackerMuons_DEN_genTracks";
@@ -59,7 +59,7 @@ c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_Tun
         string jet_veto_tag = "Summer22_23Sep2023_RunCD_V1";
         string electron_SSF = "data/EGM/2022_preEE/electronSS.json";
         string metpt_fname = "data/JERC/2022_preEE/met_xyCorrections_2022_2022.json";
-	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,/* muon_roch_fname,*/ muon_fname, muonHLTtype, /*muonRECOtype*/ muonIDtype, muonISOtype, electron_fname,electronHlt_fname,electronHlt_type, electron_reco_type1,electron_reco_type2, electron_id_type, jercfname, jerctag,jettagMC, jercunctag,jet_veto_f_name,jet_veto_tag,electron_SSF,metpt_fname );
+	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype, muon_roch_fname, muon_fname, muonHLTtype, /*muonRECOtype*/ muonIDtype, muonISOtype, electron_fname,electronHlt_fname,electronHlt_type, electron_reco_type1,electron_reco_type2, electron_id_type, jercfname, jerctag,jettagMC, jercunctag,jet_veto_f_name,jet_veto_tag,electron_SSF,metpt_fname );
 
 	nanoaodrdf.setupObjects();
 	nanoaodrdf.setupAnalysis();
