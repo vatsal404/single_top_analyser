@@ -998,7 +998,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
 
                 double weight = _correction_btag1->at("particleNet_shape")
                                     ->evaluate({variation, static_cast<int>(hadflav[i]),
-                                                std::fabs(etas[i]), pts[i], 0.6734});
+                                                std::fabs(etas[i]), pts[i], 0.1917});
                 btagWeight *= weight;
             }
 
@@ -1147,7 +1147,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
 	column_name += "syst";
       }
 
-	std::string sf_definition = column_name_hlt+" * "+column_name_id+" * "+column_name_iso;
+	std::string sf_definition = column_name_id+" * "+column_name_iso;
 	_rlm = _rlm.Define(column_name, sf_definition);
 	std::cout<< "Muon SF column name: " << column_name << std::endl;
     }

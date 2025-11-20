@@ -194,7 +194,7 @@ void BaseAnalyser::selectMuons()
     _rlm = _rlm.Define("N_iso_loose_mu", "int(iso_loose_mu_pT_collection.size())");
 
  //loose muons
-    _rlm = _rlm.Define("goodmuons", "goodmuonsID &&  Muon_isGlobal==1 && Muon_pt_corr > 30 && abs(Muon_eta) < 2.4 && Muon_mvaMuID>0.64");
+    _rlm = _rlm.Define("goodmuons", "goodmuonsID &&  Muon_isGlobal==1 && Muon_pt_corr > 20 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all<0.15");
     _rlm = _rlm.Define("goodmuons_pt", "Muon_pt_corr[goodmuons]")
 
 		 .Define("goodmuons_leading_pt", "int(goodmuons_pt.size())>0 ? static_cast<double>(goodmuons_pt[0]) : numb") 
@@ -344,10 +344,12 @@ void BaseAnalyser::selectJets()
     _rlm = _rlm.Define("goodJetsID", "Jet_jetId == 6"); //without pt-eta cuts
 //    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt_corr>30.0 && abs(Jet_eta)<2.4 ");
 //    _rlm = _rlm.Define("goodJets_high_eta", "goodJetsID && Jet_pt_corr>30.0 && (abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
-    _rlm = _rlm.Define("goodJets_high_eta","goodJetsID && Jet_pt_corr>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
+    //_rlm = _rlm.Define("goodJets_high_eta","goodJetsID && Jet_pt_corr>30.0 && ((abs(Jet_eta)<4.7 && abs(Jet_eta)>3.0) || (abs(Jet_eta)>0.0 && abs(Jet_eta)<2.5)) ");
 
-    _rlm = _rlm.Define("goodJets_low_eta", "goodJetsID && Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
-    _rlm = _rlm.Define("goodJets", " goodJets_low_eta || goodJets_high_eta ");
+    //_rlm = _rlm.Define("goodJets_low_eta", "goodJetsID && Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
+    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt_corr>30 && abs(Jet_eta)<2.4 ");
+
+  //  _rlm = _rlm.Define("goodJets", " goodJets_low_eta || goodJets_high_eta ");
 
 
     _rlm = _rlm.Define("goodJets_pt", "Jet_pt_corr[goodJets]")
@@ -366,7 +368,7 @@ void BaseAnalyser::selectJets()
 
 
 	//select b jest within goodjets 
-    _rlm = _rlm.Define("btagcuts", "goodJets_jetdeepbtag>0.6734") //0.2783 -medium, 0.6734 - tight 
+    _rlm = _rlm.Define("btagcuts", "goodJets_jetdeepbtag>0.1917") //0.2783 -medium, 0.6734 - tight 
       .Define("good_bjetpt", "goodJets_pt[btagcuts]")
       .Define("good_bjet_maxpt_index", "ArgMax(good_bjetpt)")
 
@@ -508,7 +510,7 @@ void BaseAnalyser::removeOverlaps()
 	 //=====================================================================================//
 //	_rlm = _rlm.Define("btagcuts2", "abs(Selected_jeteta)<=2.4 && Selected_jetbtag>=0.6734")
 
-	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>=0.6734")
+	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>=0.1917")
 //medium wp -->as an example. 
 			.Define("Selected_bjetpt", "Selected_jetpt[btagcuts2]")
                         .Define("Selected_bjet_maxpt_index", "ArgMax(Selected_bjetpt)")
