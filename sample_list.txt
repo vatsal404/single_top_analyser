@@ -1,31 +1,26 @@
-/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TTbar_SemiLept.root TTbar_SemiLept.out 403.25 16639471114.80
-/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TTbar_Dilept.root TTbar_Dilept.out 97.45 1912899391.37 
-/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM DYjetsM10to50.root DYjetsM10to50.out 19982.5 2360567534944.91
-/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM DYjetsM50.root DYjetsM50.out 6345.99 1176754138318.11
-/WtoLNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM WtoLNu.root WtoLNu.out 64481.58 14942931465632.69
-/TbarBQ_t-channel_4FS_TuneCP5_13p6TeV_powheg-madspin-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TbarBQ_t_channel.root TbarBQ_t_channel.out 87.2 108650617.49
-/TBbarQ_t-channel_4FS_TuneCP5_13p6TeV_powheg-madspin-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TBbarQ_t_channel.root TBbarQ_t_channel.out 145.0 370365263.96
-/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TbarBtoLminusNuB_s_channel.root TbarBtoLminusNuB_s_channel.out 4.534 1124380.95
-/TBbartoLplusNuBbar-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TBbartoLplusNuBbar_s_channel.root TBbartoLplusNuBbar_s_channel.out 7.244 2891578.65
-/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TbarWplusto2L2Nu.root TbarWplusto2L2Nu.out 4.6511 8307673.33
-/TWminusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TWminusto2L2Nu.root TWminusto2L2Nu.out 4.6511 8930008.45
-/TbarWplustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TbarWplustoLNu2Q.root TbarWplustoLNu2Q.out 19.2468 156155430.43
-/TWminustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM TWminustoLNu2Q.root TWminustoLNu2Q.out 19.2468 167105404.63
-/SingleMuon/Run2022C-16Dec2023-v1/NANOAOD Data_SingleMu_c.root Data_SingleMu_c.out 1 1
-/Muon/Run2022C-16Dec2023-v1/NANOAOD Data_Mu_c.root Data_Mu_c.out 1 1
-/Muon/Run2022D-16Dec2023-v1/NANOAOD Data_Mu_d.root Data_Mu_d.out 1 1
-/EGamma/Run2022C-16Dec2023-v1/NANOAOD Data_Ele_c.root Data_Ele_c.out 1 1
-/EGamma/Run2022D-16Dec2023-v1/NANOAOD Data_Ele_d.root Data_Ele_d.out 1 1
-/ZZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM ZZto2L2Q.root ZZto2L2Q.out 8.08 99559370.78
-/ZZto2LNu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM ZZto2LNu.root ZZto2LNu.out 1.19
-/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM ZZto4L.root ZZto4L.out 1.65 19303170.45
-/WWto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM WWto2L2Nu.root WWto2L2Nu.out 12.98 71671566.96
-/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM WZto3LNu.root WZto3LNu.out 5.31 13670492.96
-/WWW_4F_TuneCP5_13p6TeV_amcatnlo-madspin-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM WWW_4F.root WWW_4F.out 1.00 102344.04
-/WWZ_4F_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM WWZ_4F.root WWZ_4F.out 0.19 361183.87
-/WZZ_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM WZZ.root WZZ.out 0.06 123336.90
-/ZZZ_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM ZZZ.root ZZZ.out 0.02 31393.07
-/TTG-1Jets_PTG-10to100_TuneCP5_13p6TeV_amcatnloFXFXold-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v1/NANOAODSIM TTGJets_PTG-10to100.root TTGJets_PTG-10to100.out 4.22 7786355.40
-/TTG-1Jets_PTG-100to200_TuneCP5_13p6TeV_amcatnloFXFXold-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM TTGJets_PTG-100to200.root TTGJets_PTG-100to200.out 0.41 492546.28
-/TTG-1Jets_PTG-200_TuneCP5_13p6TeV_amcatnloFXFXold-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM TTGJets_PTG-200.root TTGJets_PTG-200.out 0.13 105009.29
-/TTLNu-1Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v1/NANOAODSIM TTLNu-1Jets.root TTLNu-1Jets.out 0.25 50239.48
+/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM TTbar_SemiLept.root TTbar_SemiLept.out 403.25 16639471114.80
+/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM TTbar_Dilept.root TTbar_Dilept.out 97.45 1912899391.37 
+/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14_ext1-v3/NANOAODSIM DYjetsM10to50.root DYjetsM10to50.out 19982.5 2360567534944.91
+/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM DYjetsM50.root DYjetsM50.out 6345.99 1176754138318.11
+/WtoLNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM WtoLNu.root WtoLNu.out 64481.58 14942931465632.69
+/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v4/NANOAODSIM TbarWplusto2L2Nu.root TbarWplusto2L2Nu.out 4.6511 8307673.33
+/TWminusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM TWminusto2L2Nu.root TWminusto2L2Nu.out 4.6511 8930008.45
+/ZZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v3/NANOAODSIM ZZto2L2Q.root ZZto2L2Q.out 8.08 99559370.78
+/ZZto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v3/NANOAODSIM ZZto2LNu.root ZZto2LNu.out 1.19
+/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v3/NANOAODSIM ZZto4L.root ZZto4L.out 1.65 19303170.45
+/WWto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v4/NANOAODSIM WWto2L2Nu.root WWto2L2Nu.out 12.98 71671566.96
+/WZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v3/NANOAODSIM WZto2L2Q.root WZto2L2Q.out 8.17 71671566.96
+/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM WZto3LNu.root WZto3LNu.out 5.31 13670492.96
+/TTG-1Jets_PTG-10to100_TuneCP5_13p6TeV_amcatnloFXFXold-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTGJets_PTG-10to100.root TTGJets_PTG-10to100.out 4.216 7786355.40
+/TTG-1Jets_PTG-100to200_TuneCP5_13p6TeV_amcatnloFXFXold-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTGJets_PTG-100to200.root TTGJets_PTG-100to200.out 0.411 492546.28
+/TTG-1Jets_PTG-200_TuneCP5_13p6TeV_amcatnloFXFXold-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTGJets_PTG-200.root TTGJets_PTG-200.out 0.128 105009.29
+/TTLNu-1Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTLNu-1Jets.root TTLNu-1Jets.out 0.25 50239.48
+/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTLL_MLL-4to50.root TTLL_MLL-4to50.out 0.03949
+/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TLL_MLL-50.root TLL_MLL-50.out 0.08646
+/TTZ-ZtoQQ-1Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v3/NANOAODSIM TTZ-ZtoQQ-1Jets.root TTZ-ZtoQQ-1Jets.out 0.6209
+/EGamma0/Run2023C-24Jan2024_v4-v1/NANOAOD Data_EGamma0_2023.root Data_EGamma0_2023.root 1 1
+/EGamma1/Run2023C-24Jan2024_v4-v1/NANOAOD Data_EGamma1_2023.root Data_EGamma1_2023.root 1 1
+/Muon0/Run2023C-24Jan2024_v4-v1/NANOAOD Data_Muon0_2023.root Data_Muon0_2023.root 1 1
+/Muon1/Run2023C-24Jan2024_v4-v2/NANOAOD Data_Muon1_2023.root Data_Muon1_2023.root 1 1
+/MuonEG/Run2023C-22Sep2023_v4-v1/NANOAOD Data_MuonEG_2023.root Data_MuonEG_2023.root 1 1
+

@@ -4,7 +4,7 @@ import math
 import subprocess 
 import shlex 
 
-BATCH_SIZE = 25 
+BATCH_SIZE = 5 
 REDIRECTOR = "root://cmsxrootd.fnal.gov" 
 
 def das_files(dataset): 

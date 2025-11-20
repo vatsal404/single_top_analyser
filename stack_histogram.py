@@ -72,13 +72,13 @@ for variable in variables:
     # Dynamic binning selection based on variable name
     var_lower = variable.lower()
     if "pt" in var_lower:
-        bins = np.linspace(0, 200, 30)  # pT: 0–200 GeV, 40 bins
+        bins = np.linspace(0, 200, 24)  # pT: 0–200 GeV, 40 bins
     elif "eta" in var_lower or "phi" in var_lower:
-        bins = np.linspace(-5, 5, 30)  # eta/phi: -5 to 5, 40 bins
+        bins = np.linspace(-5, 5, 24)  # eta/phi: -5 to 5, 40 bins
     elif "wboson" in var_lower :
-        bins = np.linspace(0, 200, 30)  # eta/phi: -5 to 5, 40 bins
+        bins = np.linspace(0, 200, 24)  # eta/phi: -5 to 5, 40 bins
     else:
-        bins = np.linspace(0, 500, 40)  # default binning
+        bins = np.linspace(0, 500, 24)  # default binning
 
     # Store histograms
     hist_data = {}

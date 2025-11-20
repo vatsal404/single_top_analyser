@@ -7,43 +7,43 @@ import os
 directory = "merged/"  # Path where all ROOT files are stored
 
 # Variable to plot (change this to any variable you want)
-variable_to_plot ="muon_mva_isolation"
+variable_to_plot ="Wboson_transversMass"
 
 # Define custom binning: (start, end, num_bins)
 # Adjust these based on your variable
-binning = (0,1, 40)
+binning = (0,200, 30)
 
 # Define regions
-regions = ["region_2j0t", "region_2j1t", "region_3j2t"]
+regions = ["region_2j0t", "region_2j1t", "region_3j2t","region_4j1t","region_4j2t","region_2j2t","region_3j1b"]
 
 # Define channels (these should be boolean branches in your ROOT files)
 channels = {
-    "Signal Electron": "electronChannel",
-    "Signal Muon": "muonChannel", 
+    "Electron": "electronChannel",
+    "Muon": "muonChannel", 
     "QCD Electron": "QCDelectronChannel",
     "QCD Muon": "QCDmuonChannel"
 }
 
 # Define file groups (MC samples)
 file_groups = {
-    "ttbar": ["TTbar_SemiLept.root", "TTbar_Dilept.root"],
+    "schannel": ["TbarBtoLminusNuB_s_channel.root", "TBbartoLplusNuBbar_s_channel.root"],
     "wjets": ["WtoLNu.root"],
-    "signal": ["TbarBQ_t_channel.root", "TBbarQ_t_channel.root"],
+    "single_tW": ["TbarWplusto2L2Nu.root", "TWminusto2L2Nu.root",
+                     "TbarWplustoLNu2Q.root", "TWminustoLNu2Q.root"],
+    "ttbar": ["TTbar_SemiLept.root", "TTbar_Dilept.root"],
+    "t-channel": ["TbarBQ_t_channel.root", "TBbarQ_t_channel.root"],
     "drell_yan": ["DYjetsM10to50.root", "DYJetsM50.root"],
     "other": ["ZZto2L2Q.root", "ZZto2LNu.root", "ZZto4L.root", "WWto2L2Nu.root", "WZto3LNu.root",
               "WWW_4F.root", "WWZ_4F.root", "WZZ.root", "ZZZ.root",
               "TTGJets_PTG-10to100.root", "TTGJets_PTG-100to200.root", "TTGJets_PTG-200.root",
               "TTLNu-1Jets.root"],
-    "schannel": ["TbarBtoLminusNuB_s_channel.root", "TBbartoLplusNuBbar_s_channel.root"],
-    "single_tW": ["TbarWplusto2L2Nu.root", "TWminusto2L2Nu.root",
-                  "TbarWplustoLNu2Q.root", "TWminustoLNu2Q.root"]
 }
 
 # Colors for different processes
 colors = {
     "ttbar": "red",
     "wjets": "blue",
-    "signal": "green",
+    "t-channel": "green",
     "drell_yan": "orange",
     "other": "gray",
     "schannel": "purple",
@@ -81,7 +81,7 @@ def load_histogram_data(file_groups, directory, variable, region_flag, channel_f
                     available_branches = tree.keys()
                     
                     # Check if all required branches exist
-                    required_branches = [variable, region_flag, channel_flag, "evWeight"]
+                    required_branches = [variable, region_flag, channel_flag, "Weight"]
                     if not all(b in available_branches for b in required_branches):
                         continue
                     
@@ -97,7 +97,7 @@ def load_histogram_data(file_groups, directory, variable, region_flag, channel_f
                     
                     # Filter data
                     filtered_values = arr[variable][mask]
-                    filtered_weights = arr["evWeight"][mask]
+                    filtered_weights = arr["Weight"][mask]
                     
                     # Remove NaN and Inf
                     valid_mask = np.isfinite(filtered_values)

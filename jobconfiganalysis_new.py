@@ -48,7 +48,7 @@ config = {
         # jet uncertainty 
         'jercunctag': 'Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi',
         'jettagMC' :'Summer22_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi',
-        'muon_roch_fname': 'data/MUO/2017_UL/RoccoR2017UL.txt',
+        'muon_roch_fname': 'data/MUON/2022_preEE/muon_scalesmearing.json',
         'muon_fname': 'data/MUON/2022_preEE/muon_Z.json.gz',
         'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
         'muonRECOtype': 'NUM_TrackerMuons_DEN_genTracks',
@@ -63,6 +63,7 @@ config = {
         'jet_veto_f_name':'scalefactors/jetvetomaps.json',
         'jet_veto_tag' : 'Summer22_23Sep2023_RunCD_V1',
         'electron_SSF' :'data/EGM/2022_preEE/electronSS.json',
+        'metpt_fname' : 'data/JERC/2022_preEE/met_xyCorrections_2022_2022.json'
         }
 
 # processing options

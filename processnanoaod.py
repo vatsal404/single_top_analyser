@@ -239,7 +239,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
         raise
 
     # Handle corrections with expanded configuration
-    skipcorrections = procflags.get('skipcorrections', False)
+    skipcorrections = procflags.get('skipcorrections', True)
     if not skipcorrections:
         print("Applying corrections...")
         aproc.setupCorrections(
@@ -248,7 +248,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
             config['pileuptag'],
             config['btvfname'],
             config['btvtype'],
-          #  config['muon_roch_fname'],
+            config['muon_roch_fname'],
             config['muon_fname'],
             config['muonHLTtype'],
           #  config['muonRECOtype'],
@@ -266,7 +266,8 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
             config['jercunctag'],
             config['jet_veto_f_name'],
             config['jet_veto_tag'],
-            config['electron_SSF']
+            config['electron_SSF'],
+            config['metpt_fname']
        
      
 
