@@ -989,17 +989,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
             static int debug_counter = 0;
             bool do_debug = (variation == "central" && debug_counter < 5);
 
-            if (do_debug)
-            {
-                std::cout << "\n[DEBUG] Event " << debug_counter + 1 << " (variation: " << variation << ")\n";
-                std::cout << "  hadflav: ";
-                for (auto v : hadflav) std::cout << static_cast<int>(v) << " ";
-                std::cout << "\n  eta: ";
-                for (auto v : etas) std::cout << v << " ";
-                std::cout << "\n  pt: ";
-                for (auto v : pts) std::cout << v << " ";
-                std::cout << std::endl;
-            }
+
 
             for (std::size_t i = 0; i < pts.size(); ++i)
             {
@@ -1012,11 +1002,6 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
                 btagWeight *= weight;
             }
 
-            if (do_debug)
-            {
-                std::cout << "  -> Computed event btagWeight = " << btagWeight << std::endl;
-                debug_counter++;
-            }
 
             return btagWeight;
         };
@@ -1700,7 +1685,7 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 
 */
 
-void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
+void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename){
 	vector<RNodeTree *> rntends;
 	_rnt.getRNodeLeafs(rntends);
 	_rnt.Print();

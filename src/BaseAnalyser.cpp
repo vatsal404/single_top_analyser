@@ -100,7 +100,7 @@ void BaseAnalyser::selectElectrons()
 _rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
    std::cout<< "================================1/=================================" << std::endl;
 
-    _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt>35.0 && abs(Electron_eta)<2.5 &&  Electron_mvaIso>0.9");
+    _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt>20 && abs(Electron_eta)<2.5 && !( abs(Electron_eta + Electron_deltaEtaSC) > 1.4442 && abs(Electron_eta + Electron_deltaEtaSC) < 1.566 )");
     _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt[goodElectrons]")
 		.Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[0]) : numb")
 
@@ -1223,16 +1223,21 @@ void BaseAnalyser::setupAnalysis()
     //==========================================event/gen/ weights==========================================//
     // Event weight for data it's always one. For MC, it depends on the sign
     //=====================================================================================================//
-  if(!_isData){ 
+/*  if(!_isData){ 
 		    auto sumgenweight1 = _rd.Sum("genWeight");
 	    string sumofgenweight = Form("%f",*sumgenweight1);
 	    _rlm = _rlm.Define("genEventSumw",sumofgenweight.c_str());
 	    std::cout<<"Sum of genWeights = "<<sumofgenweight.c_str()<<std::endl;
-}
+}*/
 	defineCuts();
 	defineMoreVars();
 	bookHists();
 	setupCuts_and_Hists();
 	setupTree();
 }
+
+
+
+
+
 
