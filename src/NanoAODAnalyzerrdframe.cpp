@@ -181,10 +181,11 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,s
 	cout<< "JET uncertainity tag in JSON  : " << _jercunctag << endl;
 	std::cout<< "================================//=================================" << std::endl;
 }
-
+/*
 void NanoAODAnalyzerrdframe::applyJetMETCorrections() //data
 {
     cout << "apply JETMET correction" << endl;
+if (!_isData){
 
 	auto appcorrlambdaf = [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
 	{
@@ -196,8 +197,30 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections() //data
 			//std::cout<<"jetpt===="<< jetpts[i] <<std::endl;
 			//float jet_rawmass = jet_mass * (1 - jet.rawFactor)
 			//std::cout<<"rawjetpt===="<< rawjetpt <<std::endl;
-			float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho});
-			//std::cout<<"correction factor===="<< corrfactor <<std::endl;
+            float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho });
+            //std::cout<<"correction factor===="<< corrfactor <<std::endl;
+			corrfactors.emplace_back(rawjetpt * corrfactor);
+			//std::cout<<"rawjetpt* corrfactor ===="<< rawjetpt * corrfactor <<std::endl;
+
+		}
+        //std::cout<<"Facsss===="<< corrfactors <<std::endl;
+		return corrfactors;
+		
+	};
+}
+else {
+	auto appcorrlambdaf = [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho, float run)->floats
+	{
+		floats corrfactors;
+		corrfactors.reserve(jetpts.size());
+		for (auto i =0; i<int(jetpts.size()); i++)
+		{
+			float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
+			//std::cout<<"jetpt===="<< jetpts[i] <<std::endl;
+			//float jet_rawmass = jet_mass * (1 - jet.rawFactor)
+			//std::cout<<"rawjetpt===="<< rawjetpt <<std::endl;
+            float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho , run});
+            //std::cout<<"correction factor===="<< corrfactor <<std::endl;
 			corrfactors.emplace_back(rawjetpt * corrfactor);
 			//std::cout<<"rawjetpt* corrfactor ===="<< rawjetpt * corrfactor <<std::endl;
 
@@ -207,6 +230,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections() //data
 		
 	};
 
+}
 	auto jecuncertaintylambdaf= [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
 		{
 			floats uncertainties;
@@ -226,35 +250,6 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections() //data
 			return uncertainties;
 		};
 
-	auto metcorrlambdaf = [](float met, float metphi, floats jetptsbefore, floats jetptsafter, floats jetphis)->float
-	{
-		auto metx = met * cos(metphi);
-		auto mety = met * sin(metphi);
-		for (auto i=0; i<int(jetphis.size()); i++)
-		{
-			if (jetptsafter[i]>15.0)
-			{
-				metx -= (jetptsafter[i] - jetptsbefore[i])*cos(jetphis[i]);
-				mety -= (jetptsafter[i] - jetptsbefore[i])*sin(jetphis[i]);
-			}
-		}
-		return float(sqrt(metx*metx + mety*mety));
-	};
-
-	auto metphicorrlambdaf = [](float met, float metphi, floats jetptsbefore, floats jetptsafter, floats jetphis)->float
-	{
-		auto metx = met * cos(metphi);
-		auto mety = met * sin(metphi);
-		for (auto i=0; i<int(jetphis.size()); i++)
-		{
-			if (jetptsafter[i]>15.0)
-			{
-				metx -= (jetptsafter[i] - jetptsbefore[i])*cos(jetphis[i]);
-				mety -= (jetptsafter[i] - jetptsbefore[i])*sin(jetphis[i]);
-			}
-		}
-		return float(atan2(mety, metx));
-	};
 
 	if (_jetCorrector != 0)
 	{
@@ -264,14 +259,92 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections() //data
 		_rlm = _rlm.Define("Jet_pt_relerror", jecuncertaintylambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "Rho_fixedGridRhoFastjetAll"});
 		_rlm = _rlm.Define("Jet_pt_corr_up", "Jet_pt_corr*(1.0f + Jet_pt_relerror)");
 		_rlm = _rlm.Define("Jet_pt_corr_down", "Jet_pt_corr*(1.0f - Jet_pt_relerror)");
-		_rlm = _rlm.Define("MET_pt_corr", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr", "Jet_phi"});
-		_rlm = _rlm.Define("MET_pt_corr_up", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_up", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr_up", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_up", "Jet_phi"});
-		_rlm = _rlm.Define("MET_pt_corr_down", metcorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_down", "Jet_phi"});
-		_rlm = _rlm.Define("MET_phi_corr_down", metphicorrlambdaf, {"MET_pt", "MET_phi", "Jet_pt", "Jet_pt_corr_down", "Jet_phi"});
+
 	}
 
+}*/
+
+void NanoAODAnalyzerrdframe::applyJetMETCorrections()
+{
+    std::cout << "Applying JET/MET corrections" << std::endl;
+
+    using ROOT::VecOps::RVec;
+    using floats = RVec<float>;
+
+    //------------------------------------------------------------------
+    // 1. Create a vectorized run branch (needed only for Data)
+    //------------------------------------------------------------------
+    if (_isData)
+    {
+        _rlm = _rlm.Define("run_f",
+            [](unsigned int run, const floats &jetpts) {
+                return floats(jetpts.size(), float(run));
+            },
+            {"run", "Jet_pt"}
+        );
+    }
+
+    //------------------------------------------------------------------
+    // 2. Define branches in RDF
+    //------------------------------------------------------------------
+    if (_jetCorrector != nullptr)
+    {
+        if (_isData)
+        {
+            // Lambda for Data (with run)
+            auto jetCorrLambda_Data =
+                [this](floats jetpts,
+                       floats jetetas,
+                       floats jetAreas,
+                       floats jetrawf,
+                       float rho,
+                       floats run_f) -> floats
+            {
+                floats out;
+                out.reserve(jetpts.size());
+
+                for (size_t i = 0; i < jetpts.size(); i++)
+                {
+                    float rawpt = jetpts[i] * (1.f - jetrawf[i]);
+                    float corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, run_f[i]});
+                    out.emplace_back(rawpt * corr);
+                }
+                return out;
+            };
+
+            _rlm = _rlm.Define("Jet_pt_corr",
+                jetCorrLambda_Data,
+                {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor",
+                 "Rho_fixedGridRhoFastjetAll", "run_f"});
+        }
+        else
+        {
+            // Lambda for MC (without run)
+            auto jetCorrLambda_MC =
+                [this](floats jetpts,
+                       floats jetetas,
+                       floats jetAreas,
+                       floats jetrawf,
+                       float rho) -> floats
+            {
+                floats out;
+                out.reserve(jetpts.size());
+
+                for (size_t i = 0; i < jetpts.size(); i++)
+                {
+                    float rawpt = jetpts[i] * (1.f - jetrawf[i]);
+                    float corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
+                    out.emplace_back(rawpt * corr);
+                }
+                return out;
+            };
+
+            _rlm = _rlm.Define("Jet_pt_corr",
+                jetCorrLambda_MC,
+                {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor",
+                 "Rho_fixedGridRhoFastjetAll"});
+        }
+    }
 }
 // Add to your NanoAODAnalyzerrdframe.cpp
 // Include at the top:
@@ -448,6 +521,7 @@ void NanoAODAnalyzerrdframe::applyMuPtCorrection()
     
     cout << "Muon Pt correction applied successfully" << endl;
 }
+
 void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
 {
     std::cout << "Apply Electron Pt correction" << std::endl;
@@ -459,79 +533,14 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
 
     using ROOT::VecOps::RVec;
     using floats = RVec<float>;
+      cout << "Works fine till her" << endl;
+   auto smear_corr = _correction_electronss->at("SmearAndSyst");
+ cout << "Works fine till her" << endl;
 
-    // Debug: Print all available correction names
-    std::cout << "Available corrections in the file:" << std::endl;
-    try {
-        // CorrectionSet might not be iterable, so let's try to access corrections directly
-        std::vector<std::string> correction_names = {
-            "Scale", "SmearAndSyst", "Smearing",
-            "EGMScaleVsRun_2023preBPIX", "EGMScale_EleEtaR9_2023preBPIX",
-            "EGMScale_EleFineEtaR9_2023", "EGMScale_ElePT_2023",
-            "EGMScale_EleGain_2023", "EGMScale_ElePTsplit_2023preBPIX",
-            "EGMSmearAndSyst_EleEtaR9_2023preBPIX", "EGMSmearAndSyst_EleFineEtaR9_2023",
-            "EGMSmearAndSyst_ElePT_2023", "EGMSmearAndSyst_EleGain_2023"
-        };
-        
-        for (const auto& name : correction_names) {
-            try {
-                auto test_corr = _correction_electronss->at(name);
-                std::cout << "  ✓ Found: " << name << std::endl;
-            } catch (const std::exception& e) {
-                // Correction not found, skip
-            }
-        }
-    } catch (const std::exception& e) {
-        std::cout << "  Could not enumerate corrections: " << e.what() << std::endl;
-    }
-
-    // Try to access Scale correction
-    std::cout << "\nAttempting to access 'Scale' correction..." << std::endl;
-    correction::Correction::Ref scale_corr = nullptr;
-    try {
-        scale_corr = _correction_electronss->at("Scale");
-        std::cout << "✓ Successfully loaded 'Scale' correction" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "✗ ERROR: Failed to load 'Scale' correction: " << e.what() << std::endl;
-        return;
-    }
-
-    // Try to access SmearAndSyst correction
-    std::cout << "Attempting to access 'SmearAndSyst' correction..." << std::endl;
-    correction::Correction::Ref smear_corr = nullptr;
-    try {
-        smear_corr = _correction_electronss->at("SmearAndSyst");
-        std::cout << "✓ Successfully loaded 'SmearAndSyst' correction" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "✗ ERROR: Failed to load 'SmearAndSyst': " << e.what() << std::endl;
-        
-        // Try alternative names
-        std::cout << "Trying alternative correction names..." << std::endl;
-        std::vector<std::string> alternatives = {
-            "Smearing", 
-            "EGMSmearAndSyst_ElePT_2023",
-            "EGMSmearAndSyst_EleEtaR9_2023preBPIX"
-        };
-        
-        for (const auto& alt_name : alternatives) {
-            try {
-                smear_corr = _correction_electronss->at(alt_name);
-                std::cout << "✓ Found alternative: " << alt_name << std::endl;
-                break;
-            } catch (const std::exception& e2) {
-                std::cout << "  ✗ " << alt_name << " not found" << std::endl;
-            }
-        }
-        
-        if (!smear_corr) {
-            std::cerr << "ERROR: Could not find any smearing correction!" << std::endl;
-            return;
-        }
-    }
+    auto scale_corr = _correction_electronss->compound().at("Scale");
+    cout << "Works fine till her" << endl;
 
     if (_isData) {
-        std::cout << "Processing DATA: Applying Scale corrections" << std::endl;
-        
         // For data: apply Scale corrections
         auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
                                   const ROOT::VecOps::RVec<float> &scEta,
@@ -542,22 +551,11 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
             ROOT::VecOps::RVec<float> result;
             result.reserve(pt.size());
 
-            std::cout << "  Scale lambda called with " << pt.size() << " electrons" << std::endl;
-            std::cout << "  Run number: " << run << std::endl;
-
             for (size_t i = 0; i < pt.size(); ++i) {
                 try {
-                    if (i == 0) {  // Print details for first electron
-                        std::cout << "  First electron details:" << std::endl;
-                        std::cout << "    pt: " << pt[i] << std::endl;
-                        std::cout << "    scEta: " << scEta[i] << std::endl;
-                        std::cout << "    r9: " << r9[i] << std::endl;
-                        std::cout << "    seedGain: " << static_cast<int>(seedGain[i]) << std::endl;
-                    }
-                    
                     // Scale correction expects: syst, run, ScEta, r9, pt, seedGain
                     float factor = scale_corr->evaluate({
-                        "total_correction",                    // syst (string)
+                        "scale",                    // syst (string)
                         static_cast<double>(run),              // run (real)
                         static_cast<double>(scEta[i]),         // ScEta (real) - NO abs()
                         static_cast<double>(r9[i]),            // r9 (real)
@@ -565,35 +563,21 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
                         static_cast<double>(seedGain[i])       // seedGain (real)
                     });
 
-                    if (i == 0) {
-                        std::cout << "    Scale factor: " << factor << std::endl;
-                        std::cout << "    Corrected pt: " << pt[i] * factor << std::endl;
-                    }
-
                     result.emplace_back(pt[i] * factor);
                 } catch (const std::exception &e) {
                     std::cerr << "Error evaluating scale correction at index " << i << ": " << e.what() << std::endl;
-                    std::cerr << "  pt[" << i << "]: " << pt[i] << std::endl;
-                    std::cerr << "  scEta[" << i << "]: " << scEta[i] << std::endl;
-                    std::cerr << "  r9[" << i << "]: " << r9[i] << std::endl;
-                    std::cerr << "  seedGain[" << i << "]: " << static_cast<int>(seedGain[i]) << std::endl;
                     result.emplace_back(pt[i]);  // fallback to uncorrected
                 }
             }
 
-            std::cout << "  Scale corrections applied successfully" << std::endl;
             return result;
         };
 
         _rlm = _rlm.Define("Electron_eta_supercluster", "Electron_eta + Electron_deltaEtaSC");
-        std::cout << "Defining Electron_pt_corr column..." << std::endl;
         _rlm = _rlm.Define("Electron_pt_corr", scale_lambda,
                            {"Electron_pt", "Electron_eta_supercluster", "Electron_r9", "Electron_seedGain", "run"});
-        std::cout << "Scale correction column defined successfully" << std::endl;
     }
     else {
-        std::cout << "Processing MC: Applying Smearing corrections" << std::endl;
-        
         // For MC: apply Smearing corrections
         auto smear_lambda = [smear_corr](const floats &pt,
                                           const floats &scEta,
@@ -605,21 +589,12 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
             smear_up.reserve(N);
             smear_down.reserve(N);
 
-            std::cout << "  Smear lambda called with " << N << " electrons" << std::endl;
-
             std::random_device rd;
             std::mt19937 gen(rd());
             std::normal_distribution<float> gauss(0.0, 1.0);
 
             for (size_t i = 0; i < N; ++i) {
                 try {
-                    if (i == 0) {  // Print details for first electron
-                        std::cout << "  First electron details:" << std::endl;
-                        std::cout << "    pt: " << pt[i] << std::endl;
-                        std::cout << "    scEta: " << scEta[i] << std::endl;
-                        std::cout << "    r9: " << r9[i] << std::endl;
-                    }
-                    
                     // SmearAndSyst expects: syst, pt, r9, ScEta
                     float smear_val = smear_corr->evaluate({
                         "smear",                              // syst (string)
@@ -644,42 +619,27 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
 
                     float rand = gauss(gen);
 
-                    if (i == 0) {
-                        std::cout << "    Smear value: " << smear_val << std::endl;
-                        std::cout << "    Smear up: " << smear_unc_up << std::endl;
-                        std::cout << "    Smear down: " << smear_unc_down << std::endl;
-                        std::cout << "    Random value: " << rand << std::endl;
-                    }
-
                     nominal.emplace_back(pt[i] * (1.0 + smear_val * rand));
                     smear_up.emplace_back(pt[i] * (1.0 + smear_unc_up * rand));
                     smear_down.emplace_back(pt[i] * (1.0 + smear_unc_down * rand));
                 } catch (const std::exception &e) {
                     std::cerr << "Error evaluating smear correction at index " << i << ": " << e.what() << std::endl;
-                    std::cerr << "  pt[" << i << "]: " << pt[i] << std::endl;
-                    std::cerr << "  scEta[" << i << "]: " << scEta[i] << std::endl;
-                    std::cerr << "  r9[" << i << "]: " << r9[i] << std::endl;
                     nominal.emplace_back(pt[i]);
                     smear_up.emplace_back(pt[i]);
                     smear_down.emplace_back(pt[i]);
                 }
             }
 
-            std::cout << "  Smearing corrections applied successfully" << std::endl;
             return std::make_tuple(nominal, smear_up, smear_down);
         };
 
         _rlm = _rlm.Define("Electron_eta_supercluster", "Electron_eta + Electron_deltaEtaSC");
-        std::cout << "Defining Electron_pt_corr columns..." << std::endl;
         _rlm = _rlm.Define("Electron_pt_corr_triple", smear_lambda,
                            {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"})
                    .Define("Electron_pt_corr", "std::get<0>(Electron_pt_corr_triple)")
                    .Define("Electron_pt_corr_smearUp", "std::get<1>(Electron_pt_corr_triple)")
                    .Define("Electron_pt_corr_smearDown", "std::get<2>(Electron_pt_corr_triple)");
-        std::cout << "Smearing correction columns defined successfully" << std::endl;
     }
-    
-    std::cout << "applyElectronPtCorrection() completed successfully" << std::endl;
 }
 
 void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection() //data and MC
@@ -731,6 +691,7 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
     cout << "set up Corrections!" << endl;
          _correction_electronss = correction::CorrectionSet::from_file(electron_SSF);
 	 cout<< "Electron scaling and smearing filename   : " << electron_SSF << endl;
+     assert(_correction_electronss->validate());
 
 
       _electron_SSF=electron_SSF;
@@ -826,7 +787,7 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	setupJetMETCorrection(jercfname, _jerctag,_jerctagMC);
 	applyJetMETCorrections();
 	applyMuPtCorrection();
-        //applyElectronPtCorrection();
+    applyElectronPtCorrection();
      applyMETPtPhiCorrection();
 
 }
@@ -1392,7 +1353,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(
 
         _rlm = _rlm.Define(
             column_name,
-            column_name_reco + " * " + column_name_id + " * " + column_name_Hlt
+            column_name_reco + " * " + column_name_id 
         );
     }
 

@@ -7,7 +7,7 @@ error=logs/$(ClusterId).err
 log=logs/$(ClusterId).log
 
 should_transfer_files=YES
-transfer_input_files= ,runjob.sh,jobconfiganalysis_new.py,processnanoaod.py,sample_list.txt,submitanalysisjob.py,job.submit,libnanoadrdframe.so,rootdict_rdict.pcm,package.tar.gz,sample_list_modified.txt,$(input_dir)
+transfer_input_files= ,runjob.sh,jobconfiganalysis_2023.py,processnanoaod.py,sample_list.txt,submitanalysisjob.py,job.submit,libnanoadrdframe.so,rootdict_rdict.pcm,package.tar.gz,sample_list_modified.txt
 
 when_to_transfer_output=ON_EXIT_OR_EVICT
 

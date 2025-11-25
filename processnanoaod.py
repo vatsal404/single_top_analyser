@@ -239,7 +239,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
         raise
 
     # Handle corrections with expanded configuration
-    skipcorrections = procflags.get('skipcorrections', True)
+    skipcorrections = procflags.get('skipcorrections', False)
     if not skipcorrections:
         print("Applying corrections...")
         aproc.setupCorrections(

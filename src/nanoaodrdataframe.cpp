@@ -20,14 +20,13 @@ using namespace ROOT;
 int main(void) {
 
 	TChain c1("Events");
-	//c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer22NanoAODv12/WtoLNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/269ca882-375b-49dc-80ff-01dc2c227522.root"); //data
- //   c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer22NanoAODv12/TBbarQ_t-channel_4FS_TuneCP5_13p6TeV_powheg-madspin-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/40000/5d403323-79b0-4bc9-92cb-c7ac713ddcbd.root");
-//
-c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer23NanoAODv12/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2810000/0019dbdc-5ef5-4cb5-85e5-7655c7002d47.root");
-	//c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"); // MC
-        //c1.Add("root://xrootd-cms.infn.it//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/a921644d-6ceb-4bc3-81c9-fddd5c7b1edb.root"); // tw
+//	c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v2/2520000/04fb6a6e-b9c5-4df1-99fa-c804ef776cba.root"); //ttbar
+//    c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root");//tw
+//c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer23NanoAODv12/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2810000/0019dbdc-5ef5-4cb5-85e5-7655c7002d47.root");//DY
+	c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"); // MC
+        //c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/EGamma0/NANOAOD/24Jan2024_v4-v1/2820000/651bf5fb-320a-4229-89b4-d12a8e8f149a.root"); // data
 
-	BaseAnalyser nanoaodrdf(&c1, "test.root",2,2);
+	BaseAnalyser nanoaodrdf(&c1, "test_tw.root",2,2);
 	nanoaodrdf.setParams(2022, "UL", -1);
 	nanoaodrdf.setHLT();
 
@@ -54,7 +53,7 @@ c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer23NanoAODv12/ZZto4L_TuneCP
     string electronHlt_type="HLT_SF_Ele30_TightID";
     string electron_reco_type1 = "Reco20to75";
 	string electron_reco_type2 =  "RecoAbove75";
-	string electron_id_type = "wp90iso";
+	string electron_id_type = "Tight";
         string jet_veto_f_name="data/JERC/2023/jetvetomaps.json";
         string jet_veto_tag = "Summer23Prompt23_RunC_V1";
         string electron_SSF = "data/EGM/2023/electronSS_EtDependent.json";

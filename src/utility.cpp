@@ -30,6 +30,68 @@ TLorentzVector boostToRestFrame(const TLorentzVector& p, const TLorentzVector& r
     return boosted;
 }
 
+std::pair<double, double> computeSphericityAplanarity(
+    const FourVectorVec& electron,
+    const FourVectorVec& muon,
+    const FourVectorVec& jet)
+{
+    FourVectorVec allParticles;
+    allParticles.insert(allParticles.end(), electron.begin(), electron.end());
+    allParticles.insert(allParticles.end(), muon.begin(), muon.end());
+    allParticles.insert(allParticles.end(), jet.begin(), jet.end());
+
+    if (allParticles.size() == 0)
+        return {0.0, 0.0};
+
+    // Build momentum tensor
+    TMatrixDSym momTensor(3);
+    momTensor = 0.0;
+    double p2_sum = 0.0;
+
+    for (const auto& p : allParticles)
+    {
+        double px = p.Px();
+        double py = p.Py();
+        double pz = p.Pz();
+
+        p2_sum += p.P2();
+
+        momTensor(0,0) += px*px;
+        momTensor(0,1) += px*py;
+        momTensor(0,2) += px*pz;
+        momTensor(1,1) += py*py;
+        momTensor(1,2) += py*pz;
+        momTensor(2,2) += pz*pz;
+    }
+
+    momTensor(1,0) = momTensor(0,1);
+    momTensor(2,0) = momTensor(0,2);
+    momTensor(2,1) = momTensor(1,2);
+
+    momTensor *= (1.0 / p2_sum);
+
+    // Compute eigenvalues with ROOT-6.24 compatible class
+    TMatrixDSymEigen eigenSolver(momTensor);
+    TVectorD eigenVals = eigenSolver.GetEigenValues();
+
+    std::vector<double> lambda = {
+        eigenVals[0], eigenVals[1], eigenVals[2]
+    };
+
+    std::sort(lambda.begin(), lambda.end()); // ascending values
+
+    double lambda1 = lambda[0];
+    double lambda2 = lambda[1];
+    double lambda3 = lambda[2];
+
+    // Event shapes
+    double sphericity = 1.5 * (lambda1 + lambda2);
+    double aplanarity = 1.5 * lambda1;
+
+    return {sphericity, aplanarity};
+}
+
+
 // Correct calculation of W boson helicity angle
 float calculateWHelicityAngle(const TLorentzVector& lepton, const TLorentzVector& W, const TLorentzVector& topQuark) {
     // Boost lepton to W boson rest frame

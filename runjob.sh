@@ -7,7 +7,7 @@ stderr_file=$3  # Define the log file name
 crossection=$4
 sumgenWeight=$5
 # Configuration variables
-jobconfmod="jobconfiganalysis_new"
+jobconfmod="jobconfiganalysis_2023"
 eos_output_dir="/eos/uscms/store/user/vsinha/results"
 
 echo "Running analysis with the following parameters:"
@@ -44,20 +44,17 @@ fi
 ls -alh
 
 # Ensure the output file directory exists
-output_dir=$(dirname "Analyzed")
-if [ ! -d "${output_dir}" ]; then
-    echo "Output directory ${output_dir} does not exist, creating it..."
-    mkdir -p "${output_dir}" || { echo "Failed to create directory ${output_dir}"; exit 1; }
-else
-    echo "Output directory ${output_dir} exists, proceeding with job..."
-fi
 
-local_output_path="${output_dir}/${output_file}"
-echo "Final output file path: ${local_output_path}"
 tar -xzf package.tar.gz
+echo "input directory :${input_dir}"
 
+echo "output file :${output_file}"
+echo "log file :${stderr_file}"
+echo "crossection :${crossection}"
+echo "sum of genweight :${sumgenWeight}"
+echo "config :${jobconfmod}"
 # Run the analysis job
-./processnanoaod.py $input_dir $local_output_path $jobconfmod $crossection $sumgenWeight> $log_file 2>&1 || { echo "Error: Processing failed"; exit 1; }
+./processnanoaod.py $input_dir $output_file $jobconfmod $crossection $sumgenWeight> $log_file 2>&1 || { echo "Error: Processing failed"; exit 1; }
 
 cat $log_file
 

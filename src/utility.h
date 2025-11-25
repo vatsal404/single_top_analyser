@@ -60,10 +60,14 @@ struct cutinfo
 	std::string idx;
 };
 
+// ----------------------------------------------------------------------
+// Compute sphericity and aplanarity from a vector of momenta
+// ----------------------------------------------------------------------
 
 // generates vectors of 4 vectors given vectors of pt, eta, phi, mass
 TLorentzVector boostToRestFrame(const TLorentzVector& p, const TLorentzVector& W);
 float calculateWHelicityAngle(const TLorentzVector& lepton, const TLorentzVector& W,const TLorentzVector& topQuark);
+std::pair<double,double> computeSphericityAplanarity(const FourVectorVec& electron, const FourVectorVec& muon ,const FourVectorVec& jet);
 
 FourVectorVec generate_4vec(floats &pt, floats &eta, floats &phi, floats &mass);
 
