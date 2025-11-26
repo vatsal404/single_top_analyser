@@ -3,7 +3,7 @@ import os
 import math
 import subprocess
 
-BATCH_SIZE = 10
+BATCH_SIZE = 3
 REDIRECTOR = "root://cmsxrootd.fnal.gov"
 
 def das_files(dataset):
@@ -21,8 +21,8 @@ def ensure_dir(d):
         os.makedirs(d, exist_ok=True)
 
 def main():
-    in_list = "sample_list.txt"
-    out_list = "sample_list_split.txt"
+    in_list = "sample_list_modified.txt"
+    out_list = "sample_list_split_data.txt"
     batch_dir = "batches"
 
     # Create batches directory

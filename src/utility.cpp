@@ -346,7 +346,7 @@ float calculate_deltaPhi_scalars(double &phi1, double &phi2){
 	return ROOT::VecOps::DeltaPhi(phi1, phi2);
 }
 
-float calculate_deltaR(const FourVector &p1,const FourVector &p2){
+float calculate_deltaR(const TLorentzVector &p1,const TLorentzVector &p2){
 	return ROOT::Math::VectorUtil::DeltaR(p1, p2);
 }
 

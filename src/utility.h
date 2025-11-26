@@ -84,7 +84,7 @@ ints good_idx(ints good);
 float calculate_deltaEta(const FourVector &p1,const FourVector &p2);
 float calculate_deltaPhi( FourVector &p1, FourVector &p2);
 float calculate_deltaPhi_scalars(double &phi1, double &phi2);
-float calculate_deltaR(const FourVector &p1,const FourVector &p2);
+float calculate_deltaR(const TLorentzVector &p1,const TLorentzVector &p2);
 //float calculate_deltaR( TLorentzVector &p1, TLorentzVector &p2);
 
 float calculate_invMass( FourVector &p1, FourVector &p2);

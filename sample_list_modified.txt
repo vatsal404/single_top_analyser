@@ -1,2 +1,6 @@
-/EGamma/Run2022C-16Dec2023-v1/NANOAOD  Data_Ele_c.root  Data_Ele_c.out  1
-/Muon/Run2022D-16Dec2023-v1/NANOAOD  Data_Mu_d.root  Data_Mu_d.out  1
+/EGamma0/Run2023C-24Jan2024_v4-v1/NANOAOD Data_EGamma0_2023.root  Data_EGamma0_2023.out 1 1
+/EGamma1/Run2023C-24Jan2024_v4-v1/NANOAOD Data_EGamma1_2023.root  Data_EGamma1_2023.out 1 1
+/Muon0/Run2023C-24Jan2024_v4-v1/NANOAOD Data_Muon0_2023.root  Data_Muon0_2023.out 1 1
+/Muon1/Run2023C-24Jan2024_v4-v2/NANOAOD Data_Muon1_2023.root  Data_Muon1_2023.out 1 1
+/MuonEG/Run2023C-22Sep2023_v4-v1/NANOAOD Data_MuonEG_2023.root Data_MuonEG_2023.out 1 1
+
