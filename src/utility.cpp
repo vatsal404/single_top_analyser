@@ -23,6 +23,7 @@ using namespace std;
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
+
 // Helper function to boost a TLorentzVector to the rest frame of another TLorentzVector
 TLorentzVector boostToRestFrame(const TLorentzVector& p, const TLorentzVector& restFrame) {
     TLorentzVector boosted = p;
@@ -345,11 +346,44 @@ float calculate_deltaPhi( FourVector &p1, FourVector &p2){
 float calculate_deltaPhi_scalars(double &phi1, double &phi2){
 	return ROOT::VecOps::DeltaPhi(phi1, phi2);
 }
+float calculate_centrality(const TLorentzVector &lep1,
+                           const TLorentzVector &lep2,
+                           const TLorentzVector &jet) 
+{
+    TLorentzVector total = lep1 + lep2 + jet; // vector sum
 
-float calculate_deltaR(const TLorentzVector &p1,const TLorentzVector &p2){
-	return ROOT::Math::VectorUtil::DeltaR(p1, p2);
+    double Et = total.Pt();   // transverse energy = magnitude in x-y plane
+    double E  = total.E();    // total energy
+
+    if (E == 0 || std::isnan(E) || std::isnan(Et)) {
+        return std::numeric_limits<double>::quiet_NaN(); // handle pathological cases
+    }
+
+    return Et / E; // centrality
 }
 
+//float calculate_deltaR( const LorentzVector &p1,const LorentzVector &p2){
+//	return ROOT::Math::VectorUtil::DeltaR(p1, p2);
+//}
+float calculate_deltaR(TLorentzVector &p1, TLorentzVector &p2) {
+    double eta1 = p1.Eta();
+    double eta2 = p2.Eta();
+    double phi1 = p1.Phi();
+    double phi2 = p2.Phi();
+
+    // Check for NaN
+    if (std::isnan(eta1) || std::isnan(eta2) || std::isnan(phi1) || std::isnan(phi2)) {
+        // Optionally print warning once or return a default value
+        // std::cerr << "Warning: NaN detected in deltaR calculation!\n";
+        return std::numeric_limits<double>::quiet_NaN(); // or some default/error value
+    }
+
+    double deta = eta1 - eta2;
+    double dphi = std::fabs(p1.DeltaPhi(p2)); // TLorentzVector handles wrapping
+    if (std::isnan(dphi)) dphi = 0; // extra safety
+
+    return std::sqrt(deta*deta + dphi*dphi);
+}
 float calculate_invMass( FourVector &p1, FourVector &p2){
 	return ROOT::Math::VectorUtil::InvariantMass(p1, p2);
 }
@@ -517,7 +551,7 @@ FourVector generate_single_4vec(double &pt, double &eta, double &phi, double &ma
 	return fourvecs;
 }
 
-
+/*
 doubles calculateDeltaR_group(FourVectorVec &jets, FourVector &lepton)
 {
 	std::vector<double> deltaR(jets.size());
@@ -528,7 +562,7 @@ doubles calculateDeltaR_group(FourVectorVec &jets, FourVector &lepton)
 
 	return deltaR;
 }
-
+*/
 
 TLorentzVector generate_TLorentzVector(double &pt, double &eta, double &phi, double &mass) 
 {

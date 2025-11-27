@@ -23,7 +23,7 @@ int main(void) {
 //	c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v2/2520000/04fb6a6e-b9c5-4df1-99fa-c804ef776cba.root"); //ttbar
     c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root");//tw
 //c1.Add("root://xrootd-cms.infn.it//store/mc/Run3Summer23NanoAODv12/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2810000/0019dbdc-5ef5-4cb5-85e5-7655c7002d47.root");//DY
-       // c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/EGamma0/NANOAOD/24Jan2024_v4-v1/2820000/023f229d-676e-4ac2-a022-da17fd2dbb0e.root"); // data
+        //c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/EGamma0/NANOAOD/24Jan2024_v4-v1/2820000/023f229d-676e-4ac2-a022-da17fd2dbb0e.root"); // data
 
 	BaseAnalyser nanoaodrdf(&c1, "test_tw.root",2,2);
 	nanoaodrdf.setParams(2022, "UL", -1);

@@ -14,6 +14,8 @@
 #include "correction.h"
 #include <string>
 #include <TLorentzVector.h>
+#pragma once
+#include "Math/VectorUtil.h"
 
 using floats =  ROOT::VecOps::RVec<float>;
 using doubles =  ROOT::VecOps::RVec<double>;
@@ -84,9 +86,10 @@ ints good_idx(ints good);
 float calculate_deltaEta(const FourVector &p1,const FourVector &p2);
 float calculate_deltaPhi( FourVector &p1, FourVector &p2);
 float calculate_deltaPhi_scalars(double &phi1, double &phi2);
-float calculate_deltaR(const TLorentzVector &p1,const TLorentzVector &p2);
-//float calculate_deltaR( TLorentzVector &p1, TLorentzVector &p2);
-
+//float calculate_deltaR(const  ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double>> &p1,const ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double>> &p2);
+float calculate_deltaR( TLorentzVector &p1, TLorentzVector &p2);
+float calculate_centrality(const TLorentzVector &lep1,const TLorentzVector &lep2,const TLorentzVector &jet); 
+   
 float calculate_invMass( FourVector &p1, FourVector &p2);
 FourVector sum_4vec( FourVector &p1, FourVector &p2);
 floats sort_discriminant( floats discr, floats obj );

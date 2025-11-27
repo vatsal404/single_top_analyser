@@ -376,13 +376,30 @@ void BaseAnalyser::removeOverlaps()
                 
                 _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi").Filter("!vetoed_jets");
        //         _rlm = applyJetVetoMap(_rlm,"Selected_loosejeteta","Selected_loosejetphi").Filter("!vetoed_jets");
+         
+         _rlm=_rlm.Define("ncleanjetspass", "int(Selected_jetpt.size())");
+/*        _rlm = _rlm.Define("Selected_jet_maxpt_index", "ArgMax(Selected_jetpt)");
+        _rlm = _rlm.Define("Selected_jet_maxpt_index_temp", "int(Selected_jetpt.size())>0");
+        _rlm = _rlm.Define("Selected_jet_leading_pt", "int(Selected_jetpt.size())>0 ? Selected_jetpt[Selected_jet_maxpt_index] : numb");
+        _rlm = _rlm.Define("Selected_jet_leading_eta", "int(Selected_jetpt.size())>0 ? Selected_jeteta[Selected_jet_maxpt_index] : numb");
+        _rlm = _rlm.Define("Selected_jet_leading_phi", "int(Selected_jetpt.size())>0 ? Selected_jetphi[Selected_jet_maxpt_index] : numb");
+        _rlm = _rlm.Define("Selected_jet_leading_mass", "int(Selected_jetpt.size())>0 ? Selected_jetmass[Selected_jet_maxpt_index] : numb");
+        _rlm = _rlm.Define("selected_leadingcleanjet_TL4vec",:: generate_TLorentzVector,{"Selected_jet_leading_pt", "Selected_jet_leading_eta", "Selected_jet_leading_phi", "Selected_jet_leading_mass"});
+*/
+_rlm = _rlm.Define("Selected_jet_sorted_indices", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Selected_jetpt))");
+_rlm = _rlm.Define("Selected_jet_leading_pt", "int(Selected_jetpt.size())>0 ? Selected_jetpt[Selected_jet_sorted_indices[0]] : numb");
+_rlm = _rlm.Define("Selected_jet_subleading_pt", "int(Selected_jetpt.size())>1 ? Selected_jetpt[Selected_jet_sorted_indices[1]] : numb");
+        _rlm = _rlm.Define("Selected_jet_leading_eta", "int(Selected_jetpt.size())>0 ? Selected_jeteta[Selected_jet_sorted_indices[0]] : numb");
+        _rlm = _rlm.Define("Selected_jet_leading_phi", "int(Selected_jetpt.size())>0 ? Selected_jetphi[Selected_jet_sorted_indices[0]] : numb");
+        _rlm = _rlm.Define("Selected_jet_leading_mass", "int(Selected_jetpt.size())>0 ? Selected_jetmass[Selected_jet_sorted_indices[0]] : numb");
+        _rlm = _rlm.Define("selected_leadingcleanjet_TL4vec",:: generate_TLorentzVector,{"Selected_jet_leading_pt", "Selected_jet_leading_eta", "Selected_jet_leading_phi", "Selected_jet_leading_mass"});
 
 
-        _rlm=_rlm.Define("ncleanjetspass", "int(Selected_jetpt.size())");
+         //    _rlm=_rlm.Define("ncleanjetspass", "int(Selected_jetpt.size())");
         _rlm=_rlm.Define("ncleanjetspass_loose", "int(Selected_loosejetpt.size())");
         _rlm = _rlm.Define("Selected_loosejet_maxpt_index", "ArgMax(Selected_loosejetpt)");
         _rlm = _rlm.Define("Selected_loosejet_maxpt_index_temp", "int(Selected_loosejetpt.size())>0");
-        _rlm = _rlm.Define("Selected_loosejet_leadingpt", "int(Selected_loosejetpt.size())>0 ? Selected_jetpt[Selected_loosejet_maxpt_index] : numb");
+        _rlm = _rlm.Define("Selected_loosejet_leadingpt", "int(Selected_loosejetpt.size())>0 ? Selected_loosejetpt[Selected_loosejet_maxpt_index] : numb");
         if(!_isData){
             _rlm= _rlm .Define("Selected_jethadflav", "goodJets_hadflav[checkOverlap]"); 
 }
@@ -593,16 +610,19 @@ void BaseAnalyser::bdt_variables()
   _rlm = _rlm.Define("aplanery_sphericity", ::computeSphericityAplanarity, {"goodElectron_4vecs","goodmuons_4vecs","cleanjet4vecs"});
  _rlm = _rlm.Define("sphericity","aplanery_sphericity.first");
  _rlm = _rlm.Define("aplanery","aplanery_sphericity.second");
+ _rlm = _rlm.Define("centrality",::calculate_centrality, {"goodElectron_TL4Vecs","goodmuons_TL4Vecs","selected_cleanbjet_TL4vec"});
 
 
 _rlm = _rlm.Define("dilepton_invariant_mass","(goodElectron_TL4Vecs+goodmuons_TL4Vecs).M()");
 _rlm = _rlm.Define("dilepton_jet_pt","(goodElectron_TL4Vecs+goodmuons_TL4Vecs+selected_cleanbjet_TL4vec).Pt()");
 _rlm = _rlm.Define("dilepton_jet_mass","(goodElectron_TL4Vecs+goodmuons_TL4Vecs+selected_cleanbjet_TL4vec).M()");
+_rlm = _rlm.Define("dilepton","goodElectron_TL4Vecs+goodmuons_TL4Vecs");
 //_rlm = _rlm.Define("Selected_loosejet_leadingpt", "int(Selected_loosejetpt.size())>0 ? Selected_bjetpt[Selected_loosejet_maxpt_index] : numb");
 _rlm = _rlm.Define("dilepton_del_phi", :: calculate_deltaPhi_scalars, {"goodElectrons_leading_phi","goodmuons_leading_phi"});
 _rlm = _rlm.Define("leading_lepton_jet_pt","(leading_lepton + selected_cleanbjet_TL4vec).Pt()");
-_rlm = _rlm.Define("delR_dilepton_jet",:: calculate_deltaR, {"goodElectron_TL4Vecs+goodmuons_TL4Vecs","selected_cleanbjet_TL4vec"});
-
+_rlm = _rlm.Define("delR_dilepton_jet",:: calculate_deltaR,{"dilepton","selected_cleanbjet_TL4vec"});
+_rlm = _rlm.Define("delR_ele_muon",:: calculate_deltaR,{"goodElectron_TL4Vecs","goodmuons_TL4Vecs"});
+_rlm = _rlm.Define("delR_leadinglepton_jet",:: calculate_deltaR,{"leading_lepton","selected_cleanbjet_TL4vec"});
 
 //_rlm = _rlm.Define("subleading_lepton_pt","subleading_lepton.Pt()");
 
@@ -661,11 +681,19 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("eu_channel");
     addVartoStore("dilepton_invariant_mass");
     addVartoStore("dilepton_jet_pt");
-    //addVartoStore("Selected_loosejet_leadingpt");
+    addVartoStore("Selected_loosejet_leadingpt");
     addVartoStore("dilepton_del_phi");
     addVartoStore("leading_lepton_jet_pt");
     addVartoStore("dilepton_jet_mass");
     addVartoStore("delR_dilepton_jet");
+    addVartoStore("delR_ele_muon");
+    addVartoStore("delR_leadinglepton_jet");
+    addVartoStore("centrality");
+    addVartoStore("Selected_jet_leading_pt");
+    addVartoStore("Selected_jet_subleading_pt");
+    addVartoStore("Selected_jet_leading_phi");
+    addVartoStore("Selected_jet_leading_eta");
+    addVartoStore("Selected_jet_leading_mass");
 
 
 
