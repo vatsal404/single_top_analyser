@@ -160,7 +160,7 @@ void NanoAODAnalyzerrdframe::selectFatJets()
 }
 
 
-void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,string jettagMC) //data
+void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,string jettagMC,string JER_tag) //data
 {
 
     cout << "SETUP JETMET correction" << endl;
@@ -179,90 +179,10 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,s
 	cout<< "JET tag in JSON : " << jettag << endl;
 	_jetCorrectionUnc = _correction_jerc->at(_jercunctag);
 	cout<< "JET uncertainity tag in JSON  : " << _jercunctag << endl;
+    cout<< "JER tag in json: " << JER_tag << endl;
+    _jer_corrector = _correction_jerc->at(JER_tag);
 	std::cout<< "================================//=================================" << std::endl;
 }
-/*
-void NanoAODAnalyzerrdframe::applyJetMETCorrections() //data
-{
-    cout << "apply JETMET correction" << endl;
-if (!_isData){
-
-	auto appcorrlambdaf = [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
-	{
-		floats corrfactors;
-		corrfactors.reserve(jetpts.size());
-		for (auto i =0; i<int(jetpts.size()); i++)
-		{
-			float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
-			//std::cout<<"jetpt===="<< jetpts[i] <<std::endl;
-			//float jet_rawmass = jet_mass * (1 - jet.rawFactor)
-			//std::cout<<"rawjetpt===="<< rawjetpt <<std::endl;
-            float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho });
-            //std::cout<<"correction factor===="<< corrfactor <<std::endl;
-			corrfactors.emplace_back(rawjetpt * corrfactor);
-			//std::cout<<"rawjetpt* corrfactor ===="<< rawjetpt * corrfactor <<std::endl;
-
-		}
-        //std::cout<<"Facsss===="<< corrfactors <<std::endl;
-		return corrfactors;
-		
-	};
-}
-else {
-	auto appcorrlambdaf = [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho, float run)->floats
-	{
-		floats corrfactors;
-		corrfactors.reserve(jetpts.size());
-		for (auto i =0; i<int(jetpts.size()); i++)
-		{
-			float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
-			//std::cout<<"jetpt===="<< jetpts[i] <<std::endl;
-			//float jet_rawmass = jet_mass * (1 - jet.rawFactor)
-			//std::cout<<"rawjetpt===="<< rawjetpt <<std::endl;
-            float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho , run});
-            //std::cout<<"correction factor===="<< corrfactor <<std::endl;
-			corrfactors.emplace_back(rawjetpt * corrfactor);
-			//std::cout<<"rawjetpt* corrfactor ===="<< rawjetpt * corrfactor <<std::endl;
-
-		}
-        //std::cout<<"Facsss===="<< corrfactors <<std::endl;
-		return corrfactors;
-		
-	};
-
-}
-	auto jecuncertaintylambdaf= [this](floats jetpts, floats jetetas, floats jetAreas, floats jetrawf, float rho)->floats
-		{
-			floats uncertainties;
-			uncertainties.reserve(jetpts.size());
-			for (auto i =0; i<int(jetpts.size()); i++)
-			{
-				float rawjetpt = jetpts[i]*(1.0-jetrawf[i]);
-                
-				float corrfactor = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawjetpt, rho});
-				//print("\njet SF for shape correction:")
-				//print(f"SF: {corrfactor}")
-                
-				float unc = _jetCorrectionUnc->evaluate({corrfactor*rawjetpt, jetetas[i]});
-				uncertainties.emplace_back(unc);
-
-			}
-			return uncertainties;
-		};
-
-
-	if (_jetCorrector != 0)
-	{
-        cout << "jetcorrector==" <<_jetCorrector << endl;
-
-		_rlm = _rlm.Define("Jet_pt_corr", appcorrlambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "Rho_fixedGridRhoFastjetAll"});
-		_rlm = _rlm.Define("Jet_pt_relerror", jecuncertaintylambdaf, {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor", "Rho_fixedGridRhoFastjetAll"});
-		_rlm = _rlm.Define("Jet_pt_corr_up", "Jet_pt_corr*(1.0f + Jet_pt_relerror)");
-		_rlm = _rlm.Define("Jet_pt_corr_down", "Jet_pt_corr*(1.0f - Jet_pt_relerror)");
-
-	}
-
-}*/
 
 void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 {
@@ -316,6 +236,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                 jetCorrLambda_Data,
                 {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor",
                  "Rho_fixedGridRhoFastjetAll", "run_f"});
+             
         }
         else
         {
@@ -338,12 +259,30 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                 }
                 return out;
             };
+             
+            auto jerCorrLambda_MC =[this](floats jetpts, floats jetetas ) -> floats
+            {
+                floats out;
+                out.reserve(jetpts.size());
 
-            _rlm = _rlm.Define("Jet_pt_corr",
+                for (size_t i=0; i<jetpts.size(); i++)
+                {
+                    float corr = _jer_corrector->evaluate({jetetas[i],jetpts[i],"nom"});
+                    out.emplace_back(jetpts[i] * corr);
+                }
+                return out;
+            };
+
+            _rlm = _rlm.Define("Jet_pt_temp_corr",
                 jetCorrLambda_MC,
                 {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor",
                  "Rho_fixedGridRhoFastjetAll"});
-        }
+                  
+            _rlm = _rlm.Define("Jet_pt_corr",
+                jerCorrLambda_MC,
+                {"Jet_pt_temp_corr", "Jet_eta"});
+
+      }
     }
 }
 // Add to your NanoAODAnalyzerrdframe.cpp
@@ -685,7 +624,7 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection() //data and MC
     _rlm = _rlm.Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
   }
 }
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, /*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,i*/ string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string electronHlt_fname,string electronHlt_type,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname)
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, /*, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,i*/ string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string electronHlt_fname,string electronHlt_type,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;
@@ -783,8 +722,9 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	_jerctag = jerctag;
     _jerctagMC=jerctagMC;
 	_jercunctag = jercunctag;
+    _JER_tag = JER_tag;
 	
-	setupJetMETCorrection(jercfname, _jerctag,_jerctagMC);
+	setupJetMETCorrection(jercfname, _jerctag,_jerctagMC,_JER_tag);
 	applyJetMETCorrections();
 	applyMuPtCorrection();
     applyElectronPtCorrection();

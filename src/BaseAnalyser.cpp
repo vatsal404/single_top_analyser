@@ -375,7 +375,7 @@ void BaseAnalyser::removeOverlaps()
                 
                 
                 _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi").Filter("!vetoed_jets");
-       //         _rlm = applyJetVetoMap(_rlm,"Selected_loosejeteta","Selected_loosejetphi").Filter("!vetoed_jets");
+                _rlm = applyJetVetoMap(_rlm,"Selected_loosejeteta","Selected_loosejetphi","loose_vetoed_jets").Filter("!loose_vetoed_jets");
          
          _rlm=_rlm.Define("ncleanjetspass", "int(Selected_jetpt.size())");
 /*        _rlm = _rlm.Define("Selected_jet_maxpt_index", "ArgMax(Selected_jetpt)");
@@ -388,12 +388,18 @@ void BaseAnalyser::removeOverlaps()
 */
 _rlm = _rlm.Define("Selected_jet_sorted_indices", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Selected_jetpt))");
 _rlm = _rlm.Define("Selected_jet_leading_pt", "int(Selected_jetpt.size())>0 ? Selected_jetpt[Selected_jet_sorted_indices[0]] : numb");
-_rlm = _rlm.Define("Selected_jet_subleading_pt", "int(Selected_jetpt.size())>1 ? Selected_jetpt[Selected_jet_sorted_indices[1]] : numb");
         _rlm = _rlm.Define("Selected_jet_leading_eta", "int(Selected_jetpt.size())>0 ? Selected_jeteta[Selected_jet_sorted_indices[0]] : numb");
         _rlm = _rlm.Define("Selected_jet_leading_phi", "int(Selected_jetpt.size())>0 ? Selected_jetphi[Selected_jet_sorted_indices[0]] : numb");
         _rlm = _rlm.Define("Selected_jet_leading_mass", "int(Selected_jetpt.size())>0 ? Selected_jetmass[Selected_jet_sorted_indices[0]] : numb");
         _rlm = _rlm.Define("selected_leadingcleanjet_TL4vec",:: generate_TLorentzVector,{"Selected_jet_leading_pt", "Selected_jet_leading_eta", "Selected_jet_leading_phi", "Selected_jet_leading_mass"});
 
+
+
+_rlm = _rlm.Define("Selected_jet_subleading_pt", "int(Selected_jetpt.size())>1 ? Selected_jetpt[Selected_jet_sorted_indices[1]] : numb");
+_rlm = _rlm.Define("Selected_jet_subleading_eta", "int(Selected_jetpt.size())>1 ? Selected_jeteta[Selected_jet_sorted_indices[1]] : numb");
+_rlm = _rlm.Define("Selected_jet_subleading_phi", "int(Selected_jetpt.size())>1 ? Selected_jetphi[Selected_jet_sorted_indices[1]] : numb");
+_rlm = _rlm.Define("Selected_jet_subleading_mass", "int(Selected_jetpt.size())>1 ? Selected_jetmass[Selected_jet_sorted_indices[1]] : numb");
+_rlm = _rlm.Define("selected_subleadingcleanjet_TL4vec",:: generate_TLorentzVector,{"Selected_jet_subleading_pt", "Selected_jet_subleading_eta", "Selected_jet_subleading_phi", "Selected_jet_subleading_mass"});
 
          //    _rlm=_rlm.Define("ncleanjetspass", "int(Selected_jetpt.size())");
         _rlm=_rlm.Define("ncleanjetspass_loose", "int(Selected_loosejetpt.size())");
@@ -441,7 +447,7 @@ _rlm = _rlm.Define("Selected_jet_subleading_pt", "int(Selected_jetpt.size())>1 ?
 
     if(!_isData){
       //For Btagging Efficiency    
-      _rlm = _rlm.Define("btagpass_bcflav_goodJets", "Selected_jetbtag>0.6734 && Selected_jethadflav==5") //0.2783 -medium, 0.7 - tight 
+      _rlm = _rlm.Define("btagpass_bcflav_goodJets", "Selected_jetbtag>0.1917 && Selected_jethadflav==5") //0.2783 -medium, 0.7 - tight 
 	.Define("goodJets_btagpass_bcflav_pt", "Selected_jetpt[btagpass_bcflav_goodJets]")
 	.Define("goodJets_btagpass_bcflav_eta", "Selected_jeteta[btagpass_bcflav_goodJets]");
       
@@ -450,7 +456,7 @@ _rlm = _rlm.Define("Selected_jet_subleading_pt", "int(Selected_jetpt.size())>1 ?
 	.Define("goodJets_all_bcflav_eta", "Selected_jeteta[all_bcflav_goodJets]");
       
       
-      _rlm = _rlm.Define("btagpass_lflav_goodJets", "Selected_jetbtag>0.6734 && Selected_jethadflav==0") //0.2783 -medium, 0.7 - tight 
+      _rlm = _rlm.Define("btagpass_lflav_goodJets", "Selected_jetbtag>0.1917 && Selected_jethadflav==0") //0.2783 -medium, 0.7 - tight 
 	.Define("goodJets_btagpass_lflav_pt", "Selected_jetpt[btagpass_lflav_goodJets]")
 	.Define("goodJets_btagpass_lflav_eta", "Selected_jeteta[btagpass_lflav_goodJets]");
       
@@ -617,10 +623,11 @@ _rlm = _rlm.Define("dilepton_invariant_mass","(goodElectron_TL4Vecs+goodmuons_TL
 _rlm = _rlm.Define("dilepton_jet_pt","(goodElectron_TL4Vecs+goodmuons_TL4Vecs+selected_cleanbjet_TL4vec).Pt()");
 _rlm = _rlm.Define("dilepton_jet_mass","(goodElectron_TL4Vecs+goodmuons_TL4Vecs+selected_cleanbjet_TL4vec).M()");
 _rlm = _rlm.Define("dilepton","goodElectron_TL4Vecs+goodmuons_TL4Vecs");
+_rlm = _rlm.Define("dijet","selected_subleadingcleanjet_TL4vec + selected_leadingcleanjet_TL4vec");
 //_rlm = _rlm.Define("Selected_loosejet_leadingpt", "int(Selected_loosejetpt.size())>0 ? Selected_bjetpt[Selected_loosejet_maxpt_index] : numb");
 _rlm = _rlm.Define("dilepton_del_phi", :: calculate_deltaPhi_scalars, {"goodElectrons_leading_phi","goodmuons_leading_phi"});
 _rlm = _rlm.Define("leading_lepton_jet_pt","(leading_lepton + selected_cleanbjet_TL4vec).Pt()");
-_rlm = _rlm.Define("delR_dilepton_jet",:: calculate_deltaR,{"dilepton","selected_cleanbjet_TL4vec"});
+_rlm = _rlm.Define("delR_dilepton_jet",:: calculate_deltaR,{"dilepton","dijet"});
 _rlm = _rlm.Define("delR_ele_muon",:: calculate_deltaR,{"goodElectron_TL4Vecs","goodmuons_TL4Vecs"});
 _rlm = _rlm.Define("delR_leadinglepton_jet",:: calculate_deltaR,{"leading_lepton","selected_cleanbjet_TL4vec"});
 
@@ -655,8 +662,8 @@ void BaseAnalyser::defineMoreVars()
     //addVartoStore("genEventSumw");
     addVartoStore("evWeight");
 
-    addVartoStore("PuppiMET_pt");
-    addVartoStore("PuppiMET_phi");
+    addVartoStore("PuppiMET_pt_corr");
+    addVartoStore("PuppiMET_phi_corr");
     addVartoStore("goodmuons_pt");
 
     addVartoStore("goodElectrons_leading_pt");
@@ -672,7 +679,6 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("leptons_invariant_mass");
     addVartoStore("ele_SF_central");
     addVartoStore("no_puWeight");
-    addVartoStore("aplanery_sphericity");
     addVartoStore("sphericity");
     addVartoStore("aplanery");
     addVartoStore("region_1j1t");
@@ -694,6 +700,20 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("Selected_jet_leading_phi");
     addVartoStore("Selected_jet_leading_eta");
     addVartoStore("Selected_jet_leading_mass");
+    addVartoStore("Jet_pt_corr");
+    addVartoStore("btagpass_bcflav_goodJets");
+    addVartoStore("goodJets_btagpass_bcflav_pt");
+    addVartoStore("goodJets_btagpass_bcflav_eta");
+    addVartoStore("all_bcflav_goodJets");
+    addVartoStore("goodJets_all_bcflav_pt");
+    addVartoStore("goodJets_all_bcflav_eta");
+    addVartoStore("btagpass_lflav_goodJets");
+    addVartoStore("goodJets_btagpass_lflav_pt");
+    addVartoStore("goodJets_btagpass_lflav_eta");
+    addVartoStore("all_lflav_goodJets");
+    addVartoStore("goodJets_all_lflav_pt");
+    addVartoStore("goodJets_all_lflav_eta");
+
 
 
 
