@@ -1,328 +1,292 @@
- #include <ROOT/RDataFrame.hxx>
+#include <ROOT/RDataFrame.hxx>
 #include <TChain.h>
 #include <iostream>
 #include <fstream>
-#include <unordered_map>
 #include <unordered_set>
+#include <unordered_map>
 #include <vector>
 #include <string>
-#include <algorithm>
 #include <cstdio>
+#include <algorithm>
 
-// Structure to hold event identifier with hash function
+// ---------------------------
+// Event key structure
+// ---------------------------
 struct EventID {
-    ULong64_t run;
+    UInt_t run;
     ULong64_t event;
-    ULong64_t luminosityBlock;
+    UInt_t lumi;
 
-    bool operator==(const EventID& other) const {
-        return run == other.run && event == other.event && luminosityBlock == other.luminosityBlock;
+    bool operator==(const EventID &other) const {
+        return run == other.run && event == other.event && lumi == other.lumi;
+    }
+    
+    bool operator<(const EventID &other) const {
+        if (run != other.run) return run < other.run;
+        if (event != other.event) return event < other.event;
+        return lumi < other.lumi;
     }
 };
 
-// Hash function for EventID
 struct EventIDHash {
-    std::size_t operator()(const EventID& id) const {
-        return std::hash<ULong64_t>()(id.run) ^
+    std::size_t operator()(const EventID &id) const {
+        return std::hash<UInt_t>()(id.run) ^
                (std::hash<ULong64_t>()(id.event) << 1) ^
-               (std::hash<ULong64_t>()(id.luminosityBlock) << 2);
+               (std::hash<UInt_t>()(id.lumi) << 2);
     }
 };
 
-// Structure to track duplicate info
-struct DuplicateInfo {
-    EventID id;
-    std::vector<int> datasets;
-};
+// ---------------------------
+// Write dataset events to temp file (chunked)
+// ---------------------------
+void processDataset(const std::string &dataset, int idx, const std::string &outfile)
+{
+    std::cout << "Processing dataset " << idx << ": " << dataset << "\n";
+    
+    std::string dascmd = "dasgoclient -query='file dataset=" + dataset + "' -limit=0";
 
-const size_t CHUNK_SIZE = 2000000; // Process 2M events at a time
-
-// Function to get file list from DAS dataset
-std::vector<std::string> getFilesFromDAS(const std::string& dataset) {
-    std::vector<std::string> files;
-
-    std::string cmd = "dasgoclient -query='file dataset=" + dataset + "' -limit=0";
-    std::cout << "Querying DAS: " << cmd << std::endl;
-
-    FILE* pipe = popen(cmd.c_str(), "r");
+    FILE *pipe = popen(dascmd.c_str(), "r");
     if (!pipe) {
-        std::cerr << "Error: Could not execute dasgoclient" << std::endl;
-        return files;
-    }
-
-    char buffer[256];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        std::string filename(buffer);
-        filename.erase(filename.find_last_not_of(" \n\r\t") + 1);
-
-        if (!filename.empty()) {
-            std::string xrootdFile = "root://cms-xrd-global.cern.ch/" + filename;
-            files.push_back(xrootdFile);
-        }
-    }
-
-    pclose(pipe);
-    std::cout << "Found " << files.size() << " files for dataset" << std::endl;
-    return files;
-}
-
-// Read a chunk of events from binary file
-std::vector<EventID> readChunk(std::ifstream& file, size_t chunkSize) {
-    std::vector<EventID> chunk;
-    chunk.reserve(chunkSize);
-
-    ULong64_t run, event, lumi;
-
-    for (size_t i = 0; i < chunkSize; ++i) {
-        if (file.read(reinterpret_cast<char*>(&run), sizeof(ULong64_t)) &&
-            file.read(reinterpret_cast<char*>(&event), sizeof(ULong64_t)) &&
-            file.read(reinterpret_cast<char*>(&lumi), sizeof(ULong64_t))) {
-            chunk.push_back({run, event, lumi});
-        } else {
-            break;
-        }
-    }
-
-    return chunk;
-}
-
-// Process dataset and write events to temporary file
-void processDatasetToFile(const std::string& dataset, int datasetIdx, const std::string& tempFile) {
-    std::cout << "\n[" << (datasetIdx+1) << "] Processing dataset:\n";
-    std::cout << "  " << dataset << std::endl;
-
-    auto files = getFilesFromDAS(dataset);
-
-    if (files.empty()) {
-        std::cerr << "  WARNING: No files found for this dataset!\n";
+        std::cerr << "Failed DAS query\n";
         return;
     }
 
-    TChain chain("Events");
-    for (const auto& file : files) {
-        chain.Add(file.c_str());
+    std::vector<std::string> files;
+    char buffer[300];
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        std::string f(buffer);
+        f.erase(f.find_last_not_of(" \n\t") + 1);
+        files.push_back("root://cms-xrd-global.cern.ch/" + f);
+    }
+    pclose(pipe);
+
+    if (files.empty()) {
+        std::cerr << "No files for dataset " << dataset << "\n";
+        return;
     }
 
-    ROOT::RDataFrame df(chain);
-    auto nEntries = df.Count();
-    std::cout << "  Total entries: " << *nEntries << std::endl;
+    std::cout << "  Found " << files.size() << " files\n";
 
-    // Extract branches
-    auto runs = df.Take<UInt_t>("run");
-    auto events = df.Take<ULong64_t>("event");
-    auto lumis = df.Take<UInt_t>("luminosityBlock");
+    // Process files in batches
+    std::ofstream out(outfile, std::ios::binary);
+    const size_t filesPerBatch = 15;
+    
+    for (size_t start = 0; start < files.size(); start += filesPerBatch) {
+        size_t end = std::min(start + filesPerBatch, files.size());
+        
+        std::cout << "  Processing files " << start << " to " << end << "\n";
+        
+        TChain chain("Events");
+        for (size_t i = start; i < end; i++) {
+            chain.Add(files[i].c_str());
+        }
 
-    std::cout << "  Processing events..." << std::endl;
-    auto runVec = runs.GetValue();
-    auto eventVec = events.GetValue();
-    auto lumiVec = lumis.GetValue();
+        ROOT::RDataFrame df(chain);
+        auto runs = df.Take<UInt_t>("run");
+        auto events = df.Take<ULong64_t>("event");
+        auto lumis = df.Take<UInt_t>("luminosityBlock");
 
-    // Write to temporary binary file
-    std::ofstream out(tempFile, std::ios::binary);
+        auto vr = runs.GetValue();
+        auto ve = events.GetValue();
+        auto vl = lumis.GetValue();
 
-    for (size_t j = 0; j < runVec.size(); ++j) {
-        ULong64_t run = runVec[j];
-        ULong64_t event = eventVec[j];
-        ULong64_t lumi = lumiVec[j];
+        for (size_t i = 0; i < vr.size(); i++) {
+            UInt_t run = vr[i];
+            ULong64_t ev = ve[i];
+            UInt_t lu = vl[i];
 
-        out.write(reinterpret_cast<const char*>(&run), sizeof(ULong64_t));
-        out.write(reinterpret_cast<const char*>(&event), sizeof(ULong64_t));
-        out.write(reinterpret_cast<const char*>(&lumi), sizeof(ULong64_t));
-
-        if ((j + 1) % 100000 == 0) {
-            std::cout << "    Processed " << (j + 1) << " events..." << std::endl;
+            out.write((char *)&run, sizeof(run));
+            out.write((char *)&ev, sizeof(ev));
+            out.write((char *)&lu, sizeof(lu));
         }
     }
-
+    
     out.close();
-    std::cout << "  Dataset " << (datasetIdx+1) << " completed: " << runVec.size() << " total events" << std::endl;
-    std::cout << "  Temporary file written: " << tempFile << std::endl;
+    std::cout << "  Completed dataset " << idx << "\n";
 }
 
-// Compare two datasets chunk by chunk
-void compareDatasets(const std::string& file1, int idx1,
-                     const std::string& file2, int idx2,
-                     std::unordered_map<EventID, std::vector<int>, EventIDHash>& duplicates) {
-
-    std::cout << "\nComparing dataset " << (idx1+1) << " with dataset " << (idx2+1) << "..." << std::endl;
-
-    std::ifstream if1(file1, std::ios::binary);
-
-    size_t chunk1Num = 0;
-    size_t totalMatches = 0;
-
-    // Read chunks from first file
-    while (true) {
-        auto chunk1 = readChunk(if1, CHUNK_SIZE);
-        if (chunk1.empty()) break;
-
-        chunk1Num++;
-        std::cout << "  Processing chunk " << chunk1Num << " from dataset " << (idx1+1)
-                  << " (" << chunk1.size() << " events)" << std::endl;
-
-        // Build hash set for quick lookup
-        std::unordered_set<EventID, EventIDHash> chunk1Set(chunk1.begin(), chunk1.end());
-
-        // Compare with chunks from second file
-        std::ifstream if2(file2, std::ios::binary);
-        size_t chunk2Num = 0;
-        size_t chunkMatches = 0;
-
-        while (true) {
-            auto chunk2 = readChunk(if2, CHUNK_SIZE);
-            if (chunk2.empty()) break;
-
-            chunk2Num++;
-
-            // Check for matches
-            for (const auto& event : chunk2) {
-                if (chunk1Set.count(event)) {
-                    auto& datasets = duplicates[event];
-
-                    // Add dataset indices if not already present
-                    if (std::find(datasets.begin(), datasets.end(), idx1) == datasets.end()) {
-                        datasets.push_back(idx1);
-                    }
-                    if (std::find(datasets.begin(), datasets.end(), idx2) == datasets.end()) {
-                        datasets.push_back(idx2);
-                    }
-                    chunkMatches++;
-                }
-            }
-
-            if (chunk2Num % 5 == 0) {
-                std::cout << "    Compared with " << chunk2Num << " chunks from dataset "
-                          << (idx2+1) << ", found " << chunkMatches << " matches so far" << std::endl;
-            }
-        }
-
-        if2.close();
-        totalMatches += chunkMatches;
-        std::cout << "    Chunk " << chunk1Num << " complete: " << chunkMatches << " matches" << std::endl;
+// ---------------------------
+// Sort temp file on disk
+// ---------------------------
+void sortTempFile(const std::string &infile, const std::string &outfile) {
+    std::cout << "  Sorting " << infile << "...\n";
+    
+    // Read all events
+    std::vector<EventID> events;
+    std::ifstream in(infile, std::ios::binary);
+    
+    UInt_t run, lumi;
+    ULong64_t event;
+    while (in.read((char *)&run, sizeof(run)) &&
+           in.read((char *)&event, sizeof(event)) &&
+           in.read((char *)&lumi, sizeof(lumi))) {
+        events.push_back({run, event, lumi});
     }
-
-    if1.close();
-    std::cout << "  Comparison complete: " << totalMatches << " duplicate events found" << std::endl;
+    in.close();
+    
+    std::cout << "    Read " << events.size() << " events, sorting...\n";
+    
+    // Sort
+    std::sort(events.begin(), events.end());
+    
+    // Write sorted
+    std::ofstream out(outfile, std::ios::binary);
+    for (const auto &ev : events) {
+        out.write((char *)&ev.run, sizeof(ev.run));
+        out.write((char *)&ev.event, sizeof(ev.event));
+        out.write((char *)&ev.lumi, sizeof(ev.lumi));
+    }
+    out.close();
+    
+    std::cout << "    Sorted file written\n";
 }
 
-void findDuplicateEvents() {
-    // Define your 5 DAS dataset paths here
+// ---------------------------
+// Compare two sorted files and write duplicates
+// ---------------------------
+size_t findDuplicatesInSortedFiles(const std::string &file1, const std::string &file2, 
+                                   const std::string &outfile) {
+    std::ifstream in1(file1, std::ios::binary);
+    std::ifstream in2(file2, std::ios::binary);
+    std::ofstream out(outfile, std::ios::binary);
+    
+    size_t dupCount = 0;
+    
+    EventID ev1, ev2;
+    bool has1 = false, has2 = false;
+    
+    // Read first event from each file
+    has1 = in1.read((char *)&ev1.run, sizeof(ev1.run)) &&
+           in1.read((char *)&ev1.event, sizeof(ev1.event)) &&
+           in1.read((char *)&ev1.lumi, sizeof(ev1.lumi));
+    
+    has2 = in2.read((char *)&ev2.run, sizeof(ev2.run)) &&
+           in2.read((char *)&ev2.event, sizeof(ev2.event)) &&
+           in2.read((char *)&ev2.lumi, sizeof(ev2.lumi));
+    
+    // Merge-style comparison
+    while (has1 && has2) {
+        if (ev1 == ev2) {
+            // Duplicate found - write to output
+            out.write((char *)&ev2.run, sizeof(ev2.run));
+            out.write((char *)&ev2.event, sizeof(ev2.event));
+            out.write((char *)&ev2.lumi, sizeof(ev2.lumi));
+            dupCount++;
+            
+            // Advance both
+            has1 = in1.read((char *)&ev1.run, sizeof(ev1.run)) &&
+                   in1.read((char *)&ev1.event, sizeof(ev1.event)) &&
+                   in1.read((char *)&ev1.lumi, sizeof(ev1.lumi));
+            has2 = in2.read((char *)&ev2.run, sizeof(ev2.run)) &&
+                   in2.read((char *)&ev2.event, sizeof(ev2.event)) &&
+                   in2.read((char *)&ev2.lumi, sizeof(ev2.lumi));
+        } else if (ev1 < ev2) {
+            // Advance file1
+            has1 = in1.read((char *)&ev1.run, sizeof(ev1.run)) &&
+                   in1.read((char *)&ev1.event, sizeof(ev1.event)) &&
+                   in1.read((char *)&ev1.lumi, sizeof(ev1.lumi));
+        } else {
+            // Advance file2
+            has2 = in2.read((char *)&ev2.run, sizeof(ev2.run)) &&
+                   in2.read((char *)&ev2.event, sizeof(ev2.event)) &&
+                   in2.read((char *)&ev2.lumi, sizeof(ev2.lumi));
+        }
+    }
+    
+    out.close();
+    return dupCount;
+}
+
+// ---------------------------
+// Main duplicate comparison
+// ---------------------------
+void findDuplicateEvents()
+{
     std::vector<std::string> datasets = {
-         "/EGamma0/Run2023C-24Jan2024_v4-v1/NANOAOD",
-         "/EGamma1/Run2023C-24Jan2024_v4-v1/NANOAOD",
-         "/Muon0/Run2023C-24Jan2024_v4-v1/NANOAOD",
-         "/Muon1/Run2023C-24Jan2024_v4-v2/NANOAOD",
-         "/MuonEG/Run2023C-22Sep2023_v4-v1/NANOAOD"
- 
+        "/EGamma0/Run2023C-24Jan2024_v4-v1/NANOAOD",
+        "/EGamma1/Run2023C-24Jan2024_v4-v1/NANOAOD",
+        "/Muon0/Run2023C-24Jan2024_v4-v1/NANOAOD",
+        "/Muon1/Run2023C-24Jan2024_v4-v2/NANOAOD",
+        "/MuonEG/Run2023C-22Sep2023_v4-v1/NANOAOD"
     };
 
-    std::cout << "=== CMS Duplicate Event Detector (Chunk-Based) ===\n";
-    std::cout << "Chunk size: " << CHUNK_SIZE << " events\n";
-    std::cout << "Datasets to process: " << datasets.size() << "\n";
-    std::cout << "========================================================\n\n";
+    std::vector<std::string> datasetNames = {
+        "EGamma0", "EGamma1", "Muon0", "Muon1", "MuonEG"
+    };
 
-    // Step 1: Process each dataset and write to temporary files
     std::vector<std::string> tempFiles;
-    for (size_t i = 0; i < datasets.size(); ++i) {
-        std::string tempFile = "temp_dataset_" + std::to_string(i) + ".bin";
-        tempFiles.push_back(tempFile);
-        processDatasetToFile(datasets[i], i, tempFile);
+    std::vector<std::string> sortedFiles;
+    
+    // Step 1: Create temp files for each dataset
+    std::cout << "\n=== Step 1: Creating temp files ===\n";
+    for (size_t i = 0; i < datasets.size(); i++) {
+        std::string tmp = "temp_" + std::to_string(i) + ".bin";
+        tempFiles.push_back(tmp);
+        processDataset(datasets[i], i, tmp);
     }
 
-    // Step 2: Compare all pairs of datasets chunk by chunk
-    std::cout << "\n========================================================\n";
-    std::cout << "Finding duplicates across all dataset pairs...\n";
-    std::cout << "========================================================\n";
+    // Step 2: Sort each temp file
+    std::cout << "\n=== Step 2: Sorting temp files ===\n";
+    for (size_t i = 0; i < tempFiles.size(); i++) {
+        std::string sorted = "sorted_" + std::to_string(i) + ".bin";
+        sortedFiles.push_back(sorted);
+        std::cout << "Sorting " << datasetNames[i] << "\n";
+        sortTempFile(tempFiles[i], sorted);
+    }
 
-    std::unordered_map<EventID, std::vector<int>, EventIDHash> duplicates;
-
-    for (size_t i = 0; i < tempFiles.size(); ++i) {
-        for (size_t j = i + 1; j < tempFiles.size(); ++j) {
-            compareDatasets(tempFiles[i], i, tempFiles[j], j, duplicates);
+    // Step 3: Find duplicates by comparing sorted files
+    std::cout << "\n=== Step 3: Finding duplicates ===\n";
+    
+    std::vector<size_t> removeCounts(datasets.size(), 0);
+    
+    // For each dataset, compare with all previous datasets
+    for (size_t i = 0; i < sortedFiles.size(); i++) {
+        std::string outfile = "duplicates_" + datasetNames[i] + ".bin";
+        std::ofstream finalOut(outfile, std::ios::binary);
+        
+        std::cout << "Finding duplicates for " << datasetNames[i] << ":\n";
+        
+        // Compare with all previous datasets
+        for (size_t j = 0; j < i; j++) {
+            std::string tmpDup = "tmp_dup_" + std::to_string(i) + "_" + std::to_string(j) + ".bin";
+            std::cout << "  Comparing with " << datasetNames[j] << "...\n";
+            
+            size_t count = findDuplicatesInSortedFiles(sortedFiles[j], sortedFiles[i], tmpDup);
+            std::cout << "    Found " << count << " duplicates\n";
+            
+            // Append to final output
+            std::ifstream tmpIn(tmpDup, std::ios::binary);
+            finalOut << tmpIn.rdbuf();
+            tmpIn.close();
+            
+            removeCounts[i] += count;
+            
+            // Clean up temp file
+            std::remove(tmpDup.c_str());
         }
+        
+        finalOut.close();
     }
 
-    // Step 3: Write results
-    std::cout << "\n========================================================\n";
-    std::cout << "Writing results...\n";
-    std::cout << "========================================================\n\n";
-
-    std::ofstream outFile("duplicate_events.txt");
-    outFile << "# Duplicate Events Report\n";
-    outFile << "# Events appearing in multiple datasets\n";
-    outFile << "# Format: Run  Event  LuminosityBlock  Count  Datasets\n";
-    outFile << "# ================================================\n";
-    outFile << "Run\tEvent\tLuminosityBlock\tCount\tDatasets\n";
-
-    std::map<int, int> countHistogram;
-
-    for (const auto& [id, datasetIndices] : duplicates) {
-        int count = datasetIndices.size();
-
-        outFile << id.run << "\t"
-               << id.event << "\t"
-               << id.luminosityBlock << "\t"
-               << count << "\t";
-
-        // Sort dataset indices for consistent output
-        std::vector<int> sortedIndices = datasetIndices;
-        std::sort(sortedIndices.begin(), sortedIndices.end());
-
-        for (size_t k = 0; k < sortedIndices.size(); ++k) {
-            outFile << (sortedIndices[k] + 1);
-            if (k < sortedIndices.size() - 1) outFile << ",";
-        }
-        outFile << "\n";
-
-        countHistogram[count]++;
+    // Summary
+    std::cout << "\n=== Summary ===\n";
+    size_t totalRemoved = 0;
+    for (size_t i = 0; i < datasets.size(); i++) {
+        std::cout << "Dataset " << datasetNames[i] << ": "
+                  << removeCounts[i] << " events to remove (duplicates_"
+                  << datasetNames[i] << ".bin)\n";
+        totalRemoved += removeCounts[i];
     }
-    outFile.close();
-
-    // Write summary
-    std::ofstream summaryFile("duplicate_summary.txt");
-    summaryFile << "=== Duplicate Event Analysis Summary ===\n\n";
-    summaryFile << "Datasets analyzed: " << datasets.size() << "\n\n";
-
-    for (size_t i = 0; i < datasets.size(); ++i) {
-        summaryFile << "  [" << (i+1) << "] " << datasets[i] << "\n";
-    }
-
-    summaryFile << "\n--- Statistics ---\n";
-    summaryFile << "Total events with duplicates: " << duplicates.size() << "\n";
-
-    summaryFile << "\n--- Duplicate Distribution ---\n";
-    for (const auto& [count, freq] : countHistogram) {
-        summaryFile << "  Events appearing in exactly " << count << " datasets: " << freq << "\n";
-    }
-    summaryFile.close();
-
-    // Console output
-    std::cout << "\n=== Final Results ===\n";
-    std::cout << "Total duplicate events found: " << duplicates.size() << "\n";
-
-    if (!duplicates.empty()) {
-        std::cout << "\nDuplicate distribution:\n";
-        for (const auto& [count, freq] : countHistogram) {
-            std::cout << "  " << freq << " events appear in " << count << " datasets\n";
-        }
-    }
-
-    std::cout << "\nOutput files created:\n";
-    std::cout << "  - duplicate_events.txt\n";
-    std::cout << "  - duplicate_summary.txt\n";
-
-    // Step 4: Clean up temporary files
-    std::cout << "\nCleaning up temporary files..." << std::endl;
-    for (const auto& tempFile : tempFiles) {
-        std::remove(tempFile.c_str());
-    }
-    std::cout << "Done!\n";
+    
+    std::cout << "\nTotal events marked for removal: " << totalRemoved << "\n";
+    std::cout << "\nYou can now delete temp_*.bin and sorted_*.bin files if desired.\n";
 }
 
-int main() {
-    ROOT::EnableImplicitMT();
-
+// ---------------------------
+// main()
+// ---------------------------
+int main()
+{
     findDuplicateEvents();
-
     return 0;
 }

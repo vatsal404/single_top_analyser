@@ -1,86 +1,188 @@
-import os
 import ROOT
-from array import array
-from btagging_efficiency_binning import btageff_dataset_dict
+import sys
+import array
 
-# Define the base directory where the dataset folders are located
-base_directory = './PROC_ST_t-channel_top_UL17.root'
-
-# Define the output directory where the new root files will be stored
-output_directory = 'data/BTV/2017_UL'
-
-# Loop through the dataset dictionary
-for dataset, dataset_info in btageff_dataset_dict.items():
-    # Create the input file path
-    input_file_path = os.path.join(base_directory, f'PROC{dataset_info["extension"]}.root')
-
-    # Load the input root file
-    input_file = ROOT.TFile.Open(input_file_path, 'READ')
-
-    # Create TH2D histograms for bcflav and lflav
-    h_btagEff_bcflav = ROOT.TH2D('h_btagEff_bcflav', 'BTag Efficiency BCFlav', len(dataset_info['pt_bins']) - 1, array('d', dataset_info['pt_bins']), len(dataset_info['eta_bins']) - 1, array('d', dataset_info['eta_bins']))
-    h_btagEff_lflav = ROOT.TH2D('h_btagEff_lflav', 'BTag Efficiency LFlav', len(dataset_info['pt_bins']) - 1, array('d', dataset_info['pt_bins']), len(dataset_info['eta_bins']) - 1, array('d', dataset_info['eta_bins']))
-
-    # Get the TTree from the input file
-    tree = input_file.Get('outputTree')
-
-    # Create histograms for branches
-    btagpass_bcflav_pt_hist = ROOT.TH2D('btagpass_bcflav_pt', 'BTagPass BCFlav Pt', len(dataset_info['pt_bins']) - 1, array('d', dataset_info['pt_bins']), len(dataset_info['eta_bins']) - 1, array('d', dataset_info['eta_bins']))
-    all_bcflav_pt_hist = ROOT.TH2D('all_bcflav_pt', 'All BCFlav Pt', len(dataset_info['pt_bins']) - 1, array('d', dataset_info['pt_bins']), len(dataset_info['eta_bins']) - 1, array('d', dataset_info['eta_bins']))
-    btagpass_lflav_pt_hist = ROOT.TH2D('btagpass_lflav_pt', 'BTagPass LFlav Pt', len(dataset_info['pt_bins']) - 1, array('d', dataset_info['pt_bins']), len(dataset_info['eta_bins']) - 1, array('d', dataset_info['eta_bins']))
-    all_lflav_pt_hist = ROOT.TH2D('all_lflav_pt', 'All LFlav Pt', len(dataset_info['pt_bins']) - 1, array('d', dataset_info['pt_bins']), len(dataset_info['eta_bins']) - 1, array('d', dataset_info['eta_bins']))
-
-
-    # Loop over events and fill histograms
-    for i in range(tree.GetEntries()):
-        tree.GetEntry(i)
-        """
-        # Print values of variables for debugging
-        print("Event", i)
-        print("goodJets_btagpass_bcflav_pt:", tree.goodJets_btagpass_bcflav_pt)
-        print("goodJets_btagpass_bcflav_eta:", tree.goodJets_btagpass_bcflav_eta)
-        print("goodJets_all_bcflav_pt:", tree.goodJets_all_bcflav_pt)
-        print("goodJets_all_bcflav_eta:", tree.goodJets_all_bcflav_eta)
-        print("goodJets_btagpass_lflav_pt:", tree.goodJets_btagpass_lflav_pt)
-        print("goodJets_btagpass_lflav_eta:", tree.goodJets_btagpass_lflav_eta)
-        print("goodJets_all_lflav_pt:", tree.goodJets_all_lflav_pt)
-        print("goodJets_all_lflav_eta:", tree.goodJets_all_lflav_eta)
-        """
+def calculate_btagging_efficiency(input_file, output_file):
+    """
+    Calculate b-tagging efficiency from NanoAOD analysis output.
+    Creates 2D histograms (eta vs pt) for b/c-flavor and light-flavor jets.
+    
+    Args:
+        input_file: Path to input ROOT file
+        output_file: Path to output ROOT file
+    """
+    
+    # Open input file
+    print(f"Opening input file: {input_file}")
+    f_in = ROOT.TFile.Open(input_file, "READ")
+    if not f_in or f_in.IsZombie():
+        print(f"ERROR: Cannot open input file {input_file}")
+        return False
+    
+    # Get the tree
+    tree = f_in.Get("outputTree")
+    if not tree:
+        print("ERROR: Cannot find outputTree in input file")
+        f_in.Close()
+        return False
+    
+    print(f"Tree has {tree.GetEntries()} entries")
+    
+    # Define binning for eta and pt
+    # Recommended binning from CMS b-tagging POG
+    pt_bins = [20, 30, 50, 70, 100, 140, 200, 300, 600, 1000]
+    
+    # Eta binning options (uncomment the one you want to use):
+    # Option 1: Single bin (maximum statistics)
+    # eta_bins = [-2.5, 2.5]
+    
+    # Option 2: Barrel and Endcap regions
+    eta_bins = [-2.5, -1.5, 1.5, 2.5]
+    
+    # Option 3: More granular binning (if you have enough statistics)
+    # eta_bins = [-2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5]
+    
+    n_eta_bins = len(eta_bins) - 1
+    n_pt_bins = len(pt_bins) - 1
+    
+    # Convert to arrays that ROOT can understand
+    eta_bins_array = array.array('d', eta_bins)
+    pt_bins_array = array.array('d', pt_bins)
+    
+    # Create histograms for b/c-flavor jets
+    hist_btagEff_bcflav = ROOT.TH2D(
+        "hist_btagEff_bcflav",
+        "B-tagging Efficiency (b/c-flavor);#eta;p_{T} [GeV]",
+        n_eta_bins, eta_bins_array,
+        n_pt_bins, pt_bins_array
+    )
+    
+    hist_bcflav_pass = ROOT.TH2D(
+        "hist_bcflav_pass",
+        "B-tagged b/c-flavor jets;#eta;p_{T} [GeV]",
+        n_eta_bins, eta_bins_array,
+        n_pt_bins, pt_bins_array
+    )
+    
+    hist_bcflav_all = ROOT.TH2D(
+        "hist_bcflav_all",
+        "All b/c-flavor jets;#eta;p_{T} [GeV]",
+        n_eta_bins, eta_bins_array,
+        n_pt_bins, pt_bins_array
+    )
+    
+    # Create histograms for light-flavor jets
+    hist_btagEff_lflav = ROOT.TH2D(
+        "hist_btagEff_lflav",
+        "B-tagging Efficiency (light-flavor);#eta;p_{T} [GeV]",
+        n_eta_bins, eta_bins_array,
+        n_pt_bins, pt_bins_array
+    )
+    
+    hist_lflav_pass = ROOT.TH2D(
+        "hist_lflav_pass",
+        "B-tagged light-flavor jets;#eta;p_{T} [GeV]",
+        n_eta_bins, eta_bins_array,
+        n_pt_bins, pt_bins_array
+    )
+    
+    hist_lflav_all = ROOT.TH2D(
+        "hist_lflav_all",
+        "All light-flavor jets;#eta;p_{T} [GeV]",
+        n_eta_bins, eta_bins_array,
+        n_pt_bins, pt_bins_array
+    )
+    
+    # Set Sumw2 for proper error calculation
+    hist_bcflav_pass.Sumw2()
+    hist_bcflav_all.Sumw2()
+    hist_lflav_pass.Sumw2()
+    hist_lflav_all.Sumw2()
+    
+    print("Processing events...")
+    
+    # Loop over tree entries
+    for i, event in enumerate(tree):
+        if i % 10000 == 0:
+            print(f"Processing event {i}/{tree.GetEntries()}")
         
-        # Fill histograms for all elements in the vectors
-        for j in range(len(tree.goodJets_btagpass_bcflav_pt)):
-            btagpass_bcflav_pt_hist.Fill(tree.goodJets_btagpass_bcflav_pt[j], tree.goodJets_btagpass_bcflav_eta[j])
-        for j in range(len(tree.goodJets_all_bcflav_pt)):
-            all_bcflav_pt_hist.Fill(tree.goodJets_all_bcflav_pt[j], tree.goodJets_all_bcflav_eta[j])
-        for j in range(len(tree.goodJets_btagpass_lflav_pt)):
-            btagpass_lflav_pt_hist.Fill(tree.goodJets_btagpass_lflav_pt[j], tree.goodJets_btagpass_lflav_eta[j])
-        for j in range(len(tree.goodJets_all_lflav_pt)):
-            all_lflav_pt_hist.Fill(tree.goodJets_all_lflav_pt[j], tree.goodJets_all_lflav_eta[j])
+        weight = event.evWeight
         
+        # Process b/c-flavor jets that pass b-tagging
+        for j in range(len(event.goodJets_btagpass_bcflav_eta)):
+            eta = event.goodJets_btagpass_bcflav_eta[j]
+            pt = event.goodJets_btagpass_bcflav_pt[j]
+            hist_bcflav_pass.Fill(eta, pt, weight)
+        
+        # Process all b/c-flavor jets
+        for j in range(len(event.goodJets_all_bcflav_eta)):
+            eta = event.goodJets_all_bcflav_eta[j]
+            pt = event.goodJets_all_bcflav_pt[j]
+            hist_bcflav_all.Fill(eta, pt, weight)
+        
+        # Process light-flavor jets that pass b-tagging
+        for j in range(len(event.goodJets_btagpass_lflav_eta)):
+            eta = event.goodJets_btagpass_lflav_eta[j]
+            pt = event.goodJets_btagpass_lflav_pt[j]
+            hist_lflav_pass.Fill(eta, pt, weight)
+        
+        # Process all light-flavor jets
+        for j in range(len(event.goodJets_all_lflav_eta)):
+            eta = event.goodJets_all_lflav_eta[j]
+            pt = event.goodJets_all_lflav_pt[j]
+            hist_lflav_all.Fill(eta, pt, weight)
+    
+    print("Calculating efficiencies...")
+    
+    # Calculate efficiency = pass / all
+    hist_btagEff_bcflav.Divide(hist_bcflav_pass, hist_bcflav_all, 1.0, 1.0, "B")
+    hist_btagEff_lflav.Divide(hist_lflav_pass, hist_lflav_all, 1.0, 1.0, "B")
+    
+    # Create output file
+    print(f"Writing output to: {output_file}")
+    f_out = ROOT.TFile.Open(output_file, "RECREATE")
+    
+    # Write efficiency histograms (main histograms needed by getBTaggingEff)
+    hist_btagEff_bcflav.Write()
+    hist_btagEff_lflav.Write()
+    
+    # Also write the numerator and denominator for reference
+    hist_bcflav_pass.Write()
+    hist_bcflav_all.Write()
+    hist_lflav_pass.Write()
+    hist_lflav_all.Write()
+    
+    # Print summary statistics
+    print("\n=== Summary ===")
+    print(f"b/c-flavor jets:")
+    print(f"  Total: {hist_bcflav_all.Integral():.2f}")
+    print(f"  Passed: {hist_bcflav_pass.Integral():.2f}")
+    if hist_bcflav_all.Integral() > 0:
+        print(f"  Overall efficiency: {hist_bcflav_pass.Integral()/hist_bcflav_all.Integral()*100:.2f}%")
+    
+    print(f"\nLight-flavor jets:")
+    print(f"  Total: {hist_lflav_all.Integral():.2f}")
+    print(f"  Passed: {hist_lflav_pass.Integral():.2f}")
+    if hist_lflav_all.Integral() > 0:
+        print(f"  Overall efficiency: {hist_lflav_pass.Integral()/hist_lflav_all.Integral()*100:.2f}%")
+    
+    # Close files
+    f_out.Close()
+    f_in.Close()
+    
+    print(f"\nDone! Output written to {output_file}")
+    return True
 
-    for i in range(len(dataset_info['pt_bins']) - 1):
-        for j in range(len(dataset_info['eta_bins']) - 1):
-            numerator_bcflav = btagpass_bcflav_pt_hist.GetBinContent(i + 1, j + 1)
-            denominator_bcflav = all_bcflav_pt_hist.GetBinContent(i + 1, j + 1)
-            bcflav_efficiency = numerator_bcflav / denominator_bcflav if denominator_bcflav != 0 else 0
-            
-            numerator_lflav = btagpass_lflav_pt_hist.GetBinContent(i + 1, j + 1)
-            denominator_lflav = all_lflav_pt_hist.GetBinContent(i + 1, j + 1)
-            lflav_efficiency = numerator_lflav / denominator_lflav if denominator_lflav != 0 else 0
 
-            h_btagEff_bcflav.SetBinContent(i + 1, j + 1, bcflav_efficiency)
-            h_btagEff_lflav.SetBinContent(i + 1, j + 1, lflav_efficiency)
-            
-    # Create the output file path
-    output_file_path = os.path.join(output_directory, f'BtaggingEfficiency{dataset_info["extension"]}_2Nov.root')
-
-    # Save the histograms to the output file
-    output_file = ROOT.TFile.Open(output_file_path, 'RECREATE')
-    h_btagEff_bcflav.Write()
-    h_btagEff_lflav.Write()
-    output_file.Close()
-
-    # Close the input file
-    input_file.Close()
-
-print('Process completed.')
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python calculate_btag_efficiency.py <input_file.root> <output_file.root>")
+        print("\nExample:")
+        print("  python calculate_btag_efficiency.py input.root btagging_efficiency.root")
+        sys.exit(1)
+    
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+    
+    success = calculate_btagging_efficiency(input_file, output_file)
+    sys.exit(0 if success else 1)

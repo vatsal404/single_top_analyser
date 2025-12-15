@@ -38,6 +38,9 @@ config = {
 
         # BTV correction type
         'btvtype': 'deepJet_shape',
+        'fname_btagEff': 'data/BTV/2023/BtaggingEfficiency.root',
+        'hname_btagEff_bcflav':'hist_btagEff_bcflav',
+        'hname_btagEff_lflav': 'hist_btagEff_lflav',
 
         # json file name for JERC
         'jercfname': 'data/JERC/2023/jet_jerc.json',
@@ -63,7 +66,8 @@ config = {
         'jet_veto_f_name':'data/JERC/2023/jetvetomaps.json',
         'jet_veto_tag' : 'Summer23Prompt23_RunC_V1',
         'electron_SSF' :'data/EGM/2023/electronSS_EtDependent.json',
-        'metpt_fname' : 'data/JERC/2023/met_xyCorrections_2023_2023.json'
+        'metpt_fname' : 'data/JERC/2023/met_xyCorrections_2023_2023.json',
+        'JER_tag' : 'Summer23Prompt23_RunCv1234_JRV1_MC_ScaleFactor_AK4PFPuppi'
         }
 
 # processing options

@@ -20,13 +20,9 @@ log    = logs/skim_$(Cluster)_$(Process).log
 output = logs/skim_$(Cluster)_$(Process).out
 error  = logs/skim_$(Cluster)_$(Process).err
 
-# Arguments: batch_file, duplicate_file, stderr_file
-# Read from sample_list_split_data.txt
-# Format: batch_file output_file stderr_file crosssection sumgenweight
-# We use columns 1, 3 for: batch_file, stderr_file
-arguments = $(batch_file) duplicate_events.txt $(stderr_file)
+# Arguments: only batch_file (duplicate file is auto-detected)
+arguments = $(batch_file)
 
 # Queue jobs from the sample list
 # Column 1: batch file path
-# Column 3: stderr/log file name
 queue batch_file from sample_list_split_data.txt

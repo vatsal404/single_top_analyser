@@ -248,6 +248,9 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
             config['pileuptag'],
             config['btvfname'],
             config['btvtype'],
+            config['fname_btagEff'],
+            config['hname_btagEff_bcflav'],
+            config['hname_btagEff_lflav'],
             config['muon_roch_fname'],
             config['muon_fname'],
             config['muonHLTtype'],
@@ -267,7 +270,8 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
             config['jet_veto_f_name'],
             config['jet_veto_tag'],
             config['electron_SSF'],
-            config['metpt_fname']
+            config['metpt_fname'],
+            config['JER_tag']
        
      
 

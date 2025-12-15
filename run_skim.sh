@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # Input arguments
-batch_file=$1           # Batch file name (e.g., batch_EGamma0_001.txt)
-duplicate_file=$2       # Duplicate events file name
-stderr_file=$3          # Log file name
+batch_file=$1           # Batch file name with path (e.g., batches/batch_EGamma0_001.txt)
+stderr_file="$(basename ${batch_file}).log"          # Log file name
 
 # Configuration variables
 eos_output_dir="/eos/uscms/store/user/vsinha/skimmed_data"
@@ -11,7 +10,6 @@ eos_output_dir="/eos/uscms/store/user/vsinha/skimmed_data"
 echo "=========================================="
 echo "Running skim analysis with parameters:"
 echo "Batch file: $batch_file"
-echo "Duplicate file: $duplicate_file"
 echo "Log file: $stderr_file"
 echo "=========================================="
 
@@ -51,6 +49,8 @@ ls -alh
 if [ -f "skim_package.tar.gz" ]; then
     echo "Extracting skim_package.tar.gz..."
     tar -xzf skim_package.tar.gz
+    echo "Extracted contents:"
+    ls -alh
 else
     echo "Error: skim_package.tar.gz not found!"
     exit 1
@@ -62,14 +62,28 @@ if [ ! -f "./skim_data" ]; then
     exit 1
 fi
 
-if [ ! -f "$batch_file" ]; then
-    echo "Error: Batch file $batch_file not found!"
-    exit 1
-fi
+# Extract dataset name from batch file to find the correct duplicate file
+# Example: batches/batch_EGamma0_Run2023C-24Jan2024_v4-v1_NANOAOD_001.txt -> EGamma0
+# or: batches/batch_MuonEG_Run2023C-22Sep2023_v4-v1_NANOAOD_0199.txt -> MuonEG
+batch_basename=$(basename "$batch_file")
+dataset_name=$(echo "$batch_basename" | sed 's/batch_//' | cut -d'_' -f1)
+duplicate_file="duplicates_${dataset_name}.bin"
 
-if [ ! -f "$duplicate_file" ]; then
-    echo "Warning: Duplicate file $duplicate_file not found, continuing without it..."
-    duplicate_file=""
+echo "=========================================="
+echo "Dataset detection:"
+echo "Batch file basename: $batch_basename"
+echo "Detected dataset: $dataset_name"
+echo "Looking for duplicate file: $duplicate_file"
+echo "=========================================="
+
+if [ -f "$duplicate_file" ]; then
+    echo "Found duplicate file: $duplicate_file"
+    ls -lh "$duplicate_file"
+else
+    echo "Warning: Duplicate file $duplicate_file not found"
+    echo "Available duplicate files:"
+    ls -lh duplicates_*.bin 2>/dev/null || echo "No duplicate files found"
+    echo "Continuing without duplicate removal (job will still run)..."
 fi
 
 # Make executable runnable
@@ -79,69 +93,54 @@ echo "=========================================="
 echo "Starting skim processing..."
 echo "=========================================="
 
-# Run the skimming job
-if [ -n "$duplicate_file" ]; then
-    ./skim_data $batch_file $duplicate_file > $log_file 2>&1
-    exit_code=$?
-else
-    ./skim_data $batch_file > $log_file 2>&1
-    exit_code=$?
-fi
+# Run the skimming job (the modified code auto-detects duplicate file)
+./skim_data "$batch_file" > "$log_file" 2>&1
+exit_code=$?
 
 # Check if processing was successful
 if [ $exit_code -ne 0 ]; then
-    echo "Error: Skim processing failed with exit code $exit_code"
-    cat $log_file
-    exit 1
+    echo "Error: skim_data failed with exit code $exit_code"
+    echo "Last 50 lines of log:"
+    tail -n 50 "$log_file"
+    exit $exit_code
 fi
 
 echo "=========================================="
 echo "Skim processing completed successfully"
 echo "=========================================="
 
-# Display log file
-cat $log_file
-
-# Find output file
-output_file=$(ls skimmed_*.root 2>/dev/null | head -n 1)
+# Find the output file (should be skimmed_*.root)
+output_file=$(ls skimmed_*.root 2>/dev/null | head -n1)
 
 if [ -z "$output_file" ]; then
-    echo "Error: No output file (skimmed_*.root) found!"
+    echo "Error: No output file found!"
+    echo "Contents of working directory:"
+    ls -lh
     exit 1
 fi
 
-echo "Output file created: $output_file"
-ls -lh $output_file
+echo "Output file: $output_file"
+ls -lh "$output_file"
 
-# Copy output to EOS (only in Condor environment)
+# Copy output to EOS if running in batch mode
 if [ -n "${_CONDOR_SCRATCH_DIR}" ]; then
-    echo "=========================================="
-    echo "Copying output to EOS..."
-    echo "=========================================="
+    echo "Copying output to EOS: ${eos_output_dir}/${output_file}"
+    xrdcp -f "$output_file" "root://cmseos.fnal.gov/${eos_output_dir}/${output_file}"
+    copy_status=$?
     
-    # Ensure EOS output directory exists
-    eos root://cmseos.fnal.gov mkdir -p $eos_output_dir
-    
-    # Copy output file to EOS
-    xrdcp -f $output_file root://cmseos.fnal.gov/${eos_output_dir}/${output_file}
-    xrdcp_exit=$?
-    
-    if [ $xrdcp_exit -eq 0 ]; then
-        echo "Successfully copied $output_file to ${eos_output_dir}"
-    else
-        echo "Error: Failed to copy output file to EOS (exit code: $xrdcp_exit)"
-        exit 1
+    if [ $copy_status -ne 0 ]; then
+        echo "Error: Failed to copy output to EOS (exit code: $copy_status)"
+        exit $copy_status
     fi
     
-    # Also copy log file to EOS
-    xrdcp -f $log_file root://cmseos.fnal.gov/${eos_output_dir}/${stderr_file}
-    if [ $? -eq 0 ]; then
-        echo "Successfully copied log file to ${eos_output_dir}"
-    fi
+    echo "Successfully copied to EOS"
+    
+    # Also copy the log file
+    echo "Copying log file to EOS..."
+    xrdcp -f "$log_file" "root://cmseos.fnal.gov/${eos_output_dir}/logs/${stderr_file}"
 fi
 
 echo "=========================================="
 echo "Job completed successfully!"
 echo "=========================================="
-
 exit 0

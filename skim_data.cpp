@@ -1,4 +1,3 @@
-// skim_data_fixed.cpp
 #include <ROOT/RDataFrame.hxx>
 #include <TFile.h>
 
@@ -36,30 +35,47 @@ struct EventKeyHash {
     }
 };
 
-// Load duplicate events file
-std::shared_ptr<std::unordered_set<EventKey, EventKeyHash>> loadDuplicateEvents(const std::string &filename) {
+// Load duplicate events from binary file
+std::shared_ptr<std::unordered_set<EventKey, EventKeyHash>>
+loadDuplicateEvents(const std::string &filename)
+{
     auto dupSet = std::make_shared<std::unordered_set<EventKey, EventKeyHash>>();
-    std::ifstream fin(filename);
+
+    std::ifstream fin(filename, std::ios::binary);
     if (!fin) {
-        std::cerr << "[ERROR] cannot open duplicates file: " << filename << std::endl;
+        std::cerr << "[WARNING] Cannot open duplicates binary file: "
+                  << filename << " (will process without duplicate removal)" << std::endl;
         return dupSet;
     }
-    std::string line;
-    size_t loaded = 0;
-    while (std::getline(fin, line)) {
-        if (line.empty()) continue;
-        // trim leading spaces
-        auto p = line.find_first_not_of(" \t");
-        if (p != std::string::npos) line = line.substr(p);
-        if (line.empty() || line[0] == '#') continue;
-        std::stringstream ss(line);
-        UInt_t run=0, lumi=0; ULong64_t event=0;
-        if (ss >> run >> event >> lumi) {
-            dupSet->insert(EventKey{run,event,lumi});
-            ++loaded;
-        }
+
+    size_t count = 0;
+    while (true) {
+        ULong64_t run, event, lumi;
+
+        // Attempt to read 3 values
+        fin.read(reinterpret_cast<char*>(&run), sizeof(run));
+        if (!fin) break;
+
+        fin.read(reinterpret_cast<char*>(&event), sizeof(event));
+        if (!fin) break;
+
+        fin.read(reinterpret_cast<char*>(&lumi), sizeof(lumi));
+        if (!fin) break;
+
+        // Convert into EventKey type
+        EventKey key{
+            static_cast<UInt_t>(run),
+            static_cast<ULong64_t>(event),
+            static_cast<UInt_t>(lumi)
+        };
+
+        dupSet->insert(key);
+        count++;
     }
-    std::cout << "[INFO] Loaded " << loaded << " duplicate keys from " << filename << std::endl;
+
+    std::cout << "[INFO] Loaded " << count
+              << " duplicate keys from binary " << filename << std::endl;
+
     return dupSet;
 }
 
@@ -143,16 +159,13 @@ void applyFiltersAndSnapshot(NodeType node, const std::string &outName) {
 int main(int argc, char **argv) {
     // Check command line arguments
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <batch_file.txt> [duplicate_events.txt]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <batch_file.txt>" << std::endl;
         std::cerr << "Example: " << argv[0] << " batch_EGamma0_Run2023C-24Jan2024_v4-v1_NANOAOD_001.txt" << std::endl;
+        std::cerr << "\nThe program will automatically look for duplicates_<DATASET>.bin files" << std::endl;
         return 1;
     }
 
     std::string batchFile = argv[1];
-    std::string dupFile = (argc >= 3) ? argv[2] : "duplicate_events.txt";
-
-    // Load duplicate events
-    auto duplicateEvents = loadDuplicateEvents(dupFile);
 
     // Load files from batch
     auto files = loadBatchFiles(batchFile);
@@ -161,22 +174,30 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Extract dataset name to determine if duplicate filter should be applied
+    // Extract dataset name
     std::string datasetName = extractDatasetFromBatch(batchFile);
     std::cout << "[INFO] Detected dataset: " << datasetName << std::endl;
 
-    // Decide to apply duplicate removal for EGamma and Muon0/1 only
-    bool applyDuplicateFilter =
+    // Construct the duplicate file name for this specific dataset
+    std::string dupFile = "duplicates_" + datasetName + ".bin";
+    
+    // Apply duplicate removal for ALL datasets (EGamma0, EGamma1, Muon0, Muon1, MuonEG)
+    bool shouldApplyDuplicateFilter =
         (datasetName.find("EGamma0") != std::string::npos) ||
         (datasetName.find("EGamma1") != std::string::npos) ||
         (datasetName.find("Muon0") != std::string::npos) ||
-        (datasetName.find("Muon1") != std::string::npos);
+        (datasetName.find("Muon1") != std::string::npos) ||
+        (datasetName.find("MuonEG") != std::string::npos);
 
     std::cout << "\n=============================================\n";
     std::cout << "[INFO] Processing batch: " << batchFile << "\n";
     std::cout << "[INFO] Dataset: " << datasetName << "\n";
     std::cout << "[INFO] Number of files: " << files.size() << "\n";
+    std::cout << "[INFO] Duplicate file: " << dupFile << "\n";
     std::cout << "=============================================\n";
+
+    // Load duplicate events for THIS specific dataset
+    auto duplicateEvents = loadDuplicateEvents(dupFile);
 
     // Base dataframe
     ROOT::RDataFrame df("Events", files);
@@ -214,11 +235,14 @@ int main(int argc, char **argv) {
     std::shared_ptr<std::unordered_set<EventKey, EventKeyHash>> dupPtr = duplicateEvents;
 
     // Branch based on whether to apply duplicate filter
-    if (applyDuplicateFilter && !dupPtr->empty()) {
+    if (shouldApplyDuplicateFilter && !dupPtr->empty()) {
         std::cout << "[INFO] Applying duplicate-event removal for dataset: " << datasetName << std::endl;
+        std::cout << "[INFO] Will remove " << dupPtr->size() << " duplicate events\n";
+        
         auto node_dup_removed = df_progress.Filter(
             [dupPtr](UInt_t run, ULong64_t event, UInt_t lumi) -> bool {
                 EventKey k{run, event, lumi};
+                // Return TRUE to KEEP the event (i.e., if it's NOT in the duplicate list)
                 return dupPtr->find(k) == dupPtr->end();
             },
             {"run", "event", "luminosityBlock"},
