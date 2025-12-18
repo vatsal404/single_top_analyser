@@ -109,9 +109,9 @@ addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDe
 
 //    auto Nentry_000 = _rlm.Count();
 //    cout << "Usage of ranges:\n"
-//		<< " cut 000 " << *Nentry_000 << endl;
-addCuts("!vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","4");*/
-addCuts("!loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && eu_channel && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ) && (region_1j1t || region_2j1t || region_2j2t)","0");
+//		<< " cut 000 " << *Nentry_000 << endl;*/
+//addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","0");
+addCuts("!loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && eu_channel && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ) ","0");
 }
 //===============================Find Good Electrons===========================================//
 //: Define Good Electrons in rdata frame
@@ -299,20 +299,20 @@ void BaseAnalyser::selectJets()
     }
 
     _rlm = _rlm.Define("goodJetsID", "Jet_jetId == 6"); //without pt-eta cuts
-    //_rlm = _rlm.Define("goodJets_low_eta", "goodJetsID && Jet_pt_corr>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
-    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt_corr>30 && abs(Jet_eta)<2.4 ");
-    _rlm =_rlm.Define("looseJets", "goodJetsID && Jet_pt_corr<30 && Jet_pt_corr>20 && abs(Jet_eta)<2.4 ");
+    //_rlm = _rlm.Define("goodJets_low_eta", "goodJetsID && Jet_pt>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
+    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt>30 && abs(Jet_eta)<2.4 ");
+    _rlm =_rlm.Define("looseJets", "goodJetsID && Jet_pt<30 && Jet_pt>20 && abs(Jet_eta)<2.4 ");
 
   //  _rlm = _rlm.Define("goodJets", " goodJets_low_eta || goodJets_high_eta ");
 
 
-    _rlm = _rlm.Define("goodJets_pt", "Jet_pt_corr[goodJets]")
+    _rlm = _rlm.Define("goodJets_pt", "Jet_pt[goodJets]")
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
                 .Define("goodJets_mass", "Jet_mass[goodJets]")
                 .Define("goodJets_idx", ::good_idx, {"goodJets"});
 
-     _rlm = _rlm.Define("looseJets_pt", "Jet_pt_corr[looseJets]")
+     _rlm = _rlm.Define("looseJets_pt", "Jet_pt[looseJets]")
                 .Define("looseJets_eta", "Jet_eta[looseJets]")
                 .Define("looseJets_phi", "Jet_phi[looseJets]")
                 .Define("looseJets_mass", "Jet_mass[looseJets]");
@@ -429,7 +429,7 @@ void BaseAnalyser::removeOverlaps()
 //    cout << "Usage of ranges:\n"
 //		<< " before jet veto application" << *Nentry_nojetveto << endl;               
                 _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi");
-                _rlm = applyJetVetoMap(_rlm,"Selected_loosejeteta","Selected_loosejetphi","loose_vetoed_jets");
+               _rlm = applyJetVetoMap(_rlm,"Selected_loosejeteta","Selected_loosejetphi","loose_vetoed_jets");
 // 	    auto Nentry_jetveto = _rlm.Count();
 //    cout << "Usage of ranges:\n"
 //		<< " after jet veto application " << *Nentry_jetveto << endl;     
@@ -600,7 +600,7 @@ _rlm = calculateMuSF(_rlm, muon_vars_names, output_mu_column_name);
 _rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
 
   auto sumgenweight = _rd.Sum("genWeight");
-  float lumi=17794;
+  float lumi=(_year == "2023" ? 17794 : 7980 );
   double lumifactor = (_crossection * lumi) / (_sumgenWeight);
   _rlm = _rlm.Define("Lumifactor", [lumifactor]() {
     return lumifactor;
@@ -617,8 +617,8 @@ _rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
    _rlm = _rlm.Define("Weight","Lumifactor * pugenWeight");//* btag_SF_central"); 
 
         
-  _rlm = _rlm.Define("evWeight", " Lumifactor * btag_SF_bcflav_central  * btag_SF_lflav_central * pugenWeight * muon_SF_central * ele_SF_central"); // btag_SF_bcflav_central * btag_SF_lflav_central
-//  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * btag_SF_central * ele_SF_central"); 
+//  _rlm = _rlm.Define("evWeight", " Lumifactor * btag_SF_bcflav_central  * btag_SF_lflav_central * pugenWeight * muon_SF_central * ele_SF_central"); // btag_SF_bcflav_central * btag_SF_lflav_central
+  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central* btag_SF_bcflav_central  * btag_SF_lflav_central"); 
  } 
 
 }
@@ -632,7 +632,7 @@ void BaseAnalyser::selectMET()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-   _rlm = _rlm.Define("goodMET", "PuppiMET_pt")  // Boolean flag
+   _rlm = _rlm.Define("goodMET", "PuppiMET_pt_corr")  // Boolean flag
           .Define("goodMET_pt", "goodMET ? PuppiMET_pt_corr : numb")  // Assign numb for events failing cut
           .Define("goodMET_phi", "goodMET ? PuppiMET_phi_corr : numb ");
 }
@@ -732,7 +732,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("Selected_jet_leading_phi");
     addVartoStore("Selected_jet_leading_eta");
     addVartoStore("Selected_jet_leading_mass");
-    addVartoStore("Jet_pt_corr");
+//    addVartoStore("Jet_pt");
     addVartoStore("btagpass_bcflav_goodJets");
     addVartoStore("goodJets_btagpass_bcflav_pt");
     addVartoStore("goodJets_btagpass_bcflav_eta");

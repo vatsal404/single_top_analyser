@@ -87,8 +87,8 @@ public:
 	void setupTree();
 
 	//setting parameters for nanoaod
-	void setParams(int year, string runtype, int datatype);
-	int _year;
+	void setParams(string year, string runtype, int datatype);
+	string _year;
 	string _runtype;
 	int _datatype;
 	bool _isPreEE =false;

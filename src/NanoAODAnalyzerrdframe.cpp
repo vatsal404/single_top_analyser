@@ -226,10 +226,11 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                 for (size_t i = 0; i < jetpts.size(); i++)
                 {
                     float rawpt = jetpts[i] * (1.f - jetrawf[i]);
-                    float corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, run_f[i]});
+                    float corr = (_year == "2023") ? _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, run_f[i]}) : _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
                     out.emplace_back(rawpt * corr);
                 }
-                return out;
+
+                   return out;
             };
 
             _rlm = _rlm.Define("Jet_pt_corr",
@@ -285,6 +286,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
       }
     }
 }
+
 // Add to your NanoAODAnalyzerrdframe.cpp
 // Include at the top:
 // #include "MuonScaRe_RDF.cc"
@@ -590,16 +592,16 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection() //data and MC
     auto lambdaf_met_data = [this](float met_pt, float met_phi, unsigned char npvGood)->std::pair<float, float>
       {
         // Get corrected pt
-        float met_pt_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"pt", "PuppiMET", "2023", "DATA", "nom", 
+        float met_pt_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"pt", "PuppiMET", _year, "DATA", "nom", 
                                                        met_pt, met_phi, static_cast<float>(npvGood)});
         
         // Get corrected phi
-        float met_phi_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"phi", "PuppiMET", "2023", "DATA", "nom", 
+        float met_phi_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"phi", "PuppiMET", _year, "DATA", "nom", 
                                                         met_pt, met_phi, static_cast<float>(npvGood)});
         
         return std::make_pair(met_pt_corr, met_phi_corr);
-      };
-    
+      
+      }; 
     _rlm = _rlm.Define("MET_pt_phi_corr", lambdaf_met_data, {"PuppiMET_pt", "PuppiMET_phi", "PV_npvsGood"});
     _rlm = _rlm.Define("PuppiMET_pt_corr", "MET_pt_phi_corr.first");
     _rlm = _rlm.Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
@@ -608,15 +610,16 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection() //data and MC
     
     auto lambdaf_met_mc = [this](float met_pt, float met_phi, unsigned char npvGood)->std::pair<float, float>
       {
-        // Get corrected pt
-        float met_pt_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"pt", "PuppiMET", "2023", "MC", "nom", 
+        float met_pt_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"pt", "PuppiMET",_year, "MC", "nom", 
                                                        met_pt, met_phi, static_cast<float>(npvGood)});
         
         // Get corrected phi
-        float met_phi_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"phi", "PuppiMET", "2023", "MC", "nom", 
+        float met_phi_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"phi", "PuppiMET", _year, "MC", "nom", 
                                                         met_pt, met_phi, static_cast<float>(npvGood)});
         
         return std::make_pair(met_pt_corr, met_phi_corr);
+
+      
       };
     
     _rlm = _rlm.Define("MET_pt_phi_corr", lambdaf_met_mc, {"PuppiMET_pt", "PuppiMET_phi", "PV_npvsGood"});
@@ -1372,27 +1375,43 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<
 }
 */
 ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(
-    RNode _rlm,
-    std::vector<std::string> Ele_vars,
-    std::string output_var)
+        RNode _rlm,
+        std::vector<std::string> Ele_vars,
+        std::string output_var)
 {
     // electron RECO & ID scale factor generator
     auto electron_weightgenerator = [this](
-        const std::string eletype,
-        const ROOT::VecOps::RVec<float>& etas,
-        const ROOT::VecOps::RVec<float>& pts,
-        const ROOT::VecOps::RVec<float>& phis,
-        const std::string& variation) -> float 
+            const std::string eletype,
+            const ROOT::VecOps::RVec<float>& etas,
+            const ROOT::VecOps::RVec<float>& pts,
+            const ROOT::VecOps::RVec<float>& phis,
+            const std::string& variation) -> float 
     {
-        double w_tot = 1.0;
 
-        for (size_t i = 0; i < pts.size(); i++) {
-            double w = _correction_electron
-                ->at("Electron-ID-SF")
-                ->evaluate({"2023PromptC", variation, eletype,
+        double w_tot = 1.0;
+        for (size_t i = 0; i < pts.size(); i++)
+        {
+
+            double w = 1.0;
+
+            if (_year == "2023")
+            {
+                w = _correction_electron
+                    ->at("Electron-ID-SF")
+                    ->evaluate({"2023PromptC", variation, eletype,
                             std::fabs(etas[i]), pts[i], phis[i]});
+            }
+            else if (_year == "2022")
+            {
+                w = _correction_electron
+                    ->at("Electron-ID-SF")
+                    ->evaluate({"2022Re-recoBCD", variation, eletype,
+                            std::fabs(etas[i]), pts[i]});
+            }
+
             w_tot *= w;
         }
+
         return w_tot;
     };
 
@@ -1876,7 +1895,7 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename){
 }
 
 
-void NanoAODAnalyzerrdframe::setParams(int year, string runtype, int datatype)
+void NanoAODAnalyzerrdframe::setParams(string year, string runtype, int datatype)
 {
     /*if(debug){
         std::cout<< "================================//=================================" << std::endl;
@@ -1888,11 +1907,11 @@ void NanoAODAnalyzerrdframe::setParams(int year, string runtype, int datatype)
 	_datatype=datatype;
 	
 
-	if(_year==2022) {
+	if(_year=="2022") {
         cout << "Analysing through Run 2022" << endl;
-    }else if(_year==2023) {
+    }else if(_year=="2023") {
         cout << "Analysing through Run 2023" << endl;
-    }else if(_year==2024){
+    }else if(_year=="2024"){
         cout << "Analysing through Run 2024" << endl;
     }
 
@@ -1982,11 +2001,11 @@ std::string NanoAODAnalyzerrdframe::setHLT(std::string str_HLT){
 
     }else{ // fill the HLT names in a vector according to each year
             std::vector<string> V_output;
-            if(_year==2022){
+            if(_year=="2022"){
                 HLTGlobalNames=HLT2022Names;
-            }else if (_year==2023){
+            }else if (_year=="2023"){
                 HLTGlobalNames=HLT2023Names;
-            }else if(_year==2024){
+            }else if(_year=="2024"){
                 HLTGlobalNames=HLT2024Names;
             }
 
