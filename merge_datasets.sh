@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Directory where your ROOT files are stored
-INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2022"
+INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2022EE"
 
 # Save merged outputs in a 'merged' directory inside *current directory*
 OUTPUT_DIR="$(pwd)/merged"

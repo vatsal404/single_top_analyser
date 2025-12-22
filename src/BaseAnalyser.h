@@ -40,6 +40,7 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
                 void defineRegion();
 		bool debug = true;
 		bool _jsonOK;
+        double btag_cut_value;
 		string _outfilename;
 
 

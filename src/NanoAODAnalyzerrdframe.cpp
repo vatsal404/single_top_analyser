@@ -218,6 +218,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                        floats jetAreas,
                        floats jetrawf,
                        float rho,
+                       floats jetphis,
                        floats run_f) -> floats
             {
                 floats out;
@@ -226,7 +227,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                 for (size_t i = 0; i < jetpts.size(); i++)
                 {
                     float rawpt = jetpts[i] * (1.f - jetrawf[i]);
-                    float corr = (_year == "2023") ? _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, run_f[i]}) : _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
+                    float corr = (_year == "2023") ? _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, run_f[i]}) : (_year == "2023BPix") ? _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, jetphis[i] , run_f[i]}) : _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
                     out.emplace_back(rawpt * corr);
                 }
 
@@ -236,7 +237,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
             _rlm = _rlm.Define("Jet_pt_corr",
                 jetCorrLambda_Data,
                 {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor",
-                 "Rho_fixedGridRhoFastjetAll", "run_f"});
+                 "Rho_fixedGridRhoFastjetAll","Jet_phi","run_f"});
              
         }
         else
@@ -247,6 +248,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                        floats jetetas,
                        floats jetAreas,
                        floats jetrawf,
+                       floats jetphis,
                        float rho) -> floats
             {
                 floats out;
@@ -255,7 +257,8 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                 for (size_t i = 0; i < jetpts.size(); i++)
                 {
                     float rawpt = jetpts[i] * (1.f - jetrawf[i]);
-                    float corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
+                     float corr = (_year == "2023BPix") ? _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, jetphis[i]}) : _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
+
                     out.emplace_back(rawpt * corr);
                 }
                 return out;
@@ -276,7 +279,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
             _rlm = _rlm.Define("Jet_pt_temp_corr",
                 jetCorrLambda_MC,
-                {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor",
+                {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor","Jet_phi",
                  "Rho_fixedGridRhoFastjetAll"});
                   
             _rlm = _rlm.Define("Jet_pt_corr",
@@ -1408,6 +1411,20 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(
                     ->evaluate({"2022Re-recoBCD", variation, eletype,
                             std::fabs(etas[i]), pts[i]});
             }
+            else if (_year == "2022EE")
+            {
+                w = _correction_electron
+                    ->at("Electron-ID-SF")
+                    ->evaluate({"2022Re-recoE+PromptFG", variation, eletype,
+                            std::fabs(etas[i]), pts[i]});
+            }
+            else if (_year == "2023BPix")
+            {
+                w = _correction_electron
+                    ->at("Electron-ID-SF")
+                    ->evaluate({"2023PromptD", variation, eletype,
+                            std::fabs(etas[i]), pts[i], phis[i]});
+            }
 
             w_tot *= w;
         }
@@ -1905,6 +1922,9 @@ void NanoAODAnalyzerrdframe::setParams(string year, string runtype, int datatype
 	_year=year;
 	_runtype=runtype;
 	_datatype=datatype;
+std::cout << "[DEBUG setParams] year = " << _year
+          << ", runtype = " << _runtype
+          << ", datatype = " << _datatype << std::endl;
 	
 
 	if(_year=="2022") {
@@ -1913,7 +1933,13 @@ void NanoAODAnalyzerrdframe::setParams(string year, string runtype, int datatype
         cout << "Analysing through Run 2023" << endl;
     }else if(_year=="2024"){
         cout << "Analysing through Run 2024" << endl;
+    }else if(_year=="2022EE") {
+        cout << "Analysing through Run 2022EE" << endl;
+    }else if(_year=="2023BPix") {
+        cout << "Analysing through Run 2023BPix" << endl;
     }
+
+
 
 	if(_runtype.find("PreEE") != std::string::npos){
         _isPreEE = true;
@@ -2005,9 +2031,12 @@ std::string NanoAODAnalyzerrdframe::setHLT(std::string str_HLT){
                 HLTGlobalNames=HLT2022Names;
             }else if (_year=="2023"){
                 HLTGlobalNames=HLT2023Names;
-            }else if(_year=="2024"){
+            }else if(_year=="2022EE"){
+                HLTGlobalNames=HLT2024Names;
+            }else if(_year=="2023BPix"){
                 HLTGlobalNames=HLT2024Names;
             }
+
 
             //loop on HLTs
             for (size_t i = 0; i < HLTGlobalNames.size(); i++)
