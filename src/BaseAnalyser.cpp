@@ -70,7 +70,7 @@ _rlm = _rlm.Define("subleading_lepton_pt", "leading_lepton_index.size() > 1 ? le
 // Invariant mass
 _rlm = _rlm.Define("leptons_invariant_mass", "leading_lepton_index.size() > 1 ? (leading_lepton + subleading_lepton).M() : numb");
 
-//_rlm = _rlm.Define("eu_channel","Ngoodmuons >= 1 && NgoodElectrons >= 1 && (abs(leading_lepton_pdgId) != abs(subleading_lepton_pdgId)) && leading_lepton_pt > 25 && (leading_lepton_charge * subleading_lepton_charge) == -1 && leptons_invariant_mass > 20");
+_rlm = _rlm.Define("eu_channel","Ngoodmuons >= 1 && NgoodElectrons >= 1 && (abs(leading_lepton_pdgId) != abs(subleading_lepton_pdgId)) && leading_lepton_pt > 25 && (leading_lepton_charge * subleading_lepton_charge) == -1 && leptons_invariant_mass > 20");
 
 
 
@@ -85,57 +85,101 @@ void BaseAnalyser::defineCuts(){
         std::cout<< "Line : "<< __LINE__ << " Function : " << __FUNCTION__ << std::endl;
         std::cout<< "================================//=================================" << std::endl;
     }
-	auto Nentry = _rlm.Count();
-	// This is how you can express a range of the first 100 entries
-//	_rlm = _rlm.Range(0, 100000);
+    //auto Nentry = _rlm.Count();
+    // This is how you can express a range of the first 100 entries
+    //	_rlm = _rlm.Range(0, 100000);
 
-//    auto Nentry_nocut = _rlm.Count();
-//    cout << "Usage of ranges:\n"
-//		<< " no cut " << *Nentry_nocut << endl;
-/*
-	addCuts("nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1", "0");
-    addCuts("eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1" ,"1");
-//    auto Nentry_0 = _rlm.Count();
-//    cout << "Usage of ranges:\n"
-//		<< " - cut0: " << *Nentry_0 << endl;
+    //    auto Nentry_nocut = _rlm.Count();
+    //    cout << "Usage of ranges:\n"
+    //		<< " no cut " << *Nentry_nocut << endl;
+auto puppiMETJetVeto =
+    [](bool isData,
+       UInt_t run,
+       Float_t PuppiMET_pt,
+       Float_t PuppiMET_phi,
+       const ROOT::VecOps::RVec<Float_t>& Jet_pt,
+       const ROOT::VecOps::RVec<Float_t>& Jet_eta,
+       const ROOT::VecOps::RVec<Float_t>& Jet_phi,
+       const ROOT::VecOps::RVec<Float_t>& Jet_neEmEF,
+       const ROOT::VecOps::RVec<Float_t>& Jet_chEmEF) {
+
+        if (!isData) return true;
+        if (run < 362433 || run > 367144) return true;
+        if (PuppiMET_pt <= 100.f) return true;
+
+        for (size_t i = 0; i < Jet_pt.size(); ++i) {
+            if (Jet_pt[i] <= 50.f) continue;
+            if (Jet_eta[i] < -0.5f || Jet_eta[i] > -0.1f) continue;
+
+            float dphi = std::abs(std::atan2(
+                std::sin(PuppiMET_phi - Jet_phi[i]),
+                std::cos(PuppiMET_phi - Jet_phi[i])
+            ));
+
+            if (Jet_phi[i] < -2.1f || Jet_phi[i] > -1.8f) continue;
+            if (dphi <= 2.9f) continue;
+
+            if (Jet_neEmEF[i] > 0.9f || Jet_chEmEF[i] > 0.9f)
+                return false;
+        }
+        return true;
+    };
+_rlm = _rlm.Define("_isData", [this]() { return _isData; });
+
+_rlm = _rlm.Filter(
+    puppiMETJetVeto,
+    {
+        "_isData",
+        "run",
+        "PuppiMET_pt",
+        "PuppiMET_phi",
+        "Jet_pt",
+        "Jet_eta",
+        "Jet_phi",
+        "Jet_neEmEF",
+        "Jet_chEmEF"
+    },
+    "PuppiMETjet veto (late 2022 early 2023)"
+);
+
+   // addCuts("nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1", "0");
+
+    //addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","1");
 
 
 	//addCuts(setHLT(),"00"); //HLT cut buy checking HLT names in the root file
-    addCuts("(eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)" , "2");
-//    auto Nentry_00 = _rlm.Count();
-//    cout << "Usage of ranges:\n"
-//		<< " - cut00: " << *Nentry_00 << endl;
+  //  addCuts("(eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)" , "2");
+
+//addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56)) ","3");
+
+addCuts("!loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56)) ","0");
 
 
-addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","3");
-
-//    auto Nentry_000 = _rlm.Count();
-//    cout << "Usage of ranges:\n"
-//		<< " cut 000 " << *Nentry_000 << endl;*/
-//addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","0");
+//addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","0");
 //addCuts("!loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56)) ","0");
 //
 //
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","0");
+/*
+addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","0");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","1");
+addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","1");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (PV_npvsGood>=35) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","2");
+addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (nJet>0) && (PV_npvsGood>=35) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","2");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (PV_npvsGood>=35) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","3");
+addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=35) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","3");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (PV_npvsGood>=1 && PV_npvsGood<35) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","4");
+addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (PV_npvsGood>=1 && PV_npvsGood<35) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","4");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (PV_npvsGood>=1 && PV_npvsGood<35) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","5");
+addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (PV_npvsGood>=1 && PV_npvsGood<35) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","5");
 
-addCuts(" NgoodJets>=3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) &&  (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","6");
+addCuts(" NgoodJets>=3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) &&  (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","6");
 
-addCuts("NgoodJets>=3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","7");
+addCuts("NgoodJets>=3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","7");
 
-addCuts("NgoodJets<3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (PV_npvsGood>=1 ) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","8");
+addCuts("NgoodJets<3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1 ) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","8");
 
-addCuts("NgoodJets<3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","9");
-
+addCuts("NgoodJets<3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60 || HLT_PFMETTypeOne120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","9");
+*/
 }
 //===============================Find Good Electrons===========================================//
 //: Define Good Electrons in rdata frame
@@ -143,6 +187,12 @@ addCuts("NgoodJets<3 && eu_channel && Flag_goodVertices && Flag_globalSuperTight
 
 void BaseAnalyser::selectElectrons()
 {
+
+// auto Nentry = _rlm.Count();
+ // cout << "Usage of ranges:\n"
+//	<< " - Total entries " << *Nentry << endl;
+
+
     cout << "select good electrons" << endl;
     if (debug){
     std::cout<< "================================//=================================" << std::endl;
@@ -150,37 +200,37 @@ void BaseAnalyser::selectElectrons()
     std::cout<< "================================//=================================" << std::endl;
     }
 
-   std::cout<< "================================0/=================================" << std::endl;
-_rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
-   std::cout<< "================================1/=================================" << std::endl;
+    std::cout<< "================================0/=================================" << std::endl;
+    _rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
+    std::cout<< "================================1/=================================" << std::endl;
 
     _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt_corr>20 && abs(Electron_eta)<2.5 && !(( abs(Electron_eta + Electron_deltaEtaSC) > 1.4442 && abs(Electron_eta + Electron_deltaEtaSC) < 1.566 ))");
     _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt_corr[goodElectrons]")
         .Define("goodElectrons_leading_pt_index","ArgMax(goodElectrons_pt)")
-		.Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[goodElectrons_leading_pt_index]) : numb")
+        .Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[goodElectrons_leading_pt_index]) : numb")
         .Define("goodElectron_pdgId","Electron_pdgId[goodElectrons]")
 
-                .Define("goodElectrons_deltaEtaSC", "Electron_deltaEtaSC[goodElectrons]")
-                .Define("goodElectrons_leading_deltaEtaSC","int(goodElectrons_deltaEtaSC.size())>0 ? static_cast<double> (goodElectrons_deltaEtaSC[goodElectrons_leading_pt_index]) : numb")
+        .Define("goodElectrons_deltaEtaSC", "Electron_deltaEtaSC[goodElectrons]")
+        .Define("goodElectrons_leading_deltaEtaSC","int(goodElectrons_deltaEtaSC.size())>0 ? static_cast<double> (goodElectrons_deltaEtaSC[goodElectrons_leading_pt_index]) : numb")
 
 
-                .Define("goodElectrons_eta", "Electron_eta[goodElectrons]")
-                .Define("goodElectrons_leading_eta","int(goodElectrons_eta.size())>0 ? static_cast<double> (goodElectrons_eta[goodElectrons_leading_pt_index]) : numb")
-                .Define("goodElectron_eta_supercluster", "goodElectrons_eta + goodElectrons_deltaEtaSC")
+        .Define("goodElectrons_eta", "Electron_eta[goodElectrons]")
+        .Define("goodElectrons_leading_eta","int(goodElectrons_eta.size())>0 ? static_cast<double> (goodElectrons_eta[goodElectrons_leading_pt_index]) : numb")
+        .Define("goodElectron_eta_supercluster", "goodElectrons_eta + goodElectrons_deltaEtaSC")
 
-		 .Define("goodElectrons_phi", "Electron_phi[goodElectrons]")
-                 .Define("goodElectrons_leading_phi", "int(goodElectrons_phi.size())>0 ?static_cast<double>(goodElectrons_phi[goodElectrons_leading_pt_index]) :numb")
+        .Define("goodElectrons_phi", "Electron_phi[goodElectrons]")
+        .Define("goodElectrons_leading_phi", "int(goodElectrons_phi.size())>0 ?static_cast<double>(goodElectrons_phi[goodElectrons_leading_pt_index]) :numb")
 
-		.Define("goodElectrons_mass", "Electron_mass[goodElectrons]")
-                .Define("goodElectrons_leading_mass", "int(goodElectrons_mass.size())>0 ?static_cast<double>(goodElectrons_mass[goodElectrons_leading_pt_index]) :numb")
+        .Define("goodElectrons_mass", "Electron_mass[goodElectrons]")
+        .Define("goodElectrons_leading_mass", "int(goodElectrons_mass.size())>0 ?static_cast<double>(goodElectrons_mass[goodElectrons_leading_pt_index]) :numb")
 
-		.Define("goodElectrons_charge","Electron_charge[goodElectrons]")
-		.Define("goodElectrons_leading_charge","int(goodElectrons_charge.size())>0 ?static_cast<double>(goodElectrons_charge[goodElectrons_leading_pt_index]) :numb")
+        .Define("goodElectrons_charge","Electron_charge[goodElectrons]")
+        .Define("goodElectrons_leading_charge","int(goodElectrons_charge.size())>0 ?static_cast<double>(goodElectrons_charge[goodElectrons_leading_pt_index]) :numb")
 
-		.Define("goodElectrons_idx", ::good_idx, {"goodElectrons"})
-                .Define("NgoodElectrons", "int(goodElectrons_pt.size())");
-std::cout<< "================================/3/=================================" << std::endl;
-
+        .Define("goodElectrons_idx", ::good_idx, {"goodElectrons"})
+        .Define("NgoodElectrons", "int(goodElectrons_pt.size())");
+//auto n_pass_ele =_rlm.Define("pass_goodelectron","NgoodElectrons>0").Sum("pass_goodelectron");
+//std::cout<<"events with >=1 electron: "<< *n_pass_ele << std::endl;
     //-------------------------------------------------------
     //generate electron 4vector from selected good Electrons
     //-------------------------------------------------------
@@ -231,6 +281,8 @@ void BaseAnalyser::selectMuons()
                 .Define("Ngoodmuons", "int(goodmuons_pt.size())");
 
 
+//auto n_pass_muon =_rlm.Define("pass_goodmuon","goodmuons>0").Sum("pass_goodmuon");
+//std::cout<<"events with >=1 muon: "<< *n_pass_muon << std::endl;
 
     //-------------------------------------------------------
     //generate muon 4vector from selected good Muons
@@ -351,21 +403,25 @@ void BaseAnalyser::selectJets()
                 .Define("goodJets_4vecs", ::generate_4vec, {"goodJets_pt", "goodJets_eta", "goodJets_phi", "goodJets_mass"});
     _rlm = _rlm.Define("looseJets_4vecs", ::generate_4vec, {"looseJets_pt", "looseJets_eta", "looseJets_phi", "looseJets_mass"});
 
+//auto n_pass_goodjet =_rlm.Define("pass_goodjet","goodJets>0").Sum("pass_goodjet");
+//std::cout<<"events with >=1 not clean goodjet: "<< *n_pass_goodjet << std::endl;
 
 
 	//select b jest within goodjets
-    double btag_cut_value =
-    (_year == "2022")     ? 0.4319 :
-    (_year == "2022EE")   ? 0.0897 :// 0.451  :
-    (_year == "2023")     ? 0.3487 :
-    (_year == "2023BPix") ? 0.3494 :
-                            0.0;
+ btag_cut_value =
+(_year == "2022")     ? 0.4319 :
+(_year == "2022EE")   ? 0.451  :
+(_year == "2023")     ? 0.3487 :
+(_year == "2023BPix") ? 0.3494 :
+                        0.0;
 
- _rlm = _rlm.Define("btag_cut", std::to_string(btag_cut_value));
-
-// _rlm = _rlm.Define("btag_cut",_year == "2022" ? "0.4319" : _year == "2022EE"   ? "0.451"  : _year == "2023" ? "0.3487" : _year == "2023BPix" ? "0.3494" :"0.0");
-    _rlm = _rlm.Define("btagcuts", "goodjets_pnetbtag>btag_cut")  
-      .Define("good_bjetpt", "goodJets_pt[btagcuts]")
+_rlm = _rlm.Define(
+    "btagcuts",
+    [this](const ROOT::VecOps::RVec<float>& pnet) {
+        return pnet > btag_cut_value;
+    },
+    {"goodjets_pnetbtag"}
+).Define("good_bjetpt", "goodJets_pt[btagcuts]")
       .Define("good_bjet_maxpt_index", "ArgMax(good_bjetpt)")
 
       .Define("good_bjet_leading_pt", "int(good_bjetpt.size()) > 0 ? good_bjetpt[good_bjet_maxpt_index] : numb")
@@ -469,6 +525,9 @@ void BaseAnalyser::removeOverlaps()
 //		<< " after jet veto application " << *Nentry_jetveto << endl;     
 
          _rlm=_rlm.Define("ncleanjetspass", "int(Selected_jetpt.size())");
+//auto n_pass_jet =_rlm.Define("pass_goodjets","ncleanjetspass>0").Sum("pass_goodjets");
+//std::cout<<"events with >=1 goodjet: "<< *n_pass_jet << std::endl;
+
 /*        _rlm = _rlm.Define("Selected_jet_maxpt_index", "ArgMax(Selected_jetpt)");
         _rlm = _rlm.Define("Selected_jet_maxpt_index_temp", "int(Selected_jetpt.size())>0");
         _rlm = _rlm.Define("Selected_jet_leading_pt", "int(Selected_jetpt.size())>0 ? Selected_jetpt[Selected_jet_maxpt_index] : numb");
@@ -496,7 +555,6 @@ _rlm = _rlm.Define("selected_subleadingcleanjet_TL4vec",:: generate_TLorentzVect
         _rlm=_rlm.Define("ncleanjetspass_loose", "int(Selected_loosejetpt.size())");
         _rlm = _rlm.Define("Selected_loosejet_maxpt_index", "ArgMax(Selected_loosejetpt)");
         _rlm = _rlm.Define("Selected_loosejet_maxpt_index_temp", "int(Selected_loosejetpt.size())>0");
-        _rlm = _rlm.Define("Selected_loosejet_leadingpt", "int(Selected_loosejetpt.size())>0 ? Selected_loosejetpt[Selected_loosejet_maxpt_index] : numb");
         if(!_isData){
             _rlm= _rlm .Define("Selected_jethadflav", "goodJets_hadflav[checkOverlap]"); 
 }
@@ -506,9 +564,13 @@ _rlm = _rlm.Define("selected_subleadingcleanjet_TL4vec",:: generate_TLorentzVect
 	 //--> after remove overlap: use requested btaggedJets for btag-weight SFs && weight_generator. 
 	 //=====================================================================================//
 //	_rlm = _rlm.Define("btagcuts2", "abs(Selected_jeteta)<=2.4 && Selected_jetbtag>=0.6734")
-
-	_rlm = _rlm.Define("btagcuts2", "Selected_jetbtag>=btag_cut")
-			.Define("Selected_bjetpt", "Selected_jetpt[btagcuts2]")
+_rlm = _rlm.Define(
+    "btagcuts2",
+    [this](const ROOT::VecOps::RVec<float>& btag) {
+        return btag >= btag_cut_value;
+    },
+    {"Selected_jetbtag"}
+).Define("Selected_bjetpt", "Selected_jetpt[btagcuts2]")
                         .Define("Selected_bjet_maxpt_index", "ArgMax(Selected_bjetpt)")
 
 			.Define("Selected_bjet_leading_pt", "int(Selected_bjetpt.size())>0 ? Selected_bjetpt[Selected_bjet_maxpt_index] : numb")
@@ -531,6 +593,8 @@ _rlm = _rlm.Define("selected_subleadingcleanjet_TL4vec",:: generate_TLorentzVect
 //                _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi").Filter("!vetoed_jets");
            //std::cout << "Number of entries: " << _rlm.Count().GetValue() << std::endl;
 
+//auto n_pass_bjet =_rlm.Define("pass_goodbjet","ncleanbjetspass>0").Sum("pass_goodbjet");
+//std::cout<<"events with >=1 bjet: "<< *n_pass_bjet << std::endl;
 
 
     if(!_isData){
@@ -538,8 +602,18 @@ _rlm = _rlm.Define("selected_subleadingcleanjet_TL4vec",:: generate_TLorentzVect
 
     if(!_isData){
       //For Btagging Efficiency    
-      _rlm = _rlm.Define("btagpass_bcflav_goodJets", "Selected_jetbtag>btag_cut && Selected_jethadflav==5") //0.2783 -medium, 0.7 - tight 
-	.Define("goodJets_btagpass_bcflav_pt", "Selected_jetpt[btagpass_bcflav_goodJets]")
+_rlm = _rlm.Define(
+    "btagpass_bcflav_goodJets",
+    [this](
+        const ROOT::VecOps::RVec<float>& btag,
+        const ROOT::VecOps::RVec<unsigned char>& hadflav
+    ) {
+        return (btag > btag_cut_value) && (hadflav == 5);
+    },
+    {"Selected_jetbtag", "Selected_jethadflav"}
+)
+
+    .Define("goodJets_btagpass_bcflav_pt", "Selected_jetpt[btagpass_bcflav_goodJets]")
 	.Define("goodJets_btagpass_bcflav_eta", "Selected_jeteta[btagpass_bcflav_goodJets]");
       
       _rlm = _rlm.Define("all_bcflav_goodJets", "Selected_jethadflav==5") //0.2783 -medium, 0.7 - tight 
@@ -547,8 +621,16 @@ _rlm = _rlm.Define("selected_subleadingcleanjet_TL4vec",:: generate_TLorentzVect
 	.Define("goodJets_all_bcflav_eta", "Selected_jeteta[all_bcflav_goodJets]");
       
       
-      _rlm = _rlm.Define("btagpass_lflav_goodJets", "Selected_jetbtag>btag_cut && Selected_jethadflav==0") //0.2783 -medium, 0.7 - tight 
-	.Define("goodJets_btagpass_lflav_pt", "Selected_jetpt[btagpass_lflav_goodJets]")
+	_rlm = _rlm.Define(
+    "btagpass_lflav_goodJets",
+    [this](
+        const ROOT::VecOps::RVec<float>& btag,
+        const ROOT::VecOps::RVec<unsigned char>& hadflav
+    ) {
+        return (btag > btag_cut_value) && (hadflav == 0);
+    },
+    {"Selected_jetbtag", "Selected_jethadflav"}
+).Define("goodJets_btagpass_lflav_pt", "Selected_jetpt[btagpass_lflav_goodJets]")
 	.Define("goodJets_btagpass_lflav_eta", "Selected_jeteta[btagpass_lflav_goodJets]");
       
       _rlm = _rlm.Define("all_lflav_goodJets", "Selected_jethadflav==0") //0.2783 -medium, 0.7 - tight 
@@ -618,7 +700,15 @@ if (!_isData) // Only use genWeight
 //           std::cout<<"Sum of genWeights = "<<sumofgenweight1.c_str()<<std::endl;
 
 //  _rlm = calculateBTagSF(_rlm, Jets_vars_names, _case, 0.2783, "M", output_btag_column_name);
-  _rlm = calculateBTagSF(_rlm, Jets_vars_names,1,btag_cut_value,"M", output_btag_column_name);
+
+std::cout << "DEBUG: _year = '" << _year << "'" << std::endl;
+
+std::cout << "DEBUG: _year.length() = " << _year.length() << std::endl;
+std::cout << "DEBUG: _year.empty() = " << _year.empty() << std::endl;
+std::cout << "DEBUG: (_year == \"2022EE\") = " << (_year == "2022EE") << std::endl;
+
+std::cout << "DEBUG: btag_cut_value = " << btag_cut_value << " for year = " << _year << std::endl;
+_rlm = calculateBTagSF(_rlm, Jets_vars_names,1,btag_cut_value,"M", output_btag_column_name);
 // ---------- create unified muon eta/pt columns (per-event) ----------
 std::vector<std::string> ele_vars_names= {"goodElectron_eta_supercluster", "goodElectrons_pt","goodElectrons_phi"};
 std::vector<std::string> muon_vars_names = {"goodmuons_eta", "goodmuons_pt"};
@@ -632,6 +722,7 @@ _rlm = calculateMuSF(_rlm, muon_vars_names, output_mu_column_name);
 
 // apply for electrons only if any electron-like channel exists in the dataframe
 _rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
+_rlm = calculateHLTSF(_rlm);
 
   auto sumgenweight = _rd.Sum("genWeight");
   float lumi=(_year == "2023" ? 17794 :_year == "2022" ? 7980 : _year=="2022EE" ? 26700 : _year=="2023BPix" ? 9400 : 30 );
@@ -652,7 +743,8 @@ _rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
 
         
 //  _rlm = _rlm.Define("evWeight", " Lumifactor * btag_SF_bcflav_central  * btag_SF_lflav_central * pugenWeight * muon_SF_central * ele_SF_central"); // btag_SF_bcflav_central * btag_SF_lflav_central
-  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central"); //* btag_SF_bcflav_central  * btag_SF_lflav_central"); 
+  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
+ _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf_central");
  } 
 
 }
@@ -690,14 +782,13 @@ _rlm = _rlm.Define("dilepton_jet_pt","(goodElectron_TL4Vecs+goodmuons_TL4Vecs+se
 _rlm = _rlm.Define("dilepton_jet_mass","(goodElectron_TL4Vecs+goodmuons_TL4Vecs+selected_cleanbjet_TL4vec).M()");
 _rlm = _rlm.Define("dilepton","goodElectron_TL4Vecs+goodmuons_TL4Vecs");
 _rlm = _rlm.Define("dijet","selected_subleadingcleanjet_TL4vec + selected_leadingcleanjet_TL4vec");
-//_rlm = _rlm.Define("Selected_loosejet_leadingpt", "int(Selected_loosejetpt.size())>0 ? Selected_bjetpt[Selected_loosejet_maxpt_index] : numb");
+_rlm = _rlm.Define("Selected_loosejet_leadingpt", "int(Selected_loosejetpt.size())>0 ? Selected_loosejetpt[Selected_loosejet_maxpt_index] : 0");
 _rlm = _rlm.Define("dilepton_del_phi", :: calculate_deltaPhi_scalars, {"goodElectrons_leading_phi","goodmuons_leading_phi"});
 _rlm = _rlm.Define("leading_lepton_jet_pt","(leading_lepton + selected_cleanbjet_TL4vec).Pt()");
 _rlm = _rlm.Define("delR_dilepton_jet",:: calculate_deltaR,{"dilepton","dijet"});
 _rlm = _rlm.Define("delR_ele_muon",:: calculate_deltaR,{"goodElectron_TL4Vecs","goodmuons_TL4Vecs"});
 _rlm = _rlm.Define("delR_leadinglepton_jet",:: calculate_deltaR,{"leading_lepton","selected_cleanbjet_TL4vec"});
 
-//_rlm = _rlm.Define("subleading_lepton_pt","subleading_lepton.Pt()");
 
 
 }
@@ -740,7 +831,6 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodmuons_leading_phi");
     addVartoStore("Weight");
     addVartoStore("leading_lepton_pt");
-    addVartoStore("subleading_lepton_pt");
     addVartoStore("subleading_lepton_charge");
     addVartoStore("leptons_invariant_mass");
     addVartoStore("ele_SF_central");
@@ -784,6 +874,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("luminosityBlock");
     addVartoStore("btag_SF_bcflav_central");
     addVartoStore("btag_SF_lflav_central");
+    addVartoStore("evWeight_hlt");
 
 } 
 

@@ -7,7 +7,7 @@ import os
 directory = "merged/"  # Path where all ROOT files are stored
 
 # Variable to plot (change this to any variable you want)
-variable_to_plot = "Selected_jet_leading_pt"
+variable_to_plot = "goodmuons_leading_pt"
 
 # Define custom binning: (start, end, num_bins)
 binning = (0,200, 30)
@@ -35,8 +35,10 @@ file_groups = {
         "TTLNu-1Jets.root",
         "TTZ-ZtoQQ-1Jets.root"
     ],
-    "ttbar": [
+    "ttbar_dileptonic": [
         "TTbar_Dilept.root",
+    ],
+    "ttbar_semileptonic": [
         "TTbar_SemiLept.root"
     ],
     "single_tW": [
@@ -60,7 +62,8 @@ file_groups = {
 colors = {
     "drell_yan": "orange",
     "ttg_ttv": "gray",
-    "ttbar": "red",
+    "ttbar_dileptonic": "red",
+    "ttbar_semileptonic":"green",
     "single_tW": "brown",
     "vv": "purple",
     "wjets": "blue",
@@ -90,7 +93,7 @@ def debug_file_contents(filepath, region_flag, channel_flag, variable):
             print(f"   {variable} exists: {variable in available_branches}")
             
             # Read a small sample to check data types and values
-            branches_to_check = [b for b in [region_flag, channel_flag, variable, "evWeight"] 
+            branches_to_check = [b for b in [region_flag, channel_flag, variable, "evWeight_hlt"] 
                                 if b in available_branches]
             
             if not branches_to_check:
@@ -166,7 +169,7 @@ def load_histogram_data(file_groups, directory, variable, region_flag, channel_f
                     available_branches = tree.keys()
                     
                     # Check if all required branches exist
-                    required_branches = [variable, region_flag, channel_flag, "evWeight"]
+                    required_branches = [variable, region_flag, channel_flag, "evWeight_hlt"]
                     missing_branches = [b for b in required_branches if b not in available_branches]
                     
                     if missing_branches:
@@ -190,7 +193,7 @@ def load_histogram_data(file_groups, directory, variable, region_flag, channel_f
                     
                     # Filter data
                     filtered_values = arr[variable][mask]
-                    filtered_weights = arr["evWeight"][mask]
+                    filtered_weights = arr["evWeight_hlt"][mask]
                     
                     # Remove NaN and Inf
                     valid_mask = np.isfinite(filtered_values)

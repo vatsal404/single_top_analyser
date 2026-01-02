@@ -9,7 +9,7 @@ sumgenWeight=$5
 
 # Configuration variables
 jobconfmod="jobconfiganalysis_2022EE"
-eos_output_dir="/eos/uscms/store/user/vsinha/Hlt_scalefactor_22EE"
+eos_output_dir="/eos/uscms/store/user/vsinha/Result_2022EE"
 
 echo "Running analysis with the following parameters:"
 echo "Input directory: $input_dir"

@@ -630,7 +630,7 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection() //data and MC
     _rlm = _rlm.Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
   }
 }
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string electronHlt_fname,string electronHlt_type,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag)
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;
@@ -674,21 +674,17 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	  
 	  //Electron corrections
 	  _correction_electron = correction::CorrectionSet::from_file(electron_fname);
-      _correction_electronHlt = correction::CorrectionSet::from_file(electronHlt_fname);
 
 	  _electron_reco_type1=electron_reco_type1;
 	  _electron_reco_type2=electron_reco_type2;
 	  _electron_id_type = electron_id_type;
-      _electronHlt_type =electronHlt_type;
 	  std::cout<< "================================//=================================" << std::endl;
 	  cout<< "ELECTRON JSON FILE : " << electron_fname << endl;
-	  cout<< "ELECTRON HLT JSON FILE : " << electronHlt_fname << endl;
 
       cout<< "ELECTRON RECO type in JSON  : " << _electron_reco_type1 << endl;
 	  cout<< "ELECTRONID type in JSON  : " << _electron_id_type << endl;
-	  cout<< "ELECTRON HLT type in JSON  : " << _electronHlt_type << endl;
       assert(_correction_electron->validate());
-      assert(_correction_electronHlt->validate());
+      assert(_correction_Hlt->validate());
 	  //electron scale and smearing correction
  
 	  // btag corrections
@@ -817,6 +813,20 @@ std::cout << "======================================\n" << std::endl;
 		}, {"genWeight", "puWeight"});
 	    }
 	}
+        hltSFFile_ = TFile::Open(Hlt_fname.c_str(), "READ");
+    if (!hltSFFile_ || hltSFFile_->IsZombie()) {
+        throw std::runtime_error("Cannot open trigger_scale_factors.root");
+    }
+
+    hltSFHist_ = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor"));
+    if (!hltSFHist_) {
+        throw std::runtime_error("HLT scale_factor histogram not found");
+    }
+
+    // Detach from file (important)
+    hltSFHist_->SetDirectory(nullptr);
+
+
 	_jerctag = jerctag;
     _jerctagMC=jerctagMC;
 	_jercunctag = jercunctag;
@@ -829,6 +839,21 @@ std::cout << "======================================\n" << std::endl;
      applyMETPtPhiCorrection();
 
 }
+double NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const
+{
+    if (!hltSFHist_) return 1.0;
+
+    int xbin = hltSFHist_->GetXaxis()->FindBin(ele_pt);
+    int ybin = hltSFHist_->GetYaxis()->FindBin(mu_pt);
+
+    // Clamp bins
+    xbin = std::max(1, std::min(xbin, hltSFHist_->GetNbinsX()));
+    ybin = std::max(1, std::min(ybin, hltSFHist_->GetNbinsY()));
+
+    return hltSFHist_->GetBinContent(xbin, ybin);
+}
+
+
  double NanoAODAnalyzerrdframe::getBTaggingEff(double hadflav, double eta, double pt){
    double efficiency = 1.0;
    int maxXBin = -1;
@@ -861,6 +886,19 @@ std::cout << "======================================\n" << std::endl;
    return efficiency;
  }
 
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateHLTSF(
+    ROOT::RDF::RNode _rlm,
+    std::string output_var)
+{
+    return _rlm.Define(
+        output_var,
+        [this](double electron_pt, double muon_pt) {
+            return this->getHLTSF(electron_pt, muon_pt);
+        },
+        {"goodElectrons_leading_pt", "goodmuons_leading_pt"}
+    );
+}
+
 
 ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
     RNode _rlm,
@@ -871,106 +909,137 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
     std::string output_var)
 {
     if (_case == 1) {
+        
+        // Add btag_cut as a constant column so it's properly available
+        std::string btag_cut_col = "btag_cut_value_temp";
+        _rlm = _rlm.Define(btag_cut_col, [btag_cut]() { return btag_cut; });
+        
+        // Add WP as a constant column
+        std::string wp_col = "btag_wp_temp";
+        _rlm = _rlm.Define(wp_col, [_BTaggingWP]() { return _BTaggingWP; });
+        
+        // Modify Jets_vars_names to include our new columns
+        std::vector<std::string> extended_vars = Jets_vars_names;
+        extended_vars.push_back(btag_cut_col);
+        extended_vars.push_back(wp_col);
 
-        auto btagweightgenerator_bcflav_case1 =
-            [this](const ROOT::VecOps::RVec<unsigned char> &hadflav,
-                   const ROOT::VecOps::RVec<float> &etas,
-                   const ROOT::VecOps::RVec<float> &pts,
-                   const ROOT::VecOps::RVec<float> &btag_scores,
-                   const double btag_cut,
-                   const std::string &_BTagWP,
-                   const std::string &variation) -> float 
-        {
-            double btagWeight_bcflav = 1.0;
-
-            for (std::size_t i = 0; i < pts.size(); i++) {
-
-                if (std::abs(etas[i]) > 2.4999 || pts[i] < 30.0 || hadflav[i] == 0)
-                    continue;
-
-                double sf;
-
-                try {
-                    sf = _correction_btag1->at("robustParticleTransformer_comb")
-                             ->evaluate({variation, _BTagWP, hadflav[i],
-                                         std::fabs(etas[i]), pts[i]});
-                } catch (...) {
-                    throw;
+        struct BTagWeightCalculator {
+            NanoAODAnalyzerrdframe* analyzer;
+            std::string var;
+            int max_debug;
+            
+            BTagWeightCalculator(NanoAODAnalyzerrdframe* a, std::string v, int md)
+                : analyzer(a), var(v), max_debug(md) {}
+            
+            float operator()(const ROOT::VecOps::RVec<unsigned char> &hadflav,
+                           const ROOT::VecOps::RVec<float> &etas,
+                           const ROOT::VecOps::RVec<float> &pts,
+                           const ROOT::VecOps::RVec<float> &btag_scores,
+                           double btag_cut_val,
+                           std::string btag_wp,
+                           bool is_bcflav) const
+            {
+                double btagWeight = 1.0;
+                
+                static std::atomic<int> counter_bc(0);
+                static std::atomic<int> counter_l(0);
+                int current_entry = is_bcflav ? counter_bc.fetch_add(1) : counter_l.fetch_add(1);
+                bool do_debug = (current_entry < max_debug);
+                
+                if (do_debug) {
+                    std::cout << "\n========== " << (is_bcflav ? "BC" : "L") << "-FLAVOR DEBUG (Entry " 
+                              << current_entry << ", Variation: " << var << ") ==========" << std::endl;
+                    std::cout << "B-tag cut: " << btag_cut_val << std::endl;
+                    std::cout << "Working Point: " << btag_wp << std::endl;
+                    std::cout << "Number of jets: " << pts.size() << std::endl;
                 }
 
-                if (btag_scores[i] >= btag_cut) {
-                    btagWeight_bcflav *= sf;
-                } else {
-                    double eff;
+                for (std::size_t i = 0; i < pts.size(); i++) {
+                    
+                    bool skip = false;
+                    if (is_bcflav) {
+                        skip = (std::abs(etas[i]) > 2.4999 || pts[i] < 20.0 || hadflav[i] == 0);
+                    } else {
+                        skip = (std::abs(etas[i]) > 2.4999 || pts[i] < 20.0 || hadflav[i] != 0);
+                    }
+                    
+                    if (skip) {
+                        if (do_debug) {
+                            std::cout << "  Jet " << i << ": SKIPPED (eta=" << etas[i] 
+                                      << ", pt=" << pts[i] << ", hadflav=" << (int)hadflav[i] << ")" << std::endl;
+                        }
+                        continue;
+                    }
+
+                    double sf;
                     try {
-                        eff = getBTaggingEff(hadflav[i], etas[i], pts[i]);
-
-                        if (std::isnan(eff) || eff < 0 || eff > 1)
-                            eff = 0.0;
-
-                        if (std::abs(1 - eff) < 1e-10)
-                            continue;
-
-                        btagWeight_bcflav *= (1 - sf * eff) / (1 - eff);
-
+                        if (is_bcflav) {
+                            sf = analyzer->_correction_btag1->at("robustParticleTransformer_comb")
+                                     ->evaluate({var, btag_wp, hadflav[i],
+                                                std::fabs(etas[i]), pts[i]});
+                        } else {
+                            sf = analyzer->_correction_btag1->at("robustParticleTransformer_light")
+                                     ->evaluate({var, btag_wp, hadflav[i],
+                                                std::fabs(etas[i]), pts[i]});
+                        }
                     } catch (...) {
                         throw;
                     }
-                }
-            }
 
-            return btagWeight_bcflav;
-        };
+                    if (do_debug) {
+                        std::cout << "  Jet " << i << ":" << std::endl;
+                        std::cout << "    Hadron flavor: " << (int)hadflav[i] << std::endl;
+                        std::cout << "    eta: " << etas[i] << ", pt: " << pts[i] << std::endl;
+                        std::cout << "    btag_score: " << btag_scores[i] << " (cut: " << btag_cut_val << ")" << std::endl;
+                        std::cout << "    SF: " << sf << std::endl;
+                    }
 
-        auto btagweightgenerator_lflav_case1 =
-            [this](const ROOT::VecOps::RVec<unsigned char> &hadflav,
-                   const ROOT::VecOps::RVec<float> &etas,
-                   const ROOT::VecOps::RVec<float> &pts,
-                   const ROOT::VecOps::RVec<float> &btag_scores,
-                   const double btag_cut,
-                   const std::string &_BTagWP,
-                   const std::string &variation) -> float 
-        {
-            double btagWeight_lflav = 1.0;
+                    if (btag_scores[i] >= btag_cut_val) {
+                        btagWeight *= sf;
+                        if (do_debug) {
+                            std::cout << "    TAGGED: weight *= " << sf 
+                                      << " -> weight = " << btagWeight << std::endl;
+                        }
+                    } else {
+                        double eff;
+                        try {
+                            eff = analyzer->getBTaggingEff(hadflav[i], etas[i], pts[i]);
 
-            for (std::size_t i = 0; i < pts.size(); i++) {
+                            if (std::isnan(eff) || eff < 0 || eff > 1)
+                                eff = 0.0;
 
-                if (std::abs(etas[i]) > 2.4999 || pts[i] < 30.0 || hadflav[i] != 0)
-                    continue;
+                            if (std::abs(1 - eff) < 1e-10) {
+                                if (do_debug) {
+                                    std::cout << "    NOT TAGGED: eff = " << eff 
+                                              << " (efficiency ~1, skipping)" << std::endl;
+                                }
+                                continue;
+                            }
 
-                double sf;
+                            double weight_factor = (1 - sf * eff) / (1 - eff);
+                            btagWeight *= weight_factor;
+                            
+                            if (do_debug) {
+                                std::cout << "    NOT TAGGED: eff = " << eff << std::endl;
+                                std::cout << "    weight_factor = (1 - " << sf << " * " << eff 
+                                          << ") / (1 - " << eff << ") = " << weight_factor << std::endl;
+                                std::cout << "    weight = " << btagWeight << std::endl;
+                            }
 
-                try {
-                    sf = _correction_btag1->at("robustParticleTransformer_light")
-                             ->evaluate({variation, _BTagWP, hadflav[i],
-                                         std::fabs(etas[i]), pts[i]});
-                } catch (...) {
-                    throw;
-                }
-
-                if (btag_scores[i] >= btag_cut) {
-                    btagWeight_lflav *= sf;
-                } else {
-                    double eff;
-
-                    try {
-                        eff = getBTaggingEff(hadflav[i], etas[i], pts[i]);
-
-                        if (std::isnan(eff) || eff < 0 || eff > 1)
-                            eff = 0.0;
-
-                        if (std::abs(1 - eff) < 1e-10)
-                            continue;
-
-                        btagWeight_lflav *= (1 - sf * eff) / (1 - eff);
-
-                    } catch (...) {
-                        throw;
+                        } catch (...) {
+                            throw;
+                        }
                     }
                 }
-            }
+                
+                if (do_debug) {
+                    std::cout << "  FINAL " << (is_bcflav ? "BC" : "L") << "-FLAVOR WEIGHT: " 
+                              << btagWeight << std::endl;
+                    std::cout << "========================================\n" << std::endl;
+                }
 
-            return btagWeight_lflav;
+                return btagWeight;
+            }
         };
 
         std::vector<std::string> variations = {
@@ -981,46 +1050,46 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
 
             {
                 std::string col_bc = output_var + "bcflav_" + variation;
+                auto calculator_bc = BTagWeightCalculator(this, variation, 5);
 
                 _rlm = _rlm.Define(
                     col_bc,
-                    [btagweightgenerator_bcflav_case1, btag_cut, _BTaggingWP, variation](
+                    [calculator_bc](
                         const ROOT::VecOps::RVec<unsigned char> &hadflav,
                         const ROOT::VecOps::RVec<float> &etas,
                         const ROOT::VecOps::RVec<float> &pts,
-                        const ROOT::VecOps::RVec<float> &btag_scores) 
+                        const ROOT::VecOps::RVec<float> &btag_scores,
+                        double btag_cut_val,
+                        std::string btag_wp) -> float
                     {
-                        return btagweightgenerator_bcflav_case1(
-                            hadflav, etas, pts, btag_scores,
-                            btag_cut, _BTaggingWP, variation);
+                        return calculator_bc(hadflav, etas, pts, btag_scores, btag_cut_val, btag_wp, true);
                     },
-                    Jets_vars_names);
+                    extended_vars);
             }
 
             {
                 std::string col_l = output_var + "lflav_" + variation;
+                auto calculator_l = BTagWeightCalculator(this, variation, 5);
 
                 _rlm = _rlm.Define(
                     col_l,
-                    [btagweightgenerator_lflav_case1, btag_cut, _BTaggingWP, variation](
+                    [calculator_l](
                         const ROOT::VecOps::RVec<unsigned char> &hadflav,
                         const ROOT::VecOps::RVec<float> &etas,
                         const ROOT::VecOps::RVec<float> &pts,
-                        const ROOT::VecOps::RVec<float> &btag_scores) 
+                        const ROOT::VecOps::RVec<float> &btag_scores,
+                        double btag_cut_val,
+                        std::string btag_wp) -> float
                     {
-                        return btagweightgenerator_lflav_case1(
-                            hadflav, etas, pts, btag_scores,
-                            btag_cut, _BTaggingWP, variation);
+                        return calculator_l(hadflav, etas, pts, btag_scores, btag_cut_val, btag_wp, false);
                     },
-                    Jets_vars_names);
+                    extended_vars);
             }
         }
     }
 
     return _rlm;
 }
-
-
 
 // =====================================================================
     // CASE 3: DeepJet shape correction
@@ -1432,28 +1501,6 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(
         return w_tot;
     };
 
-    // electron HLT scale factor generator
-    auto electronHlt_weightgenerator = [this](
-        const std::string eletype,
-        const ROOT::VecOps::RVec<float>& etas,
-        const ROOT::VecOps::RVec<float>& pts,
-        const std::string& variation) -> float
-    {
-        double w_tot = 1.0;
-
-        for (size_t i = 0; i < pts.size(); i++) {
-
-            if (pts[i] < 25.0) continue; // HLT threshold
-
-            double w = _correction_electronHlt
-                ->at("Electron-HLT-SF")
-                ->evaluate({"2023PromptC", variation, eletype,
-                            etas[i], pts[i]});
-            w_tot *= w;
-        }
-        return w_tot;
-    };
-
 
     // variations
     std::vector<std::string> variations_elec = {"sf", "sfup", "sfdown"};
@@ -1509,24 +1556,6 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(
             {
                 return electron_weightgenerator(
                     _electron_id_type, etas, pts, phis, variation);
-            },
-            Ele_vars
-        );
-
-        // ======================================================
-        // 3) ELECTRON HLT SCALE FACTOR
-        // ======================================================
-        std::string column_name_Hlt = output_var + "Hlt_" + variation;
-
-        _rlm = _rlm.Define(
-            column_name_Hlt,
-            [this, electronHlt_weightgenerator, variation](
-                const ROOT::VecOps::RVec<float>& etas,
-                const ROOT::VecOps::RVec<float>& pts,
-                const ROOT::VecOps::RVec<float>& phis)   // phi included for consistency
-            {
-                return electronHlt_weightgenerator(
-                    _electronHlt_type, etas, pts, variation);
             },
             Ele_vars
         );

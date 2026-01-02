@@ -44,8 +44,8 @@ int main(int argc, char* argv[]) {
         era = "PostEE";
     } else if (year == "2023") {
         // 2023 configuration
-        c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root");
-       // c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/MuonEG/NANOAOD/22Sep2023_v4-v1/30000/0874994b-9d31-4c1f-bdbc-d0073f7c7c4a.root");
+       // c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root");
+        c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/MuonEG/NANOAOD/22Sep2023_v4-v1/30000/0874994b-9d31-4c1f-bdbc-d0073f7c7c4a.root");
         outputFile = "test_2023.root";
         era = "PreBPix";
     } else {
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     string fname_btagEff, hname_btagEff_bcflav, hname_btagEff_lflav;
     string jercfname, jerctag, jettagMC, jercunctag;
     string muon_roch_fname, muon_fname, muonHLTtype, muonIDtype, muonISOtype;
-    string electron_fname, electronHlt_fname, electronHlt_type;
+    string electron_fname, Hlt_fname ;
     string electron_reco_type1, electron_reco_type2, electron_id_type;
     string jet_veto_f_name, jet_veto_tag, electron_SSF, metpt_fname, JER_tag;
     
@@ -88,8 +88,7 @@ int main(int argc, char* argv[]) {
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
         electron_fname = "data/EGM/2022_preEE/electron.json.gz";
-        electronHlt_fname = "data/EGM/2022_preEE/electronHlt.json.gz";
-        electronHlt_type = "HLT_SF_Ele30_TightID";
+        Hlt_fname = "data/EGM/2022_preEE/electronHlt.json.gz";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
@@ -117,8 +116,7 @@ int main(int argc, char* argv[]) {
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
         electron_fname = "data/EGM/2022_postEE/electron.json.gz";
-        electronHlt_fname = "data/EGM/2022_postEE/electronHlt.json";
-        electronHlt_type = "HLT_SF_Ele30_TightID";
+        Hlt_fname = "scale_factor_calculation/trigger_scale_factors.root";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
@@ -146,8 +144,7 @@ int main(int argc, char* argv[]) {
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
         electron_fname = "data/EGM/2023/electron.json";
-        electronHlt_fname = "data/EGM/2023/electronHlt.json";
-        electronHlt_type = "HLT_SF_Ele30_TightID";
+        Hlt_fname = "data/EGM/2023/electronHlt.json";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
@@ -175,8 +172,7 @@ int main(int argc, char* argv[]) {
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
         electron_fname = "data/EGM/2023_post_BPIX/electron.json";
-        electronHlt_fname = "data/EGM/2023_post_BPIX/electronHlt.json";
-        electronHlt_type = "HLT_SF_Ele30_TightID";
+        Hlt_fname = "data/EGM/2023_post_BPIX/electronHlt.json";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
@@ -190,7 +186,7 @@ int main(int argc, char* argv[]) {
     nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype,
                                 fname_btagEff, hname_btagEff_bcflav, hname_btagEff_lflav,
                                 muon_roch_fname, muon_fname, muonHLTtype, muonIDtype, muonISOtype,
-                                electron_fname, electronHlt_fname, electronHlt_type,
+                                electron_fname, Hlt_fname, 
                                 electron_reco_type1, electron_reco_type2, electron_id_type,
                                 jercfname, jerctag, jettagMC, jercunctag, jet_veto_f_name,
                                 jet_veto_tag, electron_SSF, metpt_fname, JER_tag);
