@@ -14,7 +14,7 @@ config = {
         'outtreename': "outputTree",
 
         #data year (2016,2017,2018)
-        'year': 2023,
+        'year': "2023",
 
         # is ReReco or Ultra Legacy
         'runtype': 'UL',
@@ -58,8 +58,7 @@ config = {
         'muonIDtype': 'NUM_TightID_DEN_TrackerMuons',
         'muonISOtype': 'NUM_TightPFIso_DEN_TightID',
         'electron_fname': 'data/EGM/2023/electron.json',
-        'electronHlt_fname':'data/EGM/2023/electronHlt.json',
-        'electronHlt_type':'HLT_SF_Ele30_TightID',
+        'Hlt_fname':'data/trigger_scale_factors.root',
         'electron_reco_type1': 'Reco20to75',
         'electron_reco_type2' :  'RecoAbove75',
         'electron_id_type': 'Tight',

@@ -1,30 +1,21 @@
 #!/bin/bash
 
-# Directory where your ROOT files are stored
-INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2022EE"
-
-# Save merged outputs in a 'merged' directory inside *current directory*
+INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2023/cutflow"
 OUTPUT_DIR="$(pwd)/merged"
 
-# Create output directory if it doesn't exist
-mkdir -p "$OUTPUT_DIR"
+# choose which index to merge (0,1,2,3,4...)
+INDEX=1
 
-# Go to the input directory
+mkdir -p "$OUTPUT_DIR"
 cd "$INPUT_DIR" || exit
 
-# Extract unique dataset prefixes:
-# Remove suffix: _b<digits>.root
-prefixes=$(ls *.root | sed -E 's/_b[0-9]+\.root$//' | sort | uniq)
+# Extract process names by removing _bXXXX_INDEX.root
+processes=$(ls *_${INDEX}.root | sed -E "s/_b[0-9]+_${INDEX}\.root$//" | sort | uniq)
 
-# Loop through each prefix and merge files
-for prefix in $prefixes; do
-    echo "Merging files for dataset: $prefix"
-    hadd -f "${OUTPUT_DIR}/${prefix}.root" ${prefix}_b*.root
+for proc in $processes; do
+    echo "Merging ${proc} for index ${INDEX}"
+    hadd -f "${OUTPUT_DIR}/${proc}.root" ${proc}_b*_${INDEX}.root
 done
 
-# Merge all data files separately (if needed)
-echo "Merging Data*.root into data.root"
-hadd -f "${OUTPUT_DIR}/data.root" ${OUTPUT_DIR}/Data*.root
-
-echo "Merging complete. All merged files are in: $OUTPUT_DIR"
+echo "Done. Merged files are in $OUTPUT_DIR"
 

@@ -93,7 +93,7 @@ def debug_file_contents(filepath, region_flag, channel_flag, variable):
             print(f"   {variable} exists: {variable in available_branches}")
             
             # Read a small sample to check data types and values
-            branches_to_check = [b for b in [region_flag, channel_flag, variable, "evWeight_hlt"] 
+            branches_to_check = [b for b in [region_flag, channel_flag, variable, "evWeight"] 
                                 if b in available_branches]
             
             if not branches_to_check:
@@ -169,7 +169,7 @@ def load_histogram_data(file_groups, directory, variable, region_flag, channel_f
                     available_branches = tree.keys()
                     
                     # Check if all required branches exist
-                    required_branches = [variable, region_flag, channel_flag, "evWeight_hlt"]
+                    required_branches = [variable, region_flag, channel_flag, "evWeight"]
                     missing_branches = [b for b in required_branches if b not in available_branches]
                     
                     if missing_branches:
@@ -193,7 +193,7 @@ def load_histogram_data(file_groups, directory, variable, region_flag, channel_f
                     
                     # Filter data
                     filtered_values = arr[variable][mask]
-                    filtered_weights = arr["evWeight_hlt"][mask]
+                    filtered_weights = arr["evWeight"][mask]
                     
                     # Remove NaN and Inf
                     valid_mask = np.isfinite(filtered_values)
