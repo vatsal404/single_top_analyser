@@ -15,8 +15,8 @@ transfer_input_files = runjob.sh,jobconfiganalysis_2023.py,processnanoaod.py,sam
 transfer_output_files = ""
 
 request_cpus   = 1
-request_memory = 8 GB
-request_disk   = 20 GB
+request_memory = 12 GB
+request_disk   = 50 GB
 
-queue input_dir, output_file, stderr_file, crossection, sumgenWeight from missing_jobs.txt
+queue input_dir, output_file, stderr_file, crossection, sumgenWeight from sample_list_split.txt 
 

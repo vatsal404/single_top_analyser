@@ -32,8 +32,8 @@ int main(int argc, char* argv[]) {
     
     if (year == "2022") {
         // 2022 configuration
-        c1.Add("root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/670acfa8-2b1a-4ec5-932b-0512e54fd5f8.root");
-       // c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root");
+        //c1.Add("root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/670acfa8-2b1a-4ec5-932b-0512e54fd5f8.root");
+       c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root");
         outputFile = "test_2022.root";
         era = "PreEE";
     } else if (year == "2022EE") {
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     } else if (year == "2023") {
         // 2023 configuration
         c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root");
-       // c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/MuonEG/NANOAOD/22Sep2023_v4-v1/30000/0874994b-9d31-4c1f-bdbc-d0073f7c7c4a.root");
+        //c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/EGamma1/NANOAOD/24Jan2024_v1-v1/2820000/f89c06db-6003-4234-a6b3-a7383a7248b0.root");
         outputFile = "test_2023.root";
         era = "PreBPix";
     } else {
