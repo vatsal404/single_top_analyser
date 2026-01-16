@@ -57,7 +57,9 @@ int main(int argc, char* argv[]) {
         era = "PostBPix";
     }
 
-    BaseAnalyser nanoaodrdf(&c1, outputFile, 10, 10);
+    BaseAnalyser nanoaodrdf(&c1, outputFile, 10, 10,SystType::EleSmearDown);
+
+    BaseAnalyser nanoaodrdf(&c1, outputFile, 10, 10,SystType::Nominal);
     nanoaodrdf.setParams(year, era, -1);
     nanoaodrdf.setHLT();
 

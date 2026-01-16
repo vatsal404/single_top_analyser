@@ -1,55 +1,71 @@
-/*
- * BaseAnalyser.h
- *
- *  Created on: May 6, 2022
- *      Author: suyong
- *		Developper: cdozen
- */
-
 #ifndef BASEANALYSER_H_
 #define BASEANALYSER_H_
 
 #include "NanoAODAnalyzerrdframe.h"
 
-class BaseAnalyser: public NanoAODAnalyzerrdframe
-{
-	public:
-		BaseAnalyser(TTree *t, std::string outfilename,float crossection,float sumgenWeight);
-		float _crossection;
-        float _sumgenWeight;
-		void defineCuts();		//define a series of cuts from defined variables only. you must implement this in your subclassed analysis 
-		void defineMoreVars(); 	//define higher-level variables from basic ones, you must implement this in your subclassed analysis code
-		void bookHists(); 		//book histograms, you must implement this in your subclassed analysis code
-
-		void setTree(TTree *t, std::string outfilename,float crossection,float sumgeneight);
-		void setupObjects();
-		void setupAnalysis();
-		// object selectors
-		void selectElectrons();
-		void spectatorJets();
-                void bdt_variables();
-                void selectChannel();
-		void reconstructWboson();	
-        	void selectMuons();
-		void selectJets();
-		void calculateEvWeight();
-		void selectMET();
-                void plotWBosonMass();
-		void removeOverlaps();
-                void reconstructTop();
-                void defineRegion();
-		bool debug = true;
-		bool _jsonOK;
-        double btag_cut_value;
-		string _outfilename;
-
-
-		TFile *_outrootfile;
-		vector<string> _outrootfilenames;
-
-                int _redefine;  
+// ================= Systematic enum ================= //
+enum class SystType {
+    Nominal,
+    EleSmearUp,
+    EleSmearDown
 };
 
+class BaseAnalyser: public NanoAODAnalyzerrdframe
+{
+    public:
+        BaseAnalyser(TTree *t,
+                     std::string outfilename,
+                     float crossection,
+                     float sumgenWeight,
+                     SystType syst = SystType::Nominal);   // NEW (default)
 
+        float _crossection;
+        float _sumgenWeight;
+
+        void defineCuts();
+        void defineMoreVars();
+        void bookHists();
+
+        // UPDATED signature
+        void setTree(TTree *t,
+                     std::string outfilename,
+                     float crossection,
+                     float sumgenWeight,
+                     SystType syst = SystType::Nominal);   // NEW
+
+        void setupObjects();
+        void setupAnalysis();
+
+        // object selectors
+        void selectElectrons();
+        void spectatorJets();
+        void bdt_variables();
+        void selectChannel();
+        void reconstructWboson();
+        void selectMuons();
+        void selectJets();
+        void calculateEvWeight();
+        void selectMET();
+        void plotWBosonMass();
+        void removeOverlaps();
+        void reconstructTop();
+        void defineRegion();
+
+        bool debug = true;
+        bool _jsonOK;
+        double btag_cut_value;
+        std::string _outfilename;
+
+        TFile *_outrootfile;
+        std::vector<std::string> _outrootfilenames;
+
+        int _redefine;
+
+    private:
+        // ================= Systematics ================= //
+        SystType _syst;               // NEW
+        void defineSystematics();     // NEW
+};
 
 #endif /* BASEANALYSER_H_ */
+

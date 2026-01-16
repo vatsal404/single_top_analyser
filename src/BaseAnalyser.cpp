@@ -20,9 +20,11 @@
 #include "correction.h"
 using correction::CorrectionSet;
 
-BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename,float crossection,float sumgenWeight)
-:NanoAODAnalyzerrdframe(t, outfilename),_crossection(crossection),_sumgenWeight(sumgenWeight)
+BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename,float crossection,float sumgenWeight,SystType syst)
+:NanoAODAnalyzerrdframe(t, outfilename),_crossection(crossection),_sumgenWeight(sumgenWeight),_syst(syst)
 {
+
+
     //initiliaze the HLT names in your analyzer class
     HLT2024Names= {"HLT_PFHT380_SixJet32_DoubleBTagCSV_p075",
                     "HLT_PFHT300PT30_QuadPFJet_75_60_45_40_TriplePFBTagCSV_3p0",
@@ -155,26 +157,13 @@ _rlm = _rlm.Filter(
 
 
 
-addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf)","0");
-addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && (HLT_IsoMu24)","1");
-addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && (HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ )","2");
-addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && (HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)","3");
-
-addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24)","4");
-addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ )","5");
-
-addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)","6");
-
-addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)","7");
-
-
-//addCuts("!loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
+addCuts("!loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
 
 //addCuts("(!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56","1");//include this in 2022 EE
 //
 //
 //
-//addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","0");
+//adCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","0");
 //addCuts("!loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56)) ","0");
 //
 //
@@ -223,8 +212,8 @@ void BaseAnalyser::selectElectrons()
     _rlm = _rlm.Define("numb", "std::numeric_limits<double>::quiet_NaN()");
     std::cout<< "================================1/=================================" << std::endl;
 
-    _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt_corr>20 && abs(Electron_eta)<2.5 && !(( abs(Electron_eta + Electron_deltaEtaSC) > 1.4442 && abs(Electron_eta + Electron_deltaEtaSC) < 1.566 ))");
-    _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt_corr[goodElectrons]")
+    _rlm = _rlm.Define("goodElectrons", "Electron_cutBased==4 && Electron_pt_active>20 && abs(Electron_eta)<2.5 && !(( abs(Electron_eta + Electron_deltaEtaSC) > 1.4442 && abs(Electron_eta + Electron_deltaEtaSC) < 1.566 ))");
+    _rlm = _rlm.Define("goodElectrons_pt", "Electron_pt_active[goodElectrons]")
         .Define("goodElectrons_leading_pt_index","ArgMax(goodElectrons_pt)")
         .Define("goodElectrons_leading_pt","int(goodElectrons_pt.size())>0 ? static_cast<double> (goodElectrons_pt[goodElectrons_leading_pt_index]) : numb")
         .Define("goodElectron_pdgId","Electron_pdgId[goodElectrons]")
@@ -740,7 +729,7 @@ std::string output_ele_column_name = "ele_SF_";
 _rlm = calculateMuSF(_rlm, muon_vars_names, output_mu_column_name);
 
 // apply for electrons only if any electron-like channel exists in the dataframe
-_rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
+//_rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
 _rlm = calculateHLTSF(_rlm);
 
   auto sumgenweight = _rd.Sum("genWeight");
@@ -762,8 +751,8 @@ _rlm = calculateHLTSF(_rlm);
 
         
 //  _rlm = _rlm.Define("evWeight", " Lumifactor * btag_SF_bcflav_central  * btag_SF_lflav_central * pugenWeight * muon_SF_central * ele_SF_central"); // btag_SF_bcflav_central * btag_SF_lflav_central
-  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
- _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf_central");
+//  _rlm = _rlm.Define("evWeight", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
+// _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * pugenWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf_central");
  } 
 
 }
@@ -812,6 +801,41 @@ _rlm = _rlm.Define("delR_leadinglepton_jet",:: calculate_deltaR,{"leading_lepton
 
 }
 //=============================define variables==================================================//
+void BaseAnalyser::defineSystematics()
+{
+    const char* branch = nullptr;
+    const char* syst   = nullptr;
+
+    if (_syst == SystType::Nominal) {
+        syst   = "Nominal";
+        branch = "Electron_pt_corr";
+    }
+    else if (_syst == SystType::EleSmearUp) {
+        syst   = "EleSmearUp";
+        branch = "Electron_pt_corr_smearUp";
+    }
+    else if (_syst == SystType::EleSmearDown) {
+        syst   = "EleSmearDown";
+        branch = "Electron_pt_corr_smearDown";
+    }
+
+    if (!branch) {
+        std::cerr << "[Systematics] ERROR: branch is null" << std::endl;
+        std::abort();
+    }
+
+    // FORCE materialization as a real vector (NOT an alias)
+    _rlm = _rlm.Define(
+        "Electron_pt_active",
+        std::string("ROOT::VecOps::RVec<float>(") + branch + ")"
+    );
+
+    if (debug) {
+        std::cout << "[Systematics] " << syst
+                  << " → Electron_pt_active uses " << branch << std::endl;
+    }
+}
+
 
 void BaseAnalyser::defineMoreVars()
 {
@@ -954,7 +978,7 @@ void BaseAnalyser::bookHists()
 
     
 }
-void BaseAnalyser::setTree(TTree *t, std::string outfilename,float crossection,float sumgenWeight)
+void BaseAnalyser::setTree(TTree *t, std::string outfilename,float crossection,float sumgenWeight, SystType syst)
 {
 	if (debug){
         std::cout<< "================================//=================================" << std::endl;
@@ -982,6 +1006,7 @@ void BaseAnalyser::setupObjects()
 {
 	// Object selection will be defined in sequence.
 	// Selected objects will be stored in new vectors.
+        defineSystematics();
         selectElectrons();
         selectMuons();
         selectChannel();

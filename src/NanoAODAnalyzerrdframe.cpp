@@ -477,112 +477,145 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
 
     using ROOT::VecOps::RVec;
     using floats = RVec<float>;
-      cout << "Works fine till her" << endl;
-   auto smear_corr = _correction_electronss->at("SmearAndSyst");
- cout << "Works fine till her" << endl;
 
-    auto scale_corr = _correction_electronss->compound().at("Scale");
-    cout << "Works fine till her" << endl;
-
+    // =====================================================
+    // DATA
+    // =====================================================
     if (_isData) {
-        // For data: apply Scale corrections
-        auto scale_lambda = [scale_corr](const ROOT::VecOps::RVec<float> &pt,
-                                  const ROOT::VecOps::RVec<float> &scEta,
-                                  const ROOT::VecOps::RVec<float> &r9,
-                                  const ROOT::VecOps::RVec<UChar_t> &seedGain,
-                                  unsigned int run) -> ROOT::VecOps::RVec<float>
+
+        auto scale_corr = _correction_electronss->compound().at("Scale");
+
+        auto scale_lambda =
+            [scale_corr](const floats &pt,
+                          const floats &scEta,
+                          const floats &r9,
+                          const ROOT::VecOps::RVec<UChar_t> &seedGain,
+                          unsigned int run) -> floats
         {
-            ROOT::VecOps::RVec<float> result;
-            result.reserve(pt.size());
+            floats out;
+            out.reserve(pt.size());
 
             for (size_t i = 0; i < pt.size(); ++i) {
-                try {
-                    // Scale correction expects: syst, run, ScEta, r9, pt, seedGain
-                    float factor = scale_corr->evaluate({
-                        "scale",                    // syst (string)
-                        static_cast<double>(run),              // run (real)
-                        static_cast<double>(scEta[i]),         // ScEta (real) - NO abs()
-                        static_cast<double>(r9[i]),            // r9 (real)
-                        static_cast<double>(pt[i]),            // pt (real)
-                        static_cast<double>(seedGain[i])       // seedGain (real)
-                    });
 
-                    result.emplace_back(pt[i] * factor);
-                } catch (const std::exception &e) {
-                    std::cerr << "Error evaluating scale correction at index " << i << ": " << e.what() << std::endl;
-                    result.emplace_back(pt[i]);  // fallback to uncorrected
+                const double pt_v    = pt[i];
+                const double scEta_v = scEta[i];
+                const double r9_v    = r9[i];
+
+                if (!std::abs(pt_v) >= 20 ||
+                    !std::isfinite(scEta_v) ||
+                    !std::isfinite(r9_v) ||
+                    std::abs(scEta_v) >= 2.5)
+                {
+                    out.emplace_back(pt[i]);
+                    continue;
                 }
-            }
 
-            return result;
+                const double scale = scale_corr->evaluate({
+                    "scale",
+                    static_cast<double>(run),
+                    scEta_v,
+                    r9_v,
+                    pt_v,
+                    static_cast<double>(seedGain[i])
+                });
+
+                out.emplace_back(pt[i] * scale);
+            }
+            return out;
         };
 
-        _rlm = _rlm.Define("Electron_eta_supercluster", "Electron_eta + Electron_deltaEtaSC");
-        _rlm = _rlm.Define("Electron_pt_corr", scale_lambda,
-                           {"Electron_pt", "Electron_eta_supercluster", "Electron_r9", "Electron_seedGain", "run"});
+        _rlm = _rlm
+            .Define("Electron_eta_supercluster",
+                    "Electron_eta + Electron_deltaEtaSC")
+            .Define("Electron_pt_corr", scale_lambda,
+                    {"Electron_pt",
+                     "Electron_eta_supercluster",
+                     "Electron_r9",
+                     "Electron_seedGain",
+                     "run"});
     }
-    else {
-        // For MC: apply Smearing corrections
-        auto smear_lambda = [smear_corr](const floats &pt,
-                                          const floats &scEta,
-                                          const floats &r9) -> std::tuple<floats, floats, floats>
-        {
-            floats nominal, smear_up, smear_down;
-            size_t N = pt.size();
-            nominal.reserve(N);
-            smear_up.reserve(N);
-            smear_down.reserve(N);
 
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::normal_distribution<float> gauss(0.0, 1.0);
+    // =====================================================
+    // MC
+    // =====================================================
+    else {
+
+        // 🔴 THIS WAS MISSING BEFORE — MUST BE HERE
+        const correction::Correction* smear_corr =
+            _correction_electronss->at("SmearAndSyst").get();
+
+        auto smear_lambda =
+            [smear_corr](const floats &pt,
+                         const floats &scEta,
+                         const floats &r9)
+            -> std::tuple<floats, floats, floats>
+        {
+            floats nominal, up, down;
+            const size_t N = pt.size();
+
+            nominal.reserve(N);
+            up.reserve(N);
+            down.reserve(N);
+
+            static thread_local std::mt19937 gen(12345);
+            std::normal_distribution<float> gauss(0.0f, 1.0f);
 
             for (size_t i = 0; i < N; ++i) {
-                try {
-                    // SmearAndSyst expects: syst, pt, r9, ScEta
-                    float smear_val = smear_corr->evaluate({
-                        "smear",                              // syst (string)
-                        static_cast<double>(pt[i]),           // pt (real)
-                        static_cast<double>(r9[i]),           // r9 (real)
-                        static_cast<double>(scEta[i])         // ScEta (real) - NO abs()
-                    });
 
-                    float smear_unc_up = smear_corr->evaluate({
-                        "smear_up",                           // syst (string)
-                        static_cast<double>(pt[i]),           // pt (real)
-                        static_cast<double>(r9[i]),           // r9 (real)
-                        static_cast<double>(scEta[i])         // ScEta (real)
-                    });
+                const float pt_v    = pt[i];
+                const float scEta_v = scEta[i];
+                const float r9_v    = r9[i];
 
-                    float smear_unc_down = smear_corr->evaluate({
-                        "smear_down",                         // syst (string)
-                        static_cast<double>(pt[i]),           // pt (real)
-                        static_cast<double>(r9[i]),           // r9 (real)
-                        static_cast<double>(scEta[i])         // ScEta (real)
-                    });
-
-                    float rand = gauss(gen);
-
-                    nominal.emplace_back(pt[i] * (1.0 + smear_val * rand));
-                    smear_up.emplace_back(pt[i] * (1.0 + smear_unc_up * rand));
-                    smear_down.emplace_back(pt[i] * (1.0 + smear_unc_down * rand));
-                } catch (const std::exception &e) {
-                    std::cerr << "Error evaluating smear correction at index " << i << ": " << e.what() << std::endl;
-                    nominal.emplace_back(pt[i]);
-                    smear_up.emplace_back(pt[i]);
-                    smear_down.emplace_back(pt[i]);
+                // ---- HARD GUARDS (PREVENT correctionlib ABORT) ----
+                if (!smear_corr ||
+                    !std::isfinite(pt_v) ||
+                    !std::isfinite(scEta_v) ||
+                    !std::isfinite(r9_v) ||
+                    pt_v < 20.f ||
+                    std::abs(scEta_v) > 2.5f ||
+                    r9_v < 0.f || r9_v > 1.5f)
+                {
+                    nominal.emplace_back(pt_v);
+                    up.emplace_back(pt_v);
+                    down.emplace_back(pt_v);
+                    continue;
                 }
+
+                const float smear = smear_corr->evaluate({
+                    "smear", pt_v, r9_v, scEta_v
+                });
+
+                const float smear_up = smear_corr->evaluate({
+                    "smear_up", pt_v, r9_v, scEta_v
+                });
+
+                const float smear_down = smear_corr->evaluate({
+                    "smear_down", pt_v, r9_v, scEta_v
+                });
+
+                const float rand = gauss(gen);
+
+                nominal.emplace_back(pt_v * (1.f + smear * rand));
+                up.emplace_back(pt_v * (1.f + smear_up * rand));
+                down.emplace_back(pt_v * (1.f + smear_down * rand));
             }
 
-            return std::make_tuple(nominal, smear_up, smear_down);
+            return {nominal, up, down};
         };
 
-        _rlm = _rlm.Define("Electron_eta_supercluster", "Electron_eta + Electron_deltaEtaSC");
-        _rlm = _rlm.Define("Electron_pt_corr_triple", smear_lambda,
-                           {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"})
-                   .Define("Electron_pt_corr", "std::get<0>(Electron_pt_corr_triple)")
-                   .Define("Electron_pt_corr_smearUp", "std::get<1>(Electron_pt_corr_triple)")
-                   .Define("Electron_pt_corr_smearDown", "std::get<2>(Electron_pt_corr_triple)");
+        _rlm = _rlm
+            .Define("Electron_eta_supercluster",
+                    "Electron_eta + Electron_deltaEtaSC")
+            .Define("Electron_pt_corr_triple", smear_lambda,
+                    {"Electron_pt",
+                     "Electron_eta_supercluster",
+                     "Electron_r9"})
+            .Define("Electron_pt_corr",
+                    "std::get<0>(Electron_pt_corr_triple)")
+            .Define("Electron_pt_corr_smearUp",
+                    "std::get<1>(Electron_pt_corr_triple)")
+            .Define("Electron_pt_corr_smearDown",
+                    "std::get<2>(Electron_pt_corr_triple)");
     }
 }
 
@@ -1050,7 +1083,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
 
             {
                 std::string col_bc = output_var + "bcflav_" + variation;
-                auto calculator_bc = BTagWeightCalculator(this, variation, 5);
+                auto calculator_bc = BTagWeightCalculator(this, variation, 0);
 
                 _rlm = _rlm.Define(
                     col_bc,
@@ -1069,7 +1102,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
 
             {
                 std::string col_l = output_var + "lflav_" + variation;
-                auto calculator_l = BTagWeightCalculator(this, variation, 5);
+                auto calculator_l = BTagWeightCalculator(this, variation, 0);
 
                 _rlm = _rlm.Define(
                     col_l,
