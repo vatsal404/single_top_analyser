@@ -34,38 +34,71 @@ int main(int argc, char* argv[]) {
     // Configure input files and era
     if (year == "2022") {
         inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/670acfa8-2b1a-4ec5-932b-0512e54fd5f8.root"};
+
+     //   inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"};
         era = "PreEE";
     } else if (year == "2022EE") {
         inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22EENanoAODv12/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2520000/716d2d2f-6ac3-4ac2-aa93-ad9034e8a9fd.root"};
+
+       // inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022F/MuonEG/NANOAOD/22Sep2023-v1/2520000/11f0ddf5-660e-4066-b4a1-ad5ec991baa1.root"};
         era = "PostEE";
     } else if (year == "2023") {
         inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root"};
+
+        //inputFiles = {"root://cmsxrootd.fnal.gov///store/data/Run2023C/MuonEG/NANOAOD/22Sep2023_v4-v1/30000/0874994b-9d31-4c1f-bdbc-d0073f7c7c4a.root"};
         era = "PreBPix";
     } else { // 2023BPix
-        inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23BPixNanoAODv12/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_postBPix_v2-v3/2550000/1fc49961-22ba-4b79-86d7-e85128f21146.root"};
+       // inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23BPixNanoAODv12/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_postBPix_v2-v3/2550000/1fc49961-22ba-4b79-86d7-e85128f21146.root"};
+
+        inputFiles = {"root://cmsxrootd.fnal.gov///store/data/Run2023D/MuonEG/NANOAOD/22Sep2023_v2-v1/2540000/2b1baeec-bc24-4a11-b7ae-220dd5987884.root"};
         era = "PostBPix";
     }
-
+    
     for (auto &f : inputFiles) c1.Add(f.c_str());
 
-    // Systematics to process
-    vector<SystType> systematics = {
-        SystType::Nominal,
-        SystType::EleSmearDown,
-        SystType::EleSmearUp,
-//        SystType::MuonSmearDown,
-//        SystType::MuonSmearUp
-    };
+    // Determine data/MC status first with nominal
+    BaseAnalyser tempAnalyzer(&c1, "temp.root", 10, 10, SystType::Nominal);
+    tempAnalyzer.setParams(year, era, -1);
+    bool isData = tempAnalyzer.isData();
+
+    // Define systematics based on data/MC
+    vector<SystType> systematics = {SystType::Nominal};
+    if (!isData) {
+//        systematics.push_back(SystType::EleSmearDown);
+//        systematics.push_back(SystType::EleSmearUp);
+//        systematics.push_back(SystType::EleScaleUp);
+//        systematics.push_back(SystType::EleScaleDown);
+//        systematics.push_back(SystType::met_PUDown);
+//        systematics.push_back(SystType::met_PUUp);
+//        systematics.push_back(SystType::muon_scaleup);
+//        systematics.push_back(SystType::muon_scaledn);
+//        systematics.push_back(SystType::muon_resoup);
+//        systematics.push_back(SystType::muon_resodn);
+       }
+    else if (isData){
+        systematics.push_back(SystType::EleScaleUp);
+        systematics.push_back(SystType::EleScaleDown);
+
+    }
+
+    cout << "Running for " << (isData ? "Data" : "MC") << endl;
+    cout << "Number of systematics to process: " << systematics.size() << endl;
 
     // Loop over systematics
     for (auto syst : systematics) {
         string systName;
         switch (syst) {
             case SystType::Nominal:       systName = "Nominal"; break;
+            case SystType::EleScaleDown:  systName = "EleScaleDown"; break;
+            case SystType::EleScaleUp:    systName = "ElecaleUp"; break;
             case SystType::EleSmearDown:  systName = "EleSmearDown"; break;
             case SystType::EleSmearUp:    systName = "EleSmearUp"; break;
-//            case SystType::MuonSmearDown: systName = "MuonSmearDown"; break;
-//            case SystType::MuonSmearUp:   systName = "MuonSmearUp"; break;
+            case SystType::muon_resodn:   systName = "MuonSmearDown"; break;
+            case SystType::muon_resoup:   systName = "MuonSmearUp"; break;
+            case SystType::muon_scaleup:  systName = "MuonScaleUp"; break;
+            case SystType::muon_scaledn:  systName = "MuonScaleDown"; break;
+            case SystType::met_PUDown:    systName = "Met_pu_down"; break;
+            case SystType::met_PUUp:      systName = "Met_pu_up"; break;
             default:                      systName = "Unknown"; break;
         }
 
@@ -218,4 +251,3 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
-

@@ -97,7 +97,7 @@ namespace ROOT {
       ::BaseAnalyser *ptr = 0;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(::BaseAnalyser));
       static ::ROOT::TGenericClassInfo 
-         instance("BaseAnalyser", "BaseAnalyser.h", 13,
+         instance("BaseAnalyser", "BaseAnalyser.h", 34,
                   typeid(::BaseAnalyser), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &BaseAnalyser_Dictionary, isa_proxy, 4,
                   sizeof(::BaseAnalyser) );

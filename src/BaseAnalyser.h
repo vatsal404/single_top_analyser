@@ -7,7 +7,28 @@
 enum class SystType {
     Nominal,
     EleSmearUp,
-    EleSmearDown
+    EleSmearDown,
+    EleScaleUp,
+    EleScaleDown,
+    met_PUUp,
+    met_PUDown,
+    muon_scaleup,
+    muon_scaledn,
+    muon_resoup,
+    muon_resodn
+};
+struct BranchSet {
+    std::string ele_pt;
+    std::string met_pt;
+    std::string met_phi;
+    std::string muon_pt;
+
+    void setNominal() {
+        ele_pt  = "Electron_pt_corr";
+        met_pt  = "PuppiMET_pt_corr";
+        met_phi = "PuppiMET_phi_corr";
+        muon_pt = "Muon_pt_corr";
+    }
 };
 
 class BaseAnalyser: public NanoAODAnalyzerrdframe
@@ -51,6 +72,7 @@ class BaseAnalyser: public NanoAODAnalyzerrdframe
         void reconstructTop();
         void defineRegion();
 
+        bool isData() const { return _isData; }
         bool debug = true;
         bool _jsonOK;
         double btag_cut_value;

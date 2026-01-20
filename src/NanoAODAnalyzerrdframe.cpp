@@ -295,7 +295,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 // #include "MuonScaRe_RDF.cc"
 
 // Add to your NanoAODAnalyzerrdframe.cpp
-// Include at the top:
+// Iclude at the top:
 // #include "MuonScaRe_RDF.cc"
 
 void NanoAODAnalyzerrdframe::applyMuPtCorrection()
@@ -478,30 +478,37 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
     using ROOT::VecOps::RVec;
     using floats = RVec<float>;
 
+    // Define supercluster eta once (used by both DATA and MC)
+    _rlm = _rlm.Define("Electron_eta_supercluster",
+                       "Electron_eta + Electron_deltaEtaSC");
+
     // =====================================================
-    // DATA
+    // DATA - Scale corrections
     // =====================================================
     if (_isData) {
-
         auto scale_corr = _correction_electronss->compound().at("Scale");
 
-        auto scale_lambda =
+        // Create a std::function with explicit signature
+        std::function<floats(const floats&, const floats&, const floats&,
+                             const ROOT::VecOps::RVec<UChar_t>&, unsigned int, 
+                             const std::string&)> scale_lambda =
             [scale_corr](const floats &pt,
-                          const floats &scEta,
-                          const floats &r9,
-                          const ROOT::VecOps::RVec<UChar_t> &seedGain,
-                          unsigned int run) -> floats
+                         const floats &scEta,
+                         const floats &r9,
+                         const ROOT::VecOps::RVec<UChar_t> &seedGain,
+                         unsigned int run,
+                         const std::string &variation) -> floats
         {
             floats out;
             out.reserve(pt.size());
 
             for (size_t i = 0; i < pt.size(); ++i) {
-
                 const double pt_v    = pt[i];
                 const double scEta_v = scEta[i];
                 const double r9_v    = r9[i];
 
-                if (!std::abs(pt_v) >= 20 ||
+                // Validation checks (fixed the bug from original line 24)
+                if (pt_v < 20 ||
                     !std::isfinite(scEta_v) ||
                     !std::isfinite(r9_v) ||
                     std::abs(scEta_v) >= 2.5)
@@ -511,7 +518,7 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
                 }
 
                 const double scale = scale_corr->evaluate({
-                    "scale",
+                    variation,  // "scale", "scale_up", or "scale_down"
                     static_cast<double>(run),
                     scEta_v,
                     r9_v,
@@ -524,49 +531,64 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
             return out;
         };
 
+        // Define all scale variations with explicit return types
         _rlm = _rlm
-            .Define("Electron_eta_supercluster",
-                    "Electron_eta + Electron_deltaEtaSC")
-            .Define("Electron_pt_corr", scale_lambda,
-                    {"Electron_pt",
-                     "Electron_eta_supercluster",
-                     "Electron_r9",
-                     "Electron_seedGain",
-                     "run"});
+            .Define("Electron_pt_corr",
+                    [scale_lambda](const floats &pt, const floats &scEta, 
+                                  const floats &r9,
+                                  const ROOT::VecOps::RVec<UChar_t> &seedGain, 
+                                  unsigned int run) -> floats {
+                        return scale_lambda(pt, scEta, r9, seedGain, run, "scale");
+                    },
+                    {"Electron_pt", "Electron_eta_supercluster", "Electron_r9",
+                     "Electron_seedGain", "run"})
+            .Define("Electron_pt_corr_scaleUp",
+                    [scale_lambda](const floats &pt, const floats &scEta, 
+                                  const floats &r9,
+                                  const ROOT::VecOps::RVec<UChar_t> &seedGain, 
+                                  unsigned int run) -> floats {
+                        return scale_lambda(pt, scEta, r9, seedGain, run, "scale_up");
+                    },
+                    {"Electron_pt", "Electron_eta_supercluster", "Electron_r9",
+                     "Electron_seedGain", "run"})
+            .Define("Electron_pt_corr_scaleDown",
+                    [scale_lambda](const floats &pt, const floats &scEta, 
+                                  const floats &r9,
+                                  const ROOT::VecOps::RVec<UChar_t> &seedGain, 
+                                  unsigned int run) -> floats {
+                        return scale_lambda(pt, scEta, r9, seedGain, run, "scale_down");
+                    },
+                    {"Electron_pt", "Electron_eta_supercluster", "Electron_r9",
+                     "Electron_seedGain", "run"});
     }
 
     // =====================================================
-    // MC
+    // MC - Smear and Scale corrections
     // =====================================================
     else {
-
-        // 🔴 THIS WAS MISSING BEFORE — MUST BE HERE
         const correction::Correction* smear_corr =
             _correction_electronss->at("SmearAndSyst").get();
 
-        auto smear_lambda =
+        // Create a std::function with explicit signature for smearing
+        std::function<floats(const floats&, const floats&, const floats&, 
+                             const std::string&)> smear_lambda =
             [smear_corr](const floats &pt,
                          const floats &scEta,
-                         const floats &r9)
-            -> std::tuple<floats, floats, floats>
+                         const floats &r9,
+                         const std::string &variation) -> floats
         {
-            floats nominal, up, down;
-            const size_t N = pt.size();
-
-            nominal.reserve(N);
-            up.reserve(N);
-            down.reserve(N);
+            floats out;
+            out.reserve(pt.size());
 
             static thread_local std::mt19937 gen(12345);
             std::normal_distribution<float> gauss(0.0f, 1.0f);
 
-            for (size_t i = 0; i < N; ++i) {
-
+            for (size_t i = 0; i < pt.size(); ++i) {
                 const float pt_v    = pt[i];
                 const float scEta_v = scEta[i];
                 const float r9_v    = r9[i];
 
-                // ---- HARD GUARDS (PREVENT correctionlib ABORT) ----
+                // Validation checks
                 if (!smear_corr ||
                     !std::isfinite(pt_v) ||
                     !std::isfinite(scEta_v) ||
@@ -575,94 +597,153 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
                     std::abs(scEta_v) > 2.5f ||
                     r9_v < 0.f || r9_v > 1.5f)
                 {
-                    nominal.emplace_back(pt_v);
-                    up.emplace_back(pt_v);
-                    down.emplace_back(pt_v);
+                    out.emplace_back(pt_v);
                     continue;
                 }
 
                 const float smear = smear_corr->evaluate({
-                    "smear", pt_v, r9_v, scEta_v
-                });
-
-                const float smear_up = smear_corr->evaluate({
-                    "smear_up", pt_v, r9_v, scEta_v
-                });
-
-                const float smear_down = smear_corr->evaluate({
-                    "smear_down", pt_v, r9_v, scEta_v
+                    variation,  // "smear", "smear_up", "smear_down", "scale_up", "scale_down"
+                    pt_v, r9_v, scEta_v
                 });
 
                 const float rand = gauss(gen);
-
-                nominal.emplace_back(pt_v * (1.f + smear * rand));
-                up.emplace_back(pt_v * (1.f + smear_up * rand));
-                down.emplace_back(pt_v * (1.f + smear_down * rand));
+                out.emplace_back(pt_v * (1.f + smear * rand));
             }
 
-            return {nominal, up, down};
+            return out;
         };
 
+        // Define all smear and scale variations with explicit return types
         _rlm = _rlm
-            .Define("Electron_eta_supercluster",
-                    "Electron_eta + Electron_deltaEtaSC")
-            .Define("Electron_pt_corr_triple", smear_lambda,
-                    {"Electron_pt",
-                     "Electron_eta_supercluster",
-                     "Electron_r9"})
             .Define("Electron_pt_corr",
-                    "std::get<0>(Electron_pt_corr_triple)")
+                    [smear_lambda](const floats &pt, const floats &scEta, 
+                                  const floats &r9) -> floats {
+                        return smear_lambda(pt, scEta, r9, "smear");
+                    },
+                    {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"})
             .Define("Electron_pt_corr_smearUp",
-                    "std::get<1>(Electron_pt_corr_triple)")
+                    [smear_lambda](const floats &pt, const floats &scEta, 
+                                  const floats &r9) -> floats {
+                        return smear_lambda(pt, scEta, r9, "smear_up");
+                    },
+                    {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"})
             .Define("Electron_pt_corr_smearDown",
-                    "std::get<2>(Electron_pt_corr_triple)");
+                    [smear_lambda](const floats &pt, const floats &scEta, 
+                                  const floats &r9) -> floats {
+                        return smear_lambda(pt, scEta, r9, "smear_down");
+                    },
+                    {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"})
+            .Define("Electron_pt_corr_scaleUp",
+                    [smear_lambda](const floats &pt, const floats &scEta, 
+                                  const floats &r9) -> floats {
+                        return smear_lambda(pt, scEta, r9, "scale_up");
+                    },
+                    {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"})
+            .Define("Electron_pt_corr_scaleDown",
+                    [smear_lambda](const floats &pt, const floats &scEta, 
+                                  const floats &r9) -> floats {
+                        return smear_lambda(pt, scEta, r9, "scale_down");
+                    },
+                    {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"});
     }
 }
 
-void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection() //data and MC
+void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
 {
-  cout << "apply MET Pt and Phi correction" << endl;
-  
-  if(_isData){
-    
-    auto lambdaf_met_data = [this](float met_pt, float met_phi, unsigned char npvGood)->std::pair<float, float>
-      {
-        // Get corrected pt
-        float met_pt_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"pt", "PuppiMET", _year, "DATA", "nom", 
-                                                       met_pt, met_phi, static_cast<float>(npvGood)});
-        
-        // Get corrected phi
-        float met_phi_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"phi", "PuppiMET", _year, "DATA", "nom", 
-                                                        met_pt, met_phi, static_cast<float>(npvGood)});
-        
-        return std::make_pair(met_pt_corr, met_phi_corr);
-      
-      }; 
-    _rlm = _rlm.Define("MET_pt_phi_corr", lambdaf_met_data, {"PuppiMET_pt", "PuppiMET_phi", "PV_npvsGood"});
-    _rlm = _rlm.Define("PuppiMET_pt_corr", "MET_pt_phi_corr.first");
-    _rlm = _rlm.Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
-  }
-  else{
-    
-    auto lambdaf_met_mc = [this](float met_pt, float met_phi, unsigned char npvGood)->std::pair<float, float>
-      {
-        float met_pt_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"pt", "PuppiMET",_year, "MC", "nom", 
-                                                       met_pt, met_phi, static_cast<float>(npvGood)});
-        
-        // Get corrected phi
-        float met_phi_corr = _correction_MET_pt_corrector->at("met_xy_corrections")->evaluate({"phi", "PuppiMET", _year, "MC", "nom", 
-                                                        met_pt, met_phi, static_cast<float>(npvGood)});
-        
-        return std::make_pair(met_pt_corr, met_phi_corr);
+    std::cout << "apply MET Pt and Phi correction" << std::endl;
 
-      
-      };
-    
-    _rlm = _rlm.Define("MET_pt_phi_corr", lambdaf_met_mc, {"PuppiMET_pt", "PuppiMET_phi", "PV_npvsGood"});
-    _rlm = _rlm.Define("PuppiMET_pt_corr", "MET_pt_phi_corr.first");
-    _rlm = _rlm.Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
-  }
+    if (!_correction_MET_pt_corrector) {
+        throw std::runtime_error("MET correction JSON not loaded");
+    }
+
+    auto corr = _correction_MET_pt_corrector->at("met_xy_corrections");
+
+    using pairf = std::pair<float, float>;
+
+    // =====================
+    // DATA (nominal only)
+    // =====================
+    if (_isData) {
+
+        auto lambdaf_met_data =
+            [this, corr](float met_pt, float met_phi, unsigned char npvGood) -> pairf
+        {
+            float pt_corr = corr->evaluate({
+                "pt", "PuppiMET", _year, "DATA", "nom",
+                met_pt, met_phi, static_cast<float>(npvGood)
+            });
+
+            float phi_corr = corr->evaluate({
+                "phi", "PuppiMET", _year, "DATA", "nom",
+                met_pt, met_phi, static_cast<float>(npvGood)
+            });
+
+            return {pt_corr, phi_corr};
+        };
+
+        _rlm = _rlm
+            .Define("MET_pt_phi_corr", lambdaf_met_data,
+                    {"PuppiMET_pt", "PuppiMET_phi", "PV_npvsGood"})
+            .Define("PuppiMET_pt_corr", "MET_pt_phi_corr.first")
+            .Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
+    }
+
+    // =====================
+    // MC (nom + PU up/down)
+    // =====================
+    else {
+
+        auto lambdaf_met_mc =
+            [this, corr](float met_pt, float met_phi, unsigned char npvGood)
+            -> std::tuple<pairf, pairf, pairf>
+        {
+            auto eval = [&](const std::string &var) -> pairf {
+
+                float pt_corr = corr->evaluate({
+                    "pt", "PuppiMET", _year, "MC", var,
+                    met_pt, met_phi, static_cast<float>(npvGood)
+                });
+
+                float phi_corr = corr->evaluate({
+                    "phi", "PuppiMET", _year, "MC", var,
+                    met_pt, met_phi, static_cast<float>(npvGood)
+                });
+
+                return {pt_corr, phi_corr};
+            };
+
+            pairf nom  = eval("nom");
+            pairf puUp = eval("pu_up");
+            pairf puDn = eval("pu_dn");
+
+            return {nom, puUp, puDn};
+        };
+
+        _rlm = _rlm
+            .Define("MET_pt_phi_corr_triple", lambdaf_met_mc,
+                    {"PuppiMET_pt", "PuppiMET_phi", "PV_npvsGood"})
+
+            // nominal
+            .Define("PuppiMET_pt_corr",
+                    "std::get<0>(MET_pt_phi_corr_triple).first")
+            .Define("PuppiMET_phi_corr",
+                    "std::get<0>(MET_pt_phi_corr_triple).second")
+
+            // PU up
+            .Define("PuppiMET_pt_corr_puUp",
+                    "std::get<1>(MET_pt_phi_corr_triple).first")
+            .Define("PuppiMET_phi_corr_puUp",
+                    "std::get<1>(MET_pt_phi_corr_triple).second")
+
+            // PU down
+            .Define("PuppiMET_pt_corr_puDown",
+                    "std::get<2>(MET_pt_phi_corr_triple).first")
+            .Define("PuppiMET_phi_corr_puDown",
+                    "std::get<2>(MET_pt_phi_corr_triple).second");
+    }
 }
+
+
 void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
@@ -835,16 +916,10 @@ std::cout << "======================================\n" << std::endl;
 	  auto puminus = [this](float x) { return pucorrection(_correction_pu, _putag, "down", x); };
 	  
 	  if (!isDefined("puWeight")) _rlm = _rlm.Define("puWeight", punominal, {"Pileup_nTrueInt"});
-	  if (!isDefined("puWeight_plus")) _rlm = _rlm.Define("puWeight_plus", puplus, {"Pileup_nTrueInt"});
-	  if (!isDefined("puWeight_minus")) _rlm = _rlm.Define("puWeight_minus", puminus, {"Pileup_nTrueInt"});
+	  if (!isDefined("puWeight_up")) _rlm = _rlm.Define("puWeight_up", puplus, {"Pileup_nTrueInt"});
+	  if (!isDefined("puWeight_down")) _rlm = _rlm.Define("puWeight_down", puminus, {"Pileup_nTrueInt"});
 	  
 	  
-	  if (!isDefined("pugenWeight"))
-	    {
-	      _rlm = _rlm.Define("pugenWeight", [this](float x, float y){
-		  return x*y;
-		}, {"genWeight", "puWeight"});
-	    }
 	}
         hltSFFile_ = TFile::Open(Hlt_fname.c_str(), "READ");
     if (!hltSFFile_ || hltSFFile_->IsZombie()) {
@@ -1083,7 +1158,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
 
             {
                 std::string col_bc = output_var + "bcflav_" + variation;
-                auto calculator_bc = BTagWeightCalculator(this, variation, 0);
+                auto calculator_bc = BTagWeightCalculator(this, variation, 2);
 
                 _rlm = _rlm.Define(
                     col_bc,
@@ -1102,7 +1177,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
 
             {
                 std::string col_l = output_var + "lflav_" + variation;
-                auto calculator_l = BTagWeightCalculator(this, variation, 0);
+                auto calculator_l = BTagWeightCalculator(this, variation, 2);
 
                 _rlm = _rlm.Define(
                     col_l,
@@ -1321,7 +1396,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
     };
 
     //'sf' is nominal, and 'systup' and 'systdown' are up/down variations with total stat+-syst uncertainties. Individual systs are also available (in these cases syst only, not sf +/- syst
-    std::vector<std::string> variations = {"nominal", "systup", "systdown","syst"};
+    std::vector<std::string> variations = {"nominal", "systup", "systdown","stat"};
 
 
     //cout<<"Generate MUONHLT weight"<<endl;
@@ -1371,7 +1446,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
 	column_name += "down";
       }
       else{
-	column_name += "syst";
+	column_name += "stat";
       }
 
 	std::string sf_definition = column_name_id+" * "+column_name_iso;
