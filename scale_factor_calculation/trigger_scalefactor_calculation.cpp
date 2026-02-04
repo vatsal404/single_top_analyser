@@ -4,11 +4,9 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
-
 #include "TFile.h"
 #include "TTree.h"
 #include "TH2D.h"
-#include "TEfficiency.h"
 
 using namespace std;
 
@@ -22,7 +20,7 @@ struct EffResult {
 };
 
 /********************************************************************/
-/* Efficiency calculation (weighted OR unweighted)                  */
+/* Efficiency calculation using BOOLEAN BRANCH                      */
 /********************************************************************/
 EffResult calculate_efficiency_2d(
     const string& file_num,
@@ -32,17 +30,10 @@ EffResult calculate_efficiency_2d(
     const string& var_y,
     const vector<double>& bins_x,
     const vector<double>& bins_y,
-    const string& weight_branch   // <-- empty = unweighted
+    const string& boolean_branch  // "eu_channel"
 ) {
-    cout << "\n[INFO] Processing:\n"
-         << "  Num: " << file_num << "\n"
-         << "  Den: " << file_den << "\n"
-         << "  Weight branch: "
-         << (weight_branch.empty() ? "UNWEIGHTED" : weight_branch) << endl;
-
     TFile* fNum = TFile::Open(file_num.c_str());
     TFile* fDen = TFile::Open(file_den.c_str());
-
     if (!fNum || fNum->IsZombie()) throw runtime_error("Cannot open " + file_num);
     if (!fDen || fDen->IsZombie()) throw runtime_error("Cannot open " + file_den);
 
@@ -50,73 +41,87 @@ EffResult calculate_efficiency_2d(
     TTree* tDen = (TTree*)fDen->Get(tree_name.c_str());
     if (!tNum || !tDen) throw runtime_error("Tree not found");
 
-    cout << "  Entries num/den = "
-         << tNum->GetEntries() << " / "
-         << tDen->GetEntries() << endl;
-
-    TH2D* hNum = new TH2D(
-        ("num_" + file_num).c_str(), "",
-        bins_x.size()-1, bins_x.data(),
-        bins_y.size()-1, bins_y.data()
-    );
-    TH2D* hDen = new TH2D(
-        ("den_" + file_den).c_str(), "",
-        bins_x.size()-1, bins_x.data(),
-        bins_y.size()-1, bins_y.data()
-    );
+    TH2D* hNum = new TH2D(("num_"+file_num).c_str(),"",
+        bins_x.size()-1,bins_x.data(),
+        bins_y.size()-1,bins_y.data());
+    TH2D* hDen = new TH2D(("den_"+file_den).c_str(),"",
+        bins_x.size()-1,bins_x.data(),
+        bins_y.size()-1,bins_y.data());
     hNum->Sumw2();
     hDen->Sumw2();
 
-    Double_t x=0,y=0,w=1.0;
+    Double_t x=0, y=0;
+    Bool_t pass_boolean_num = false;
+    Bool_t pass_boolean_den = false;
 
-    // ---------------- NUMERATOR ----------------
-    tNum->SetBranchAddress(var_x.c_str(), &x);
-    tNum->SetBranchAddress(var_y.c_str(), &y);
+    Long64_t num_total = tNum->GetEntries();
+    Long64_t den_total = tDen->GetEntries();
+    Long64_t num_used  = 0;
+    Long64_t den_used  = 0;
+    Long64_t num_true  = 0;
+    Long64_t den_true  = 0;
 
-    bool useWeightNum = false;
-    if (!weight_branch.empty() && tNum->GetBranch(weight_branch.c_str())) {
-        tNum->SetBranchAddress(weight_branch.c_str(), &w);
-        useWeightNum = true;
-    }
+    // ================= NUMERATOR =================
+    tNum->SetBranchAddress(var_x.c_str(),&x);
+    tNum->SetBranchAddress(var_y.c_str(),&y);
+    tNum->SetBranchAddress(boolean_branch.c_str(), &pass_boolean_num);
 
-    for (Long64_t i=0;i<tNum->GetEntries();++i) {
+    for(Long64_t i=0;i<num_total;++i){
         tNum->GetEntry(i);
-        double weight = useWeightNum ? w : 1.0;
-        if (x>0 && y>0) hNum->Fill(x,y,weight);
+        if(x>0 && y>0){
+            num_used++;
+            // Only fill if boolean is TRUE
+            if(pass_boolean_num){
+                hNum->Fill(x,y);
+                num_true++;
+            }
+        }
     }
 
-    // ---------------- DENOMINATOR ----------------
-    tDen->SetBranchAddress(var_x.c_str(), &x);
-    tDen->SetBranchAddress(var_y.c_str(), &y);
+    // ================= DENOMINATOR =================
+    tDen->SetBranchAddress(var_x.c_str(),&x);
+    tDen->SetBranchAddress(var_y.c_str(),&y);
+    tDen->SetBranchAddress(boolean_branch.c_str(), &pass_boolean_den);
 
-    bool useWeightDen = false;
-    if (!weight_branch.empty() && tDen->GetBranch(weight_branch.c_str())) {
-        tDen->SetBranchAddress(weight_branch.c_str(), &w);
-        useWeightDen = true;
-    }
-
-    for (Long64_t i=0;i<tDen->GetEntries();++i) {
+    for(Long64_t i=0;i<den_total;++i){
         tDen->GetEntry(i);
-        double weight = useWeightDen ? w : 1.0;
-        if (x>0 && y>0) hDen->Fill(x,y,weight);
+        if(x>0 && y>0){
+            den_used++;
+            // Only fill if boolean is TRUE
+            if(pass_boolean_den){
+                hDen->Fill(x,y);
+                den_true++;
+            }
+        }
     }
 
-    cout << "  Integral num/den = "
-         << hNum->Integral() << " / "
-         << hDen->Integral() << endl;
+    // ================= EVENT-LEVEL DEBUG =================
+    cout << "\n========================================" << endl;
+    cout << "EFFICIENCY EVENT DEBUG" << endl;
+    cout << "========================================" << endl;
+    cout << "NUM file: " << file_num << endl;
+    cout << "DEN file: " << file_den << endl;
+    cout << "Boolean branch: " << boolean_branch << endl;
+    cout << "Total NUM entries                = " << num_total << endl;
+    cout << "Total DEN entries                = " << den_total << endl;
+    cout << "NUM entries used (x>0,y>0)       = " << num_used << endl;
+    cout << "DEN entries used (x>0,y>0)       = " << den_used << endl;
+    cout << "NUM entries with boolean=TRUE    = " << num_true << endl;
+    cout << "DEN entries with boolean=TRUE    = " << den_true << endl;
+    cout << "NUM histogram integral           = " << hNum->Integral() << endl;
+    cout << "DEN histogram integral           = " << hDen->Integral() << endl;
+    cout << "========================================\n" << endl;
 
-    // ---------------- EFFICIENCY ----------------
-    TH2D* hEff = new TH2D(
-        ("eff_" + file_num).c_str(), "",
-        bins_x.size()-1, bins_x.data(),
-        bins_y.size()-1, bins_y.data()
-    );
+    // ================= EFFICIENCY =================
+    TH2D* hEff = new TH2D(("eff_"+file_num).c_str(),"",
+        bins_x.size()-1,bins_x.data(),
+        bins_y.size()-1,bins_y.data());
 
-    for (int ix=1;ix<=hEff->GetNbinsX();++ix)
-        for (int iy=1;iy<=hEff->GetNbinsY();++iy) {
+    for(int ix=1;ix<=hEff->GetNbinsX();++ix)
+        for(int iy=1;iy<=hEff->GetNbinsY();++iy){
             double num = hNum->GetBinContent(ix,iy);
             double den = hDen->GetBinContent(ix,iy);
-            if (den>0) {
+            if(den>0){
                 double eff = num/den;
                 double err = sqrt(eff*(1-eff)/den);
                 hEff->SetBinContent(ix,iy,eff);
@@ -124,10 +129,33 @@ EffResult calculate_efficiency_2d(
             }
         }
 
+    // ================= BIN-BY-BIN DEBUG =================
+    cout << "========== BIN-BY-BIN DEBUG ==========" << endl;
+    for(int ix=1; ix<=hEff->GetNbinsX(); ++ix){
+        for(int iy=1; iy<=hEff->GetNbinsY(); ++iy){
+            double n = hNum->GetBinContent(ix,iy);
+            double d = hDen->GetBinContent(ix,iy);
+            cout << "Bin (" << ix << "," << iy << ")  "
+                 << "Num=" << n << "  "
+                 << "Den=" << d;
+            if(d>0)
+                cout << "  Eff=" << n/d << endl;
+            else
+                cout << "  Eff=UNDEFINED" << endl;
+        }
+    }
+    cout << "=====================================\n" << endl;
+
+
+    cout << "Global check: "
+     << "Num total = " << hNum->Integral()
+     << " Den total = " << hDen->Integral()
+     << endl;
+
+
     hNum->SetDirectory(0);
     hDen->SetDirectory(0);
     hEff->SetDirectory(0);
-
     fNum->Close();
     fDen->Close();
 
@@ -151,122 +179,50 @@ int main(){
 
     vector<double> bins = {0,20,30,50,100,150,200,350};
 
-    // =================== SWITCH HERE ===================
-    string weight_branch = "evWeight";        // unweighted (debug)
-    // string weight_branch = "evWeight"; // weighted (final)
-    // ===================================================
-
-    cout << "\n========== NOMINAL ==========\n";
+    // ================= NOMINAL =================
     auto data_nom = calculate_efficiency_2d(
         "Data_0.root","Data_1.root","outputTree",
         "goodElectrons_leading_pt","goodmuons_leading_pt",
-        bins,bins,weight_branch
-    );
+        bins,bins,"eu_channel");
 
     auto mc_nom = calculate_efficiency_2d(
         "TTbar_0.root","TTbar_1.root","outputTree",
         "goodElectrons_leading_pt","goodmuons_leading_pt",
-        bins,bins,weight_branch
-    );
+        bins,bins,"eu_channel");
 
     TH2D* sf_nom = makeSF(data_nom.eff, mc_nom.eff, "scale_factor");
 
-    // =================== STAT (KATZ) ===================
+    // ================= STAT =================
     TH2D* sf_stat = (TH2D*)sf_nom->Clone("scale_factor_stat");
     sf_stat->Reset();
 
     for(int ix=1;ix<=sf_nom->GetNbinsX();++ix)
         for(int iy=1;iy<=sf_nom->GetNbinsY();++iy){
 
-            double eps_d = data_nom.eff->GetBinContent(ix,iy);
-            double eps_m = mc_nom.eff->GetBinContent(ix,iy);
-            if(eps_d<=0||eps_m<=0) continue;
+            double ed = data_nom.eff->GetBinContent(ix,iy);
+            double em = mc_nom.eff->GetBinContent(ix,iy);
+            if(ed<=0 || em<=0) continue;
 
-            double Xw=data_nom.num->GetBinContent(ix,iy);
-            double Xw2=pow(data_nom.num->GetBinError(ix,iy),2);
-            double Yw=mc_nom.num->GetBinContent(ix,iy);
-            double Yw2=pow(mc_nom.num->GetBinError(ix,iy),2);
+            double Xw  = data_nom.num->GetBinContent(ix,iy);
+            double Xw2 = pow(data_nom.num->GetBinError(ix,iy),2);
+            double Yw  = mc_nom.num->GetBinContent(ix,iy);
+            double Yw2 = pow(mc_nom.num->GetBinError(ix,iy),2);
 
-            double Xeff=(Xw2>0)?Xw*Xw/Xw2:0;
-            double Yeff=(Yw2>0)?Yw*Yw/Yw2:0;
-
-            if(Xeff < 1.0 || Yeff < 1.0){
-                sf_stat->SetBinContent(ix,iy,0.0);
-                continue;
-            }
+            double Xeff = (Xw2>0)?Xw*Xw/Xw2:0;
+            double Yeff = (Yw2>0)?Yw*Yw/Yw2:0;
+            if(Xeff<1 || Yeff<1) continue;
 
             double T = sf_nom->GetBinContent(ix,iy);
-            double varlnT = (1-eps_d)/Xeff + (1-eps_m)/Yeff;
-            sf_stat->SetBinContent(ix,iy,T*sqrt(varlnT));
+            double varlnT = (1-ed)/Xeff + (1-em)/Yeff;
+            sf_stat->SetBinContent(ix,iy, T*sqrt(varlnT));
         }
 
-    // =================== SYSTEMATICS (unchanged) ===================
-    cout << "\n========== SYSTEMATICS ==========\n";
-
-    auto data_puLT35 = calculate_efficiency_2d("Data_2.root","Data_3.root","outputTree",
-        "goodElectrons_leading_pt","goodmuons_leading_pt",bins,bins,weight_branch);
-
-    auto data_puUD   = calculate_efficiency_2d("Data_4.root","Data_5.root","outputTree",
-        "goodElectrons_leading_pt","goodmuons_leading_pt",bins,bins,weight_branch);
-
-    auto data_ngjGE3 = calculate_efficiency_2d("Data_6.root","Data_7.root","outputTree",
-        "goodElectrons_leading_pt","goodmuons_leading_pt",bins,bins,weight_branch);
-
-    auto data_ngjLT3 = calculate_efficiency_2d("Data_8.root","Data_9.root","outputTree",
-        "goodElectrons_leading_pt","goodmuons_leading_pt",bins,bins,weight_branch);
-
-    TH2D* sf_puLT35 = makeSF(data_puLT35.eff, mc_nom.eff, "sf_puLT35");
-    TH2D* sf_puUD   = makeSF(data_puUD.eff,   mc_nom.eff, "sf_puUD");
-    TH2D* sf_ngjGE3 = makeSF(data_ngjGE3.eff, mc_nom.eff, "sf_ngjGE3");
-    TH2D* sf_ngjLT3 = makeSF(data_ngjLT3.eff, mc_nom.eff, "sf_ngjLT3");
-
-    TH2D* sf_syst = (TH2D*)sf_nom->Clone("scale_factor_syst");
-    sf_syst->Reset();
-
-    for(int ix=1;ix<=sf_nom->GetNbinsX();++ix)
-        for(int iy=1;iy<=sf_nom->GetNbinsY();++iy){
-            double sf0=sf_nom->GetBinContent(ix,iy);
-            if(sf0<=0) continue;
-            double sum2=0;
-            auto add=[&](TH2D* h){
-                double v=h->GetBinContent(ix,iy);
-                if(v>0) sum2+=pow(v-sf0,2);
-            };
-            add(sf_puLT35); add(sf_puUD); add(sf_ngjGE3); add(sf_ngjLT3);
-            sf_syst->SetBinContent(ix,iy,sqrt(sum2));
-        }
-
-    TH2D* sf_total = (TH2D*)sf_nom->Clone("scale_factor_total");
-    sf_total->Reset();
-    for(int ix=1;ix<=sf_nom->GetNbinsX();++ix)
-        for(int iy=1;iy<=sf_nom->GetNbinsY();++iy)
-            sf_total->SetBinContent(ix,iy,
-                sqrt(pow(sf_stat->GetBinContent(ix,iy),2)+
-                     pow(sf_syst->GetBinContent(ix,iy),2)));
-
-    // =================== OUTPUT ===================
+    // ================= OUTPUT =================
     TFile* fout = new TFile("trigger_scale_factors.root","RECREATE");
-
-    data_nom.eff->Write("eff_data_nom");
-    mc_nom.eff->Write("eff_mc_nom");
-
-    data_nom.num->Write("num_data_nom");
-    data_nom.den->Write("den_data_nom");
-    mc_nom.num->Write("num_mc_nom");
-    mc_nom.den->Write("den_mc_nom");
-
     sf_nom->Write();
     sf_stat->Write();
-    sf_syst->Write();
-    sf_total->Write();
-
-    sf_puLT35->Write();
-    sf_puUD->Write();
-    sf_ngjGE3->Write();
-    sf_ngjLT3->Write();
-
     fout->Close();
+
     cout << "\n✅ SUCCESS: trigger_scale_factors.root written\n";
     return 0;
 }
-

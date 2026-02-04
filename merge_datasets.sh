@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2023"
+INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2023BPix"
 OUTPUT_DIR="$(pwd)/merged"
 
 # Optional index passed as first argument

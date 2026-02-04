@@ -8,7 +8,7 @@ crossection=$4
 sumgenWeight=$5
 
 # Configuration variables
-jobconfmod="jobconfiganalysis_2022"
+jobconfmod="jobconfiganalysis_2023BPix"
 eos_output_dir="/eos/uscms/store/user/vsinha/Result_2022/hlt_scale_factor"
 
 echo "Running analysis with the following parameters:"

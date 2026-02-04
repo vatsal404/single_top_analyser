@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_DIR="/eos/uscms/store/user/vsinha/Hlt_scalefactor_22EE"
+BASE_DIR="/eos/uscms/store/user/vsinha/Result_2023/hlt_scale_factor"
 
 for i in {0..9}; do
     echo "Merging TTbar index $i"

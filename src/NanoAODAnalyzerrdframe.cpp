@@ -523,66 +523,97 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
     }
     else {
         // For MC: apply Smearing corrections
-        auto smear_lambda = [smear_corr](const floats &pt,
-                                          const floats &scEta,
-                                          const floats &r9) -> std::tuple<floats, floats, floats>
-        {
-            floats nominal, smear_up, smear_down;
-            size_t N = pt.size();
-            nominal.reserve(N);
-            smear_up.reserve(N);
-            smear_down.reserve(N);
+        auto smear_lambda =
+            [smear_corr](const floats &pt,
+                    const floats &scEta,
+                    const floats &r9,
+                    const UInt_t run,
+                    const UInt_t lumi,
+                    const ULong64_t event)
+            -> std::tuple<floats, floats, floats>
+            {
+                floats nominal, smear_up, smear_down;
+                size_t N = pt.size();
 
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::normal_distribution<float> gauss(0.0, 1.0);
+                nominal.reserve(N);
+                smear_up.reserve(N);
+                smear_down.reserve(N);
 
-            for (size_t i = 0; i < N; ++i) {
-                try {
-                    // SmearAndSyst expects: syst, pt, r9, ScEta
-                    float smear_val = smear_corr->evaluate({
-                        "smear",                              // syst (string)
-                        static_cast<double>(pt[i]),           // pt (real)
-                        static_cast<double>(r9[i]),           // r9 (real)
-                        static_cast<double>(scEta[i])         // ScEta (real) - NO abs()
-                    });
+                std::normal_distribution<float> gauss(0.0, 1.0);
 
-                    float smear_unc_up = smear_corr->evaluate({
-                        "smear_up",                           // syst (string)
-                        static_cast<double>(pt[i]),           // pt (real)
-                        static_cast<double>(r9[i]),           // r9 (real)
-                        static_cast<double>(scEta[i])         // ScEta (real)
-                    });
+                for (size_t i = 0; i < N; ++i) {
 
-                    float smear_unc_down = smear_corr->evaluate({
-                        "smear_down",                         // syst (string)
-                        static_cast<double>(pt[i]),           // pt (real)
-                        static_cast<double>(r9[i]),           // r9 (real)
-                        static_cast<double>(scEta[i])         // ScEta (real)
-                    });
+                    /* -----------------------------------------
+                       Deterministic seed per electron
+                       ----------------------------------------- */
+                    uint64_t seed =
+                        (uint64_t(run)  << 32) ^
+                        (uint64_t(lumi) << 16) ^
+                        (uint64_t(event)) ^
+                        uint64_t(i);   // electron index
 
+                    std::mt19937 gen(seed);
                     float rand = gauss(gen);
 
-                    nominal.emplace_back(pt[i] * (1.0 + smear_val * rand));
-                    smear_up.emplace_back(pt[i] * (1.0 + smear_unc_up * rand));
-                    smear_down.emplace_back(pt[i] * (1.0 + smear_unc_down * rand));
-                } catch (const std::exception &e) {
-                    std::cerr << "Error evaluating smear correction at index " << i << ": " << e.what() << std::endl;
-                    nominal.emplace_back(pt[i]);
-                    smear_up.emplace_back(pt[i]);
-                    smear_down.emplace_back(pt[i]);
+                    try {
+                        float smear_val = smear_corr->evaluate({
+                                "smear",
+                                static_cast<double>(pt[i]),
+                                static_cast<double>(r9[i]),
+                                static_cast<double>(scEta[i])
+                                });
+
+                        float smear_unc_up = smear_corr->evaluate({
+                                "smear_up",
+                                static_cast<double>(pt[i]),
+                                static_cast<double>(r9[i]),
+                                static_cast<double>(scEta[i])
+                                });
+
+                        float smear_unc_down = smear_corr->evaluate({
+                                "smear_down",
+                                static_cast<double>(pt[i]),
+                                static_cast<double>(r9[i]),
+                                static_cast<double>(scEta[i])
+                                });
+
+                        nominal.emplace_back(pt[i] * (1.0f + smear_val * rand));
+                        smear_up.emplace_back(pt[i] * (1.0f + smear_unc_up * rand));
+                        smear_down.emplace_back(pt[i] * (1.0f + smear_unc_down * rand));
+                    }
+                    catch (const std::exception &e) {
+                        std::cerr << "Smearing error at index " << i
+                            << ": " << e.what() << std::endl;
+                        nominal.emplace_back(pt[i]);
+                        smear_up.emplace_back(pt[i]);
+                        smear_down.emplace_back(pt[i]);
+                    }
                 }
-            }
 
-            return std::make_tuple(nominal, smear_up, smear_down);
-        };
+                return std::make_tuple(nominal, smear_up, smear_down);
+            };
 
-        _rlm = _rlm.Define("Electron_eta_supercluster", "Electron_eta + Electron_deltaEtaSC");
-        _rlm = _rlm.Define("Electron_pt_corr_triple", smear_lambda,
-                           {"Electron_pt", "Electron_eta_supercluster", "Electron_r9"})
-                   .Define("Electron_pt_corr", "std::get<0>(Electron_pt_corr_triple)")
-                   .Define("Electron_pt_corr_smearUp", "std::get<1>(Electron_pt_corr_triple)")
-                   .Define("Electron_pt_corr_smearDown", "std::get<2>(Electron_pt_corr_triple)");
+_rlm = _rlm.Define("Electron_eta_supercluster",
+                   "Electron_eta + Electron_deltaEtaSC");
+
+_rlm = _rlm.Define(
+            "Electron_pt_corr_triple",
+            smear_lambda,
+            {
+                "Electron_pt",
+                "Electron_eta_supercluster",
+                "Electron_r9",
+                "run",
+                "luminosityBlock",
+                "event"
+            })
+        .Define("Electron_pt_corr",
+                "std::get<0>(Electron_pt_corr_triple)")
+        .Define("Electron_pt_corr_smearUp",
+                "std::get<1>(Electron_pt_corr_triple)")
+        .Define("Electron_pt_corr_smearDown",
+                "std::get<2>(Electron_pt_corr_triple)");
+
     }
 }
 
