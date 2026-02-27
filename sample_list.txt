@@ -20,7 +20,7 @@
 /MuonEG/Run2023C-22Sep2023_v4-v1/NANOAOD Data_MuonEG_2023_v4.root Data_MuonEG_2023_v4.out 1 1
 /TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM TTbar_SemiLept.root TTbar_SemiLept.out 403.25 51082709849.39
 /TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM TTbar_Dilept.root TTbar_Dilept.out 97.45 3877699277.06
-/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14_ext1-v3/NANOAODSIM DYjetsM10to50.root DYjetsM10to50.out 19982.5 7020398041008.79
+/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14_ext1-v4/NANOAODSIM DYjetsM10to50.root DYjetsM10to50.out 19982.5 7021258194621.68
 /DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM DYjetsM50.root DYjetsM50.out 6345.99 3565935319099.19
 /WtoLNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM WtoLNu.root WtoLNu.out 64481.58 34021024089347.94
 /TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v4/NANOAODSIM TbarWplusto2L2Nu.root TbarWplusto2L2Nu.out 4.6511 18766370.65
@@ -35,6 +35,7 @@
 /TTG-1Jets_PTG-100to200_TuneCP5_13p6TeV_amcatnloFXFXold-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTGJets_PTG-100to200.root TTGJets_PTG-100to200.out 0.411 932931.42
 /TTG-1Jets_PTG-200_TuneCP5_13p6TeV_amcatnloFXFXold-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTGJets_PTG-200.root TTGJets_PTG-200.out 0.128 221944.60
 /TTLNu-1Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTLNu-1Jets.root TTLNu-1Jets.out 0.25 205678.43
-/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM TTLL_MLL-4to50.root TTLL_MLL-4to50.out 0.03949 23188.77
-/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v3/NANOAODSIM TLL_MLL-50.root TLL_MLL-50.out 0.08646 68508.45
+/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v4/NANOAODSIM TTLL_MLL-4to50.root TTLL_MLL-4to50.out 0.03949 23194.03
+/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v3/NANOAODSIM TLL_MLL-50.root TLL_MLL-50.out 0.08646 69016.22
 /TTZ-ZtoQQ-1Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v3/NANOAODSIM TTZ-ZtoQQ-1Jets.root TTZ-ZtoQQ-1Jets.out 0.6209 1031478.90
+

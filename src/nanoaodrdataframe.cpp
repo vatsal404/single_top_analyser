@@ -32,27 +32,28 @@ int main(int argc, char* argv[]) {
     
     if (year == "2022") {
         // 2022 configuration
-        //c1.Add("root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/670acfa8-2b1a-4ec5-932b-0512e54fd5f8.root");
-       c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root");
+        c1.Add("root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/670acfa8-2b1a-4ec5-932b-0512e54fd5f8.root");
+        //c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root");
         outputFile = "test_2022.root";
         era = "PreEE";
     } else if (year == "2022EE") {
         // 2022 PostEE configuration
-        c1.Add("root://cmsxrootd.fnal.gov//store/mc/Run3Summer22EENanoAODv12/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2520000/716d2d2f-6ac3-4ac2-aa93-ad9034e8a9fd.root");
-       // c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022F/MuonEG/NANOAOD/22Sep2023-v1/2520000/11f0ddf5-660e-4066-b4a1-ad5ec991baa1.root");
+       // c1.Add("root://cmsxrootd.fnal.gov//store/mc/Run3Summer22EENanoAODv12/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2520000/716d2d2f-6ac3-4ac2-aa93-ad9034e8a9fd.root");
+        //c1.Add("root://cmsxrootd.fnal.gov//store/data/Run2022F/MuonEG/NANOAOD/22Sep2023-v1/2520000/11f0ddf5-660e-4066-b4a1-ad5ec991baa1.root");
+        c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2022F/MuonEG/NANOAOD/22Sep2023-v1/50000/4fb72196-3b02-4499-8f6c-a54e15692b32.root");
     //    c1.Add("root://cmsxrootd.fnal.gov//store/mc/Run3Summer22EENanoAODv12/TWminusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2520000/41fc870a-c510-41a9-aa22-afa245d77acd.root");
         outputFile = "test_2022EE.root";
         era = "PostEE";
     } else if (year == "2023") {
         // 2023 configuration
-        c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root");
-        //c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/EGamma1/NANOAOD/24Jan2024_v1-v1/2820000/f89c06db-6003-4234-a6b3-a7383a7248b0.root");
+        //c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root");
+        c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2022F/MuonEG/NANOAOD/22Sep2023-v1/50000/9337d1ce-bde9-496f-8545-cd2cb9c48f24.root");
         outputFile = "test_2023.root";
         era = "PreBPix";
     } else {
         // 2023 BPix configuration
        // c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023D/MuonEG/NANOAOD/22Sep2023_v2-v1/2540000/2b1baeec-bc24-4a11-b7ae-220dd5987884.root");
-       c1.Add("root://cmsxrootd.fnal.gov///store/mc/Run3Summer23BPixNanoAODv12/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_postBPix_v2-v3/2550000/1fc49961-22ba-4b79-86d7-e85128f21146.root");
+       c1.Add("root://cmsxrootd.fnal.gov///store/data/Run2023C/Muon1/NANOAOD/24Jan2024_v1-v1/30000/32143dee-79d1-4c28-9968-7c8e0d8db16f.root");
         outputFile = "test_2023BPix.root";
         era = "PostBPix";
     }
@@ -68,7 +69,7 @@ int main(int argc, char* argv[]) {
     string muon_roch_fname, muon_fname, muonHLTtype, muonIDtype, muonISOtype;
     string electron_fname, Hlt_fname ;
     string electron_reco_type1, electron_reco_type2, electron_id_type;
-    string jet_veto_f_name, jet_veto_tag, electron_SSF, metpt_fname, JER_tag;
+    string jet_veto_f_name, jet_veto_tag, electron_SSF, metpt_fname, JER_tag,JER_tag_res;
     
     if (year == "2022") {
         goodjsonfname = "data/Cert_Collisions2022_355100_362760_Golden.json";
@@ -89,7 +90,7 @@ int main(int argc, char* argv[]) {
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
         electron_fname = "data/EGM/2022_preEE/electron.json.gz";
-        Hlt_fname = "data/trigger_scale_factors.root";
+        Hlt_fname = "data/Hlt_scale_factor/2022/trigger_scale_factors.root";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
@@ -98,6 +99,7 @@ int main(int argc, char* argv[]) {
         electron_SSF = "data/EGM/2022_preEE/electronSS_EtDependent.json.gz";
         metpt_fname = "data/JERC/2022_preEE/met_xyCorrections_2022_2022.json";
         JER_tag = "Summer22_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi";
+        JER_tag_res = "Summer22_22Sep2023_JRV1_MC_PtResolution_AK4PFPuppi";
     } else if (year == "2022EE") {
         goodjsonfname = "data/Cert_Collisions2022_355100_362760_Golden.json";
         pileupfname = "data/LUM/2022_postEE/puWeights.json";
@@ -108,7 +110,7 @@ int main(int argc, char* argv[]) {
         hname_btagEff_bcflav = "hist_btagEff_bcflav";
         hname_btagEff_lflav = "hist_btagEff_lflav";
         jercfname = "data/JERC/2022_postEE/jet_jerc.json";
-        jerctag = "Summer22EE_22Sep2023_RunE_V2_DATA_L1L2L3Res_AK4PFPuppi";
+        jerctag = "Summer22EE_22Sep2023_RunF_V2_DATA_L1L2L3Res_AK4PFPuppi";
         jettagMC = "Summer22EE_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi";
         jercunctag = "Summer22EE_22Sep2023_V2_MC_Total_AK4PFPuppi";
         muon_roch_fname = "data/MUON/2022_postEE/muon_scalesmearing.json.gz";
@@ -117,7 +119,7 @@ int main(int argc, char* argv[]) {
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
         electron_fname = "data/EGM/2022_postEE/electron.json.gz";
-        Hlt_fname = "data/trigger_scale_factors.root";
+        Hlt_fname = "data/Hlt_scale_factor/2022EE/trigger_scale_factors.root";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
@@ -145,7 +147,7 @@ int main(int argc, char* argv[]) {
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
         electron_fname = "data/EGM/2023/electron.json";
-        Hlt_fname = "data/trigger_scale_factors.root";
+        Hlt_fname = "data/Hlt_scale_factor/2023/trigger_scale_factors.root";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
@@ -173,7 +175,7 @@ int main(int argc, char* argv[]) {
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
         electron_fname = "data/EGM/2023_post_BPIX/electron.json";
-        Hlt_fname = "data/trigger_scale_factors.root";
+        Hlt_fname = "data/Hlt_scale_factor/2023BPix/trigger_scale_factors.root";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
@@ -190,7 +192,7 @@ int main(int argc, char* argv[]) {
                                 electron_fname, Hlt_fname, 
                                 electron_reco_type1, electron_reco_type2, electron_id_type,
                                 jercfname, jerctag, jettagMC, jercunctag, jet_veto_f_name,
-                                jet_veto_tag, electron_SSF, metpt_fname, JER_tag);
+                                jet_veto_tag, electron_SSF, metpt_fname, JER_tag, JER_tag_res);
     
     nanoaodrdf.setupObjects();
     nanoaodrdf.setupAnalysis();

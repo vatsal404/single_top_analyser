@@ -1,1 +1,1 @@
- /TTZ-ZtoQQ-1Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v3/NANOAODSIM TTZ-ZtoQQ-1Jets.root TTZ-ZtoQQ-1Jets.out 0.6209 1031478.90
+/Muon1/Run2023D-24Jan2024_v1-v1/NANOAOD Data_Muon1_2023BPix_v1.root Data_Muon1_2023BPix_v1.out 1 1

@@ -160,7 +160,7 @@ void NanoAODAnalyzerrdframe::selectFatJets()
 }
 
 
-void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,string jettagMC,string JER_tag) //data
+void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,string jettagMC,string JER_tag,string JER_tag_res) //data
 {
 
     cout << "SETUP JETMET correction" << endl;
@@ -181,6 +181,7 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,s
 	cout<< "JET uncertainity tag in JSON  : " << _jercunctag << endl;
     cout<< "JER tag in json: " << JER_tag << endl;
     _jer_corrector = _correction_jerc->at(JER_tag);
+    _jer_resolution = _correction_jerc->at(JER_tag_res);
 	std::cout<< "================================//=================================" << std::endl;
 }
 
@@ -242,51 +243,109 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
         }
         else
         {
-            // Lambda for MC (without run)
+            // ------------------------------------------
+            // 1. Apply JEC first
+            // ------------------------------------------
             auto jetCorrLambda_MC =
                 [this](floats jetpts,
-                       floats jetetas,
-                       floats jetAreas,
-                       floats jetrawf,
-                       floats jetphis,
-                       float rho) -> floats
-            {
-                floats out;
-                out.reserve(jetpts.size());
-
-                for (size_t i = 0; i < jetpts.size(); i++)
+                        floats jetetas,
+                        floats jetAreas,
+                        floats jetrawf,
+                        floats jetphis,
+                        float rho) -> floats
                 {
-                    float rawpt = jetpts[i] * (1.f - jetrawf[i]);
-                     float corr = (_year == "2023BPix") ? _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, jetphis[i]}) : _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
+                    floats out;
+                    out.reserve(jetpts.size());
 
-                    out.emplace_back(rawpt * corr);
-                }
-                return out;
-            };
-             
-            auto jerCorrLambda_MC =[this](floats jetpts, floats jetetas ) -> floats
-            {
-                floats out;
-                out.reserve(jetpts.size());
+                    for (size_t i = 0; i < jetpts.size(); i++)
+                    {
+                        float rawpt = jetpts[i] * (1.f - jetrawf[i]);
 
-                for (size_t i=0; i<jetpts.size(); i++)
+                        float corr = (_year == "2023BPix") ?
+                            _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, jetphis[i]}) :
+                            _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
+
+                        out.emplace_back(rawpt * corr);
+                    }
+                    return out;
+                };
+
+            _rlm = _rlm.Define("Jet_pt_JEC",
+                    jetCorrLambda_MC,
+                    {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor",
+                    "Jet_phi", "Rho_fixedGridRhoFastjetAll"});
+
+            // ------------------------------------------
+            // 2. Apply JER Smearing (Correct Way)
+            // ------------------------------------------
+            auto jerSmearLambda =
+                [this](floats jetpts,
+                        floats jetetas,
+                        floats jetgenpt,
+                        float rho) -> floats
                 {
-                    float corr = _jer_corrector->evaluate({jetetas[i],jetpts[i],"nom"});
-                    out.emplace_back(jetpts[i] * corr);
-                }
-                return out;
-            };
+                    floats out;
+                    out.reserve(jetpts.size());
 
-            _rlm = _rlm.Define("Jet_pt_temp_corr",
-                jetCorrLambda_MC,
-                {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor","Jet_phi",
-                 "Rho_fixedGridRhoFastjetAll"});
-                  
+                    TRandom3 rand(0);
+
+                    for (size_t i = 0; i < jetpts.size(); i++)
+                    {
+                        float pt  = jetpts[i];
+                        float eta = jetetas[i];
+                        float genpt = jetgenpt[i];
+
+                        // Get resolution
+                        float resolution = _jer_resolution->evaluate({eta, pt, rho});
+
+                        // Get scale factor
+                        float sf = _jer_corrector->evaluate({eta, pt , "nom"});
+
+                        float smeared_pt = pt;
+
+                        if (genpt > 0) // matched
+                        {
+                            smeared_pt = std::max(0.f,
+                                    genpt + sf * (pt - genpt));
+                        }
+                        else // stochastic smearing
+                        {
+                            float sigma = resolution * std::sqrt(std::max(sf*sf - 1.f, 0.f));
+                            float gauss = rand.Gaus(0., sigma);
+                            smeared_pt = pt * (1.f + gauss);
+                        }
+
+                        out.emplace_back(smeared_pt);
+                    }
+
+                    return out;
+                };
+            _rlm = _rlm.Define("Jet_genJetPt",
+                    [](const ROOT::VecOps::RVec<float>& GenJet_pt,
+                        const ROOT::VecOps::RVec<short>& Jet_genJetIdx)
+                    {
+                    ROOT::VecOps::RVec<float> out;
+                    out.reserve(Jet_genJetIdx.size());
+
+                    for (size_t i = 0; i < Jet_genJetIdx.size(); i++)
+                    {
+                    int idx = Jet_genJetIdx[i];
+
+                    if (idx >= 0 && idx < (int)GenJet_pt.size())
+                    out.emplace_back(GenJet_pt[idx]);
+                    else
+                    out.emplace_back(-1.f);  // unmatched
+                    }
+
+                    return out;
+    },
+    {"GenJet_pt", "Jet_genJetIdx"});
+
             _rlm = _rlm.Define("Jet_pt_corr",
-                jerCorrLambda_MC,
-                {"Jet_pt_temp_corr", "Jet_eta"});
-
-      }
+                    jerSmearLambda,
+                    {"Jet_pt_JEC", "Jet_eta", "Jet_genJetPt",
+                    "Rho_fixedGridRhoFastjetAll"});
+        }
     }
 }
 
@@ -661,7 +720,7 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection() //data and MC
     _rlm = _rlm.Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
   }
 }
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag)
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag,string JER_tag_res)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;
@@ -862,8 +921,9 @@ std::cout << "======================================\n" << std::endl;
     _jerctagMC=jerctagMC;
 	_jercunctag = jercunctag;
     _JER_tag = JER_tag;
+    _JER_tag_res=JER_tag_res;
 	
-	setupJetMETCorrection(jercfname, _jerctag,_jerctagMC,_JER_tag);
+	setupJetMETCorrection(jercfname, _jerctag,_jerctagMC,_JER_tag,_JER_tag_res);
 	applyJetMETCorrections();
 	applyMuPtCorrection();
     applyElectronPtCorrection();

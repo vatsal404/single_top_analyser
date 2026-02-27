@@ -270,7 +270,8 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
             config['jet_veto_tag'],
             config['electron_SSF'],
             config['metpt_fname'],
-            config['JER_tag']
+            config['JER_tag'],
+            config['JER_tag_res']
        
      
 

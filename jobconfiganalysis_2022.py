@@ -52,7 +52,7 @@ config = {
         'muonIDtype': 'NUM_TightID_DEN_TrackerMuons',
         'muonISOtype': 'NUM_TightPFIso_DEN_TightID',
         'electron_fname': 'data/EGM/2022_preEE/electron.json.gz',
-        'Hlt_fname':'data/trigger_scale_factors.root',
+        'Hlt_fname':'data/Hlt_scale_factor/2022/trigger_scale_factors.root',
         'electron_reco_type1': 'Reco20to75',
         'electron_reco_type2' :  'RecoAbove75',
         'electron_id_type': 'Tight',
@@ -60,7 +60,8 @@ config = {
         'jet_veto_tag' : 'Summer22_23Sep2023_RunCD_V1',
         'electron_SSF' :'data/EGM/2022_preEE/electronSS_EtDependent.json.gz',
         'metpt_fname' : 'data/JERC/2022_preEE/met_xyCorrections_2022_2022.json',
-        'JER_tag' : 'Summer22_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi'
+        'JER_tag' : 'Summer22_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi',
+        'JER_tag_res' : 'Summer22_22Sep2023_JRV1_MC_PtResolution_AK4PFPuppi',
         }
 
 # processing options

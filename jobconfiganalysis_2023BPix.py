@@ -58,7 +58,7 @@ config = {
         'muonIDtype': 'NUM_TightID_DEN_TrackerMuons',
         'muonISOtype': 'NUM_TightPFIso_DEN_TightID',
         'electron_fname': 'data/EGM/2023_post_BPIX/electron.json',
-        'Hlt_fname':'data/trigger_scale_factors.root',
+        'Hlt_fname':'data/Hlt_scale_factor/2023BPix/trigger_scale_factors.root',
         'electron_reco_type1': 'Reco20to75',
         'electron_reco_type2' :  'RecoAbove75',
         'electron_id_type': 'Tight',
