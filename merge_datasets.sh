@@ -6,7 +6,13 @@ OUTPUT_DIR="$(pwd)/merged"
 # Optional index passed as first argument
 INDEX="$1"
 
+# Create merged directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
+
+# 🔹 Clean old merged ROOT files
+echo "Cleaning old merged files in $OUTPUT_DIR"
+rm -f "$OUTPUT_DIR"/*.root
+
 cd "$INPUT_DIR" || exit 1
 
 if [[ -n "$INDEX" ]]; then
@@ -41,4 +47,3 @@ echo "Merging data samples"
 hadd -f "${OUTPUT_DIR}/data.root" "${OUTPUT_DIR}"/Data*.root 2>/dev/null
 
 echo "Done. Merged files are in $OUTPUT_DIR"
-

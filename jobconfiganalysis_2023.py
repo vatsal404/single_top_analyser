@@ -66,8 +66,9 @@ config = {
         'jet_veto_tag' : 'Summer23Prompt23_RunC_V1',
         'electron_SSF' :'data/EGM/2023/electronSS_EtDependent.json',
         'metpt_fname' : 'data/JERC/2023/met_xyCorrections_2023_2023.json',
-        'JER_tag' : 'Summer23Prompt23_RunCv1234_JRV1_MC_ScaleFactor_AK4PFPuppi'
-        }
+        'JER_tag' : 'Summer23Prompt23_RunCv1234_JRV1_MC_ScaleFactor_AK4PFPuppi',
+        'JER_tag_res' :'Summer23Prompt23_RunCv1234_JRV1_MC_PtResolution_AK4PFPuppi'
+}
 
 # processing options
 procflags = {

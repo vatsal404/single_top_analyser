@@ -7,7 +7,13 @@ import subprocess
 MC_BATCH_SIZE = 5
 
 REDIRECTOR = "root://cmsxrootd.fnal.gov"
-
+def clean_directory(d):
+    """Delete all files inside a directory"""
+    if os.path.exists(d):
+        for filename in os.listdir(d):
+            file_path = os.path.join(d, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
 def das_files(dataset):
     """Query DAS for files in a dataset"""
     q = f'file dataset={dataset}'
@@ -26,12 +32,14 @@ def ensure_dir(d):
         os.makedirs(d, exist_ok=True)
 
 def main():
-    in_list = "sample_list_2022.txt"
+    in_list = "sample_list.txt"
     out_list = "sample_list_split.txt"
     batch_dir = "batches"
 
     # Create batches directory
     ensure_dir(batch_dir)
+    clean_directory(batch_dir)
+    print(f"[INFO] Cleaned existing files in {batch_dir}/")
 
     if not os.path.isfile(in_list):
         raise SystemExit(f"Missing {in_list}")

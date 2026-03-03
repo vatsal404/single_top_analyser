@@ -156,7 +156,8 @@ int main(int argc, char* argv[]) {
         electron_SSF = "data/EGM/2023/electronSS_EtDependent.json";
         metpt_fname = "data/JERC/2023/met_xyCorrections_2023_2023.json";
         JER_tag = "Summer23Prompt23_RunCv1234_JRV1_MC_ScaleFactor_AK4PFPuppi";
-    } else {  // 2023BPix
+        JER_tag_res = "Summer23Prompt23_RunCv1234_JRV1_MC_PtResolution_AK4PFPuppi";
+} else {  // 2023BPix
         goodjsonfname = "data/golden_json_2023.json";
         pileupfname = "data/LUM/2023_post_BPIX/puWeights.json";
         pileuptag = "Collisions2023_369803_370790_eraD_GoldenJson";
