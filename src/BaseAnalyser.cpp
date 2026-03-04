@@ -799,17 +799,6 @@ void BaseAnalyser::bdt_variables()
     _rlm = _rlm.Define("delR_leadinglepton_jet",:: calculate_deltaR,{"leading_lepton","selected_cleanbjet_TL4vec"});
 
 
-    _rlm = _rlm.Define("btagbcflav_1j1b","region_1j1t && eu_channel ? btag_SF_bcflav_central : numb");
-
-    _rlm = _rlm.Define("btagbcflav_2j1b","region_2j1t && eu_channel ? btag_SF_bcflav_central : numb");
-
-    _rlm = _rlm.Define("btagbcflav_2j2b","region_2j2t && eu_channel ? btag_SF_bcflav_central : numb");
-
-    _rlm = _rlm.Define("btaglflav_1j1b","region_1j1t && eu_channel ? btag_SF_lflav_central : numb");
-
-    _rlm = _rlm.Define("btaglflav_2j1b","region_2j1t && eu_channel ? btag_SF_lflav_central : numb");
-
-    _rlm = _rlm.Define("btaglflav_2j2b","region_2j2t && eu_channel ? btag_SF_lflav_central : numb");
 }
 //=============================define variables==================================================//
 void BaseAnalyser::defineSystematics()

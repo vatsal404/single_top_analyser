@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
         //inputFiles = {"root://cmsxrootd.fnal.gov///store/data/Run2023C/MuonEG/NANOAOD/22Sep2023_v4-v1/30000/0874994b-9d31-4c1f-bdbc-d0073f7c7c4a.root"};
         era = "PreBPix";
     } else { // 2023BPix
-       // inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23BPixNanoAODv12/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_postBPix_v2-v3/2550000/1fc49961-22ba-4b79-86d7-e85128f21146.root"};
+        //inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23BPixNanoAODv12/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_postBPix_v2-v3/2550000/1fc49961-22ba-4b79-86d7-e85128f21146.root"};
 
         inputFiles = {"root://cmsxrootd.fnal.gov///store/data/Run2023D/MuonEG/NANOAOD/22Sep2023_v2-v1/2540000/2b1baeec-bc24-4a11-b7ae-220dd5987884.root"};
         era = "PostBPix";
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
         switch (syst) {
             case SystType::Nominal:       systName = "Nominal"; break;
             case SystType::EleScaleDown:  systName = "EleScaleDown"; break;
-            case SystType::EleScaleUp:    systName = "ElecaleUp"; break;
+            case SystType::EleScaleUp:    systName = "EleScaleUp"; break;
             case SystType::EleSmearDown:  systName = "EleSmearDown"; break;
             case SystType::EleSmearUp:    systName = "EleSmearUp"; break;
             case SystType::muon_resodn:   systName = "MuonSmearDown"; break;
