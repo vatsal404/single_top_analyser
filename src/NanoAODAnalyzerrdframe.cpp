@@ -177,8 +177,12 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,s
         _jetCorrector = _correction_jerc->compound().at(jettagMC);
     }
 	cout<< "JET tag in JSON : " << jettag << endl;
-	_jetCorrectionUnc = _correction_jerc->at(_jercunctag);
-	cout<< "JET uncertainity tag in JSON  : " << _jercunctag << endl;
+    for (const auto& tag : _jercunctag){
+        _jetCorrectionUnc.emplace_back(tag, _correction_jerc->at(tag));
+    }
+    for (const auto& tag : _jercunctag) {
+    cout << "JET uncertainty tag in JSON : " << tag << endl;
+    }
     cout<< "JER tag in json: " << JER_tag << endl;
     _jer_corrector = _correction_jerc->at(JER_tag);
     _jer_resolution = _correction_jerc->at(JER_tag_res);
@@ -345,7 +349,51 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                     jerSmearLambda,
                     {"Jet_pt_JEC", "Jet_eta", "Jet_genJetPt",
                     "Rho_fixedGridRhoFastjetAll"});
-        }
+            for (const auto& [tag, unc] : _jetCorrectionUnc) {
+
+                // Make safe column name: "Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi"
+                // becomes: "Jet_pt_corr_Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi_up"
+                string colBase = tag;
+                std::replace_if(colBase.begin(), colBase.end(),
+                        [](char c){ return !std::isalnum(c); }, '_');
+
+                string colUp   = "Jet_pt_corr_" + colBase + "_up";
+                string colDown = "Jet_pt_corr_" + colBase + "_down";
+
+                // Capture this iteration's corrector by value (CRITICAL - loop variable changes)
+                auto unc_copy = unc;
+
+                // UP variation
+                _rlm = _rlm.Define(colUp,
+                        [unc_copy](floats jetpts, floats jetetas) -> floats {
+                        floats out;
+                        out.reserve(jetpts.size());
+                        for (size_t i = 0; i < jetpts.size(); i++) {
+                        float unc_val = unc_copy->evaluate({jetetas[i], jetpts[i]});
+                        out.emplace_back(jetpts[i] * (1.f + unc_val));
+                        }
+                        return out;
+                        },
+                        {"Jet_pt_JEC", "Jet_eta"}
+                        );
+
+                // DOWN variation
+                _rlm = _rlm.Define(colDown,
+                        [unc_copy](floats jetpts, floats jetetas) -> floats {
+                        floats out;
+                        out.reserve(jetpts.size());
+                        for (size_t i = 0; i < jetpts.size(); i++) {
+                        float unc_val = unc_copy->evaluate({jetetas[i], jetpts[i]});
+                        out.emplace_back(jetpts[i] * (1.f - unc_val));
+                        }
+                        return out;
+                        },
+                        {"Jet_pt_JEC", "Jet_eta"}
+                        );
+
+                cout << "Defined uncertainty columns: " << colUp << ", " << colDown << endl;
+            }
+       }
     }
 }
 
@@ -720,7 +768,7 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection() //data and MC
     _rlm = _rlm.Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
   }
 }
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, string jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag,string JER_tag_res)
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag,string JER_tag_res)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;

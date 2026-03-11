@@ -61,7 +61,8 @@ config = {
         'jet_veto_tag' : 'Summer22EE_23Sep2023_RunEFG_V1',
         'electron_SSF' :'data/EGM/2022_postEE/electronSS_EtDependent.json.gz',
         'metpt_fname' : 'data/JERC/2022_postEE/met_xyCorrections_2022_2022EE.json.gz',
-        'JER_tag' : 'Summer22EE_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi'
+        'JER_tag' : 'Summer22EE_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi',
+        'JER_tag_res' : 'Summer22EE_22Sep2023_JRV1_MC_PtResolution_AK4PFPuppi'
         }
 
 # processing options

@@ -162,7 +162,7 @@ _rlm = _rlm.Filter(
 
 addCuts("eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
 
-//addCuts("(!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56))","00");//include this in 2022 EE
+addCuts("(!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56))","00");//include this in 2022 EE
 //
 //
 //
@@ -896,6 +896,9 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("subleading_lepton_pt");
     addVartoStore("hlt_sf_central");
     addVartoStore("puWeight");
+    addVartoStore("Jet_pt_corr_Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi_up");
+    addVartoStore("Jet_pt_corr_Summer22_22Sep2023_V2_MC_RelativeStatHF_AK4PFPuppi_down");
+
 } 
 
 void BaseAnalyser::bookHists()

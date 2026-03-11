@@ -32,7 +32,7 @@ def ensure_dir(d):
         os.makedirs(d, exist_ok=True)
 
 def main():
-    in_list = "sample_list.txt"
+    in_list = "sample_list_2022EE_G.txt"
     out_list = "sample_list_split.txt"
     batch_dir = "batches"
 

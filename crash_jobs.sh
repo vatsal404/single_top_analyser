@@ -6,7 +6,7 @@ CRASH_LIST="crashed_jobs.txt"
 MISSING_LIST="missing_jobs.txt"
 
 # 🔹 Set the directory containing .out files here
-LOG_DIR="/eos/uscms/store/user/vsinha/Result_2023/logs/"
+LOG_DIR="/eos/uscms/store/user/vsinha/Result_2022EE/logs/"
 
 # Clean old outputs
 > "$CRASH_LIST"

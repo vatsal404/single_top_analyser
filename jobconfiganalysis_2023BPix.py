@@ -66,7 +66,8 @@ config = {
         'jet_veto_tag' : 'Summer23BPixPrompt23_RunD_V1',
         'electron_SSF' :'data/EGM/2023_post_BPIX/electronSS_EtDependent.json',
         'metpt_fname' : 'data/JERC/2023_post_BPIX/met_xyCorrections_2023_2023BPix.json.gz',
-        'JER_tag' : 'Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor_AK4PFPuppi'
+        'JER_tag' : 'Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor_AK4PFPuppi',
+        'JER_tag_res' : 'Summer23BPixPrompt23_RunD_JRV1_MC_PtResolution_AK4PFPuppi',
         }
 
 # processing options

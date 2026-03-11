@@ -284,6 +284,71 @@ namespace ROOT {
 } // end of namespace ROOT for class vector<string>
 
 namespace ROOT {
+   static TClass *vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_Dictionary();
+   static void vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_TClassManip(TClass*);
+   static void *new_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p = 0);
+   static void *newArray_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(Long_t size, void *p);
+   static void delete_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p);
+   static void deleteArray_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p);
+   static void destruct_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const vector<pair<string,shared_ptr<const correction::Correction> > >*)
+   {
+      vector<pair<string,shared_ptr<const correction::Correction> > > *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<pair<string,shared_ptr<const correction::Correction> > >));
+      static ::ROOT::TGenericClassInfo 
+         instance("vector<pair<string,shared_ptr<const correction::Correction> > >", -2, "vector", 389,
+                  typeid(vector<pair<string,shared_ptr<const correction::Correction> > >), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_Dictionary, isa_proxy, 0,
+                  sizeof(vector<pair<string,shared_ptr<const correction::Correction> > >) );
+      instance.SetNew(&new_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR);
+      instance.SetNewArray(&newArray_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR);
+      instance.SetDelete(&delete_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR);
+      instance.SetDeleteArray(&deleteArray_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR);
+      instance.SetDestructor(&destruct_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR);
+      instance.AdoptCollectionProxyInfo(TCollectionProxyInfo::Generate(TCollectionProxyInfo::Pushback< vector<pair<string,shared_ptr<const correction::Correction> > > >()));
+
+      ::ROOT::AddClassAlternate("vector<pair<string,shared_ptr<const correction::Correction> > >","std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<correction::Correction const> >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::shared_ptr<correction::Correction const> > > >");
+      return &instance;
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<pair<string,shared_ptr<const correction::Correction> > >*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+
+   // Dictionary for non-ClassDef classes
+   static TClass *vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_Dictionary() {
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<pair<string,shared_ptr<const correction::Correction> > >*)0x0)->GetClass();
+      vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_TClassManip(theClass);
+   return theClass;
+   }
+
+   static void vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_TClassManip(TClass* ){
+   }
+
+} // end of namespace ROOT
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p) {
+      return  p ? ::new((::ROOT::Internal::TOperatorNewHelper*)p) vector<pair<string,shared_ptr<const correction::Correction> > > : new vector<pair<string,shared_ptr<const correction::Correction> > >;
+   }
+   static void *newArray_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(Long_t nElements, void *p) {
+      return p ? ::new((::ROOT::Internal::TOperatorNewHelper*)p) vector<pair<string,shared_ptr<const correction::Correction> > >[nElements] : new vector<pair<string,shared_ptr<const correction::Correction> > >[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p) {
+      delete ((vector<pair<string,shared_ptr<const correction::Correction> > >*)p);
+   }
+   static void deleteArray_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p) {
+      delete [] ((vector<pair<string,shared_ptr<const correction::Correction> > >*)p);
+   }
+   static void destruct_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p) {
+      typedef vector<pair<string,shared_ptr<const correction::Correction> > > current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class vector<pair<string,shared_ptr<const correction::Correction> > >
+
+namespace ROOT {
    static TClass *vectorlEhist2dinfogR_Dictionary();
    static void vectorlEhist2dinfogR_TClassManip(TClass*);
    static void *new_vectorlEhist2dinfogR(void *p = 0);
