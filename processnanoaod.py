@@ -4,6 +4,7 @@
 Modified version of the NanoAOD processor with added XRootD support and extended corrections
 Original author: Suyong Choi (Department of Physics, Korea University suyong@korea.ac.kr)
 """
+from enum import Enum
 import os
 import re
 import subprocess
@@ -11,6 +12,19 @@ import sys
 from multiprocessing import Process
 import cppyy
 import ROOT
+
+class SystType(Enum):
+    Nominal      = 0
+    EleSmearUp   = 1
+    EleSmearDown = 2
+    EleScaleUp   = 3
+    EleScaleDown = 4
+    met_PUUp     = 5
+    met_PUDown   = 6
+    muon_scaleup = 7
+    muon_scaledn = 8
+    muon_resoup  = 9
+    muon_resodn  = 10
 
 def is_filelist(path):
     """
@@ -152,7 +166,7 @@ class Nanoaodprocessor:
                     outfname = outputdirectory + '/' + withoutext + '_analyzed.root'
                     subprocess.run(["./processonefile.py", afile, outfname, self.jobconfmod])
 
-def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,sumgenWeight):
+def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,sumgenWeight,syst):
     """
     Runs nanoaod analyzer over ROOT files in indir and outputs into a single ROOT file.
     Now supports both local and remote files via XRootD.
@@ -227,7 +241,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
     
 #    aproc = ROOT.BaseAnalyser(t, outputroot)
  #   aproc.setParams(config['year'], config['runtype'], config['datatype'])
-    aproc = ROOT.BaseAnalyser(t, outputroot,crossection,sumgenWeight)
+    aproc = ROOT.BaseAnalyser(t, outputroot,crossection,sumgenWeight,syst)
 
     try:
         aproc.setParams(config['year'], config['runtype'], config['datatype'])
@@ -286,7 +300,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
     aproc.setupObjects()
     aproc.setupAnalysis()
     aproc.run(saveallbranches, outtreename)
-
+    return bool(aproc.isData())  # add this
 if __name__ == '__main__':
     from importlib import import_module
     from argparse import ArgumentParser
@@ -315,4 +329,24 @@ if __name__ == '__main__':
         n.process()
     else:
         print("allinone")
-        Nanoaodprocessor_singledir(args.indir, args.outdir, procflags, config,args.crossection,args.sumgenWeight)
+
+    # Run Nominal first, detect data/MC
+        is_data = Nanoaodprocessor_singledir(args.indir, args.outdir, procflags, config,
+        args.crossection, args.sumgenWeight,
+        SystType.Nominal.value)
+
+    # Build systematics list
+        if is_data:
+            systematics = [SystType.EleScaleUp, SystType.EleScaleDown]
+        else:
+            systematics = [
+         SystType.EleSmearDown,
+         SystType.EleSmearUp,
+        # uncomment as needed
+    ]
+        for syst in systematics:
+            syst_name = syst.name
+            output_file = f"output_{syst_name}_{config['year']}.root"
+            Nanoaodprocessor_singledir(args.indir, output_file, procflags, config,
+            args.crossection, args.sumgenWeight,
+            syst.value)

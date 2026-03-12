@@ -7,7 +7,7 @@ import os
 directory = "merged/"  # Path where all ROOT files are stored
 
 # Variable to plot (change this to any variable you want)
-variable_to_plot = "goodmuons_leading_pt"
+variable_to_plot = "goodElectrons_leading_pt"
 
 # Define custom binning: (start, end, num_bins)
 binning = (0,200, 30)
