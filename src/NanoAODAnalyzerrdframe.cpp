@@ -282,16 +282,21 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
             // ------------------------------------------
             // 2. Apply JER Smearing (Correct Way)
             // ------------------------------------------
+            // 2. Apply JER Smearing (Correct Way)
+            // ------------------------------------------
+
+            // 🔑 Generalized lambda with variation
             auto jerSmearLambda =
                 [this](floats jetpts,
                         floats jetetas,
                         floats jetgenpt,
-                        float rho) -> floats
+                        float rho,
+                        std::string variation) -> floats
                 {
                     floats out;
                     out.reserve(jetpts.size());
 
-                    TRandom3 rand(0);
+                    TRandom3 rand(12345);  // fixed seed (better than 0)
 
                     for (size_t i = 0; i < jetpts.size(); i++)
                     {
@@ -302,8 +307,8 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                         // Get resolution
                         float resolution = _jer_resolution->evaluate({eta, pt, rho});
 
-                        // Get scale factor
-                        float sf = _jer_corrector->evaluate({eta, pt , "nom"});
+                        // 🔑 variation applied here
+                        float sf = _jer_corrector->evaluate({eta, pt, variation});
 
                         float smeared_pt = pt;
 
@@ -324,6 +329,11 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
                     return out;
                 };
+
+
+            // ------------------------------------------
+            // GenJet matching (unchanged)
+            // ------------------------------------------
             _rlm = _rlm.Define("Jet_genJetPt",
                     [](const ROOT::VecOps::RVec<float>& GenJet_pt,
                         const ROOT::VecOps::RVec<short>& Jet_genJetIdx)
@@ -342,28 +352,71 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                     }
 
                     return out;
-    },
-    {"GenJet_pt", "Jet_genJetIdx"});
+                    },
+                    {"GenJet_pt", "Jet_genJetIdx"});
 
+
+            // ------------------------------------------
+            // Nominal JER
+            // ------------------------------------------
             _rlm = _rlm.Define("Jet_pt_corr",
-                    jerSmearLambda,
+                    [jerSmearLambda](floats pt, floats eta, floats genpt, float rho)
+                    {
+                    return jerSmearLambda(pt, eta, genpt, rho, "nom");
+                    },
                     {"Jet_pt_JEC", "Jet_eta", "Jet_genJetPt",
                     "Rho_fixedGridRhoFastjetAll"});
+
+
+            // ------------------------------------------
+            // JER UP
+            // ------------------------------------------
+            _rlm = _rlm.Define("Jet_pt_corr_jer_up",
+                    [jerSmearLambda](floats pt, floats eta, floats genpt, float rho)
+                    {
+                    return jerSmearLambda(pt, eta, genpt, rho, "up");
+                    },
+                    {"Jet_pt_JEC", "Jet_eta", "Jet_genJetPt",
+                    "Rho_fixedGridRhoFastjetAll"});
+
+
+            // ------------------------------------------
+            // JER DOWN
+            // ------------------------------------------
+            _rlm = _rlm.Define("Jet_pt_corr_jer_down",
+                    [jerSmearLambda](floats pt, floats eta, floats genpt, float rho)
+                    {
+                    return jerSmearLambda(pt, eta, genpt, rho, "down");
+                    },
+                    {"Jet_pt_JEC", "Jet_eta", "Jet_genJetPt",
+                    "Rho_fixedGridRhoFastjetAll"});
+
+
+            // ------------------------------------------
+            // JEC uncertainties (UNCHANGED)
+            // ------------------------------------------
             for (const auto& [tag, unc] : _jetCorrectionUnc) {
 
-                // Make safe column name: "Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi"
-                // becomes: "Jet_pt_corr_Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi_up"
-                string colBase = tag;
+                string colBase;
+
+                size_t mc_pos  = tag.find("MC_");
+                size_t ak4_pos = tag.find("_AK4");
+
+                if (mc_pos != string::npos && ak4_pos != string::npos) {
+                    colBase = tag.substr(mc_pos + 3, ak4_pos - (mc_pos + 3));
+                } else {
+                    colBase = tag;
+                }
+
                 std::replace_if(colBase.begin(), colBase.end(),
                         [](char c){ return !std::isalnum(c); }, '_');
 
                 string colUp   = "Jet_pt_corr_" + colBase + "_up";
                 string colDown = "Jet_pt_corr_" + colBase + "_down";
 
-                // Capture this iteration's corrector by value (CRITICAL - loop variable changes)
                 auto unc_copy = unc;
 
-                // UP variation
+                // UP
                 _rlm = _rlm.Define(colUp,
                         [unc_copy](floats jetpts, floats jetetas) -> floats {
                         floats out;
@@ -377,7 +430,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                         {"Jet_pt_JEC", "Jet_eta"}
                         );
 
-                // DOWN variation
+                // DOWN
                 _rlm = _rlm.Define(colDown,
                         [unc_copy](floats jetpts, floats jetetas) -> floats {
                         floats out;
@@ -391,9 +444,12 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                         {"Jet_pt_JEC", "Jet_eta"}
                         );
 
-                cout << "Defined uncertainty columns: " << colUp << ", " << colDown << endl;
+                cout << "Defined uncertainty columns: "
+                    << colUp << ", " << colDown << endl;
+
+
             }
-       }
+        }
     }
 }
 
@@ -415,161 +471,161 @@ void NanoAODAnalyzerrdframe::applyMuPtCorrection()
     if (_isData) {
         // Data: Only apply scale corrections
         auto lambdaf_data = [muonHelper](const ROOT::VecOps::RVec<int>& mu_charges,
-                                         const ROOT::VecOps::RVec<float>& mu_pts,
-                                         const ROOT::VecOps::RVec<float>& mu_etas,
-                                         const ROOT::VecOps::RVec<float>& mu_phis)
+                const ROOT::VecOps::RVec<float>& mu_pts,
+                const ROOT::VecOps::RVec<float>& mu_etas,
+                const ROOT::VecOps::RVec<float>& mu_phis)
         {
             ROOT::VecOps::RVec<float> corrMuPts;
             corrMuPts.reserve(mu_pts.size());
-            
+
             for (size_t i = 0; i < mu_pts.size(); i++) {
                 float corrected_pt = muonHelper->pt_scale(true, mu_pts[i], mu_etas[i], 
-                                                         mu_phis[i], mu_charges[i]);
+                        mu_phis[i], mu_charges[i]);
                 corrMuPts.emplace_back(corrected_pt);
             }
             return corrMuPts;
         };
 
         _rlm = _rlm.Define("Muon_pt_corr", lambdaf_data, 
-                          {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi"});
+                {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi"});
     }
     else {
         // MC: Apply both scale and resolution corrections
         auto lambdaf_mc = [muonHelper](const ROOT::VecOps::RVec<int>& mu_charges,
-                                       const ROOT::VecOps::RVec<float>& mu_pts,
-                                       const ROOT::VecOps::RVec<float>& mu_etas,
-                                       const ROOT::VecOps::RVec<float>& mu_phis,
-                                       const ROOT::VecOps::RVec<UChar_t>& nls,
-                                       ULong64_t event,
-                                       UInt_t lumi)
+                const ROOT::VecOps::RVec<float>& mu_pts,
+                const ROOT::VecOps::RVec<float>& mu_etas,
+                const ROOT::VecOps::RVec<float>& mu_phis,
+                const ROOT::VecOps::RVec<UChar_t>& nls,
+                ULong64_t event,
+                UInt_t lumi)
         {
             ROOT::VecOps::RVec<float> corrMuPts;
             corrMuPts.reserve(mu_pts.size());
-            
+
             for (size_t i = 0; i < mu_pts.size(); i++) {
                 float nTrackerLayers = static_cast<float>(nls[i]);
-                
+
                 // Step 1: Apply scale correction
                 float pt_scaled = muonHelper->pt_scale(false, mu_pts[i], mu_etas[i], 
-                                                      mu_phis[i], mu_charges[i]);
-                
+                        mu_phis[i], mu_charges[i]);
+
                 // Step 2: Apply resolution smearing
                 float corrected_pt = muonHelper->pt_resol(pt_scaled, mu_etas[i], mu_phis[i],
-                                                         nTrackerLayers, 
-                                                         static_cast<int>(event), 
-                                                         static_cast<int>(lumi));
-                
+                        nTrackerLayers, 
+                        static_cast<int>(event), 
+                        static_cast<int>(lumi));
+
                 corrMuPts.emplace_back(corrected_pt);
             }
             return corrMuPts;
         };
-        
+
         _rlm = _rlm.Define("Muon_pt_corr", lambdaf_mc, 
-                          {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi",
-                           "Muon_nTrackerLayers", "event", "luminosityBlock"});
-        
+                {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi",
+                "Muon_nTrackerLayers", "event", "luminosityBlock"});
+
         // --- MC ONLY: Add systematic uncertainty variations ---
         cout << "Adding Muon Pt correction uncertainties for MC" << endl;
-        
+
         // First, create the intermediate scaled pt (before resolution)
         auto lambdaf_scaled = [muonHelper](const ROOT::VecOps::RVec<int>& mu_charges,
-                                           const ROOT::VecOps::RVec<float>& mu_pts,
-                                           const ROOT::VecOps::RVec<float>& mu_etas,
-                                           const ROOT::VecOps::RVec<float>& mu_phis)
+                const ROOT::VecOps::RVec<float>& mu_pts,
+                const ROOT::VecOps::RVec<float>& mu_etas,
+                const ROOT::VecOps::RVec<float>& mu_phis)
         {
             ROOT::VecOps::RVec<float> scaledMuPts;
             scaledMuPts.reserve(mu_pts.size());
-            
+
             for (size_t i = 0; i < mu_pts.size(); i++) {
                 float pt_scaled = muonHelper->pt_scale(false, mu_pts[i], mu_etas[i], 
-                                                      mu_phis[i], mu_charges[i]);
+                        mu_phis[i], mu_charges[i]);
                 scaledMuPts.emplace_back(pt_scaled);
             }
             return scaledMuPts;
         };
 
         _rlm = _rlm.Define("Muon_pt_scaled", lambdaf_scaled,
-                          {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi"});
+                {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi"});
 
         // Scale variations (Up)
         auto lambdaf_scale_up = [muonHelper](const ROOT::VecOps::RVec<float>& mu_pts_corr,
-                                             const ROOT::VecOps::RVec<float>& mu_etas,
-                                             const ROOT::VecOps::RVec<float>& mu_phis,
-                                             const ROOT::VecOps::RVec<int>& mu_charges)
+                const ROOT::VecOps::RVec<float>& mu_etas,
+                const ROOT::VecOps::RVec<float>& mu_phis,
+                const ROOT::VecOps::RVec<int>& mu_charges)
         {
             ROOT::VecOps::RVec<float> varMuPts;
             varMuPts.reserve(mu_pts_corr.size());
-            
+
             for (size_t i = 0; i < mu_pts_corr.size(); i++) {
                 float pt_var = muonHelper->pt_scale_var(mu_pts_corr[i], mu_etas[i], 
-                                                       mu_phis[i], mu_charges[i], "up");
+                        mu_phis[i], mu_charges[i], "up");
                 varMuPts.emplace_back(pt_var);
             }
             return varMuPts;
         };
 
         _rlm = _rlm.Define("Muon_pt_corr_scaleUp", lambdaf_scale_up,
-                          {"Muon_pt_corr", "Muon_eta", "Muon_phi", "Muon_charge"});
+                {"Muon_pt_corr", "Muon_eta", "Muon_phi", "Muon_charge"});
 
         // Scale variations (Down)
         auto lambdaf_scale_dn = [muonHelper](const ROOT::VecOps::RVec<float>& mu_pts_corr,
-                                             const ROOT::VecOps::RVec<float>& mu_etas,
-                                             const ROOT::VecOps::RVec<float>& mu_phis,
-                                             const ROOT::VecOps::RVec<int>& mu_charges)
+                const ROOT::VecOps::RVec<float>& mu_etas,
+                const ROOT::VecOps::RVec<float>& mu_phis,
+                const ROOT::VecOps::RVec<int>& mu_charges)
         {
             ROOT::VecOps::RVec<float> varMuPts;
             varMuPts.reserve(mu_pts_corr.size());
-            
+
             for (size_t i = 0; i < mu_pts_corr.size(); i++) {
                 float pt_var = muonHelper->pt_scale_var(mu_pts_corr[i], mu_etas[i], 
-                                                       mu_phis[i], mu_charges[i], "dn");
+                        mu_phis[i], mu_charges[i], "dn");
                 varMuPts.emplace_back(pt_var);
             }
             return varMuPts;
         };
 
         _rlm = _rlm.Define("Muon_pt_corr_scaleDn", lambdaf_scale_dn,
-                          {"Muon_pt_corr", "Muon_eta", "Muon_phi", "Muon_charge"});
+                {"Muon_pt_corr", "Muon_eta", "Muon_phi", "Muon_charge"});
 
         // Resolution variations (Up)
         auto lambdaf_resol_up = [muonHelper](const ROOT::VecOps::RVec<float>& pt_scaled,
-                                             const ROOT::VecOps::RVec<float>& pt_corr,
-                                             const ROOT::VecOps::RVec<float>& mu_etas)
+                const ROOT::VecOps::RVec<float>& pt_corr,
+                const ROOT::VecOps::RVec<float>& mu_etas)
         {
             ROOT::VecOps::RVec<float> varMuPts;
             varMuPts.reserve(pt_corr.size());
-            
+
             for (size_t i = 0; i < pt_corr.size(); i++) {
                 float pt_var = muonHelper->pt_resol_var(pt_scaled[i], pt_corr[i], 
-                                                       mu_etas[i], "up");
+                        mu_etas[i], "up");
                 varMuPts.emplace_back(pt_var);
             }
             return varMuPts;
         };
 
         _rlm = _rlm.Define("Muon_pt_corr_resolUp", lambdaf_resol_up,
-                          {"Muon_pt_scaled", "Muon_pt_corr", "Muon_eta"});
+                {"Muon_pt_scaled", "Muon_pt_corr", "Muon_eta"});
 
         // Resolution variations (Down)
         auto lambdaf_resol_dn = [muonHelper](const ROOT::VecOps::RVec<float>& pt_scaled,
-                                             const ROOT::VecOps::RVec<float>& pt_corr,
-                                             const ROOT::VecOps::RVec<float>& mu_etas)
+                const ROOT::VecOps::RVec<float>& pt_corr,
+                const ROOT::VecOps::RVec<float>& mu_etas)
         {
             ROOT::VecOps::RVec<float> varMuPts;
             varMuPts.reserve(pt_corr.size());
-            
+
             for (size_t i = 0; i < pt_corr.size(); i++) {
                 float pt_var = muonHelper->pt_resol_var(pt_scaled[i], pt_corr[i], 
-                                                       mu_etas[i], "dn");
+                        mu_etas[i], "dn");
                 varMuPts.emplace_back(pt_var);
             }
             return varMuPts;
         };
 
         _rlm = _rlm.Define("Muon_pt_corr_resolDn", lambdaf_resol_dn,
-                          {"Muon_pt_scaled", "Muon_pt_corr", "Muon_eta"});
+                {"Muon_pt_scaled", "Muon_pt_corr", "Muon_eta"});
     }
-    
+
     cout << "Muon Pt correction applied successfully" << endl;
 }
 
@@ -1049,6 +1105,7 @@ std::cout << "======================================\n" << std::endl;
     }
 
     hltSFHist_ = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor"));
+//    hltSFHist_err = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor_total"));
     if (!hltSFHist_) {
         throw std::runtime_error("HLT scale_factor histogram not found");
     }

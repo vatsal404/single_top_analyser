@@ -270,7 +270,7 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodmuonsID", MuonID(4));
-    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_pt_corr > 20 && abs(Muon_eta) < 2.4 && Muon_pfRelIso04_all<0.15");
+    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_pt_corr > 20 && abs(Muon_eta) < 2.4 ");
     _rlm = _rlm.Define("goodmuons_pt", "Muon_pt_corr[goodmuons]")
         .Define("goodmuons_leading_pt_index","ArgMax(goodmuons_pt)")
         .Define("goodmuons_pdgId","Muon_pdgId[goodmuons]")
@@ -765,7 +765,7 @@ _rlm = calculateHLTSF(_rlm);
 
         
 //  _rlm = _rlm.Define("evWeight", " Lumifactor * btag_SF_bcflav_central  * btag_SF_lflav_central * puWeight*genWeight * muon_SF_central * ele_SF_central"); // btag_SF_bcflav_central * btag_SF_lflav_central
-  _rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
+ _rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
  _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf_central");
  } 
 
@@ -834,11 +834,11 @@ void BaseAnalyser::defineSystematics()
     else if (_syst == SystType::EleScaleDown) {
         branches.ele_pt = "Electron_pt_corr_scaleDown";
     }
-    else if (_syst == SystType::met_PUUp) {
+    else if (_syst == SystType::Met_PUUp) {
         branches.met_pt  = "PuppiMET_pt_corr_puUp";
         branches.met_phi = "PuppiMET_phi_corr_puUp";
     }
-    else if (_syst == SystType::met_PUDown) {
+    else if (_syst == SystType::Met_PUDown) {
         branches.met_pt  = "PuppiMET_pt_corr_puDown";
         branches.met_phi = "PuppiMET_phi_corr_puDown";
     }
@@ -854,8 +854,79 @@ void BaseAnalyser::defineSystematics()
     else if (_syst == SystType::muon_resodn) {
         branches.muon_pt = "Muon_pt_corr_resolDn";
     }
+    // =========================
+    // Jet Energy Scale systematics
+    // =========================
 
+    // Regrouped_FlavorQCD
+    else if (_syst == SystType::JEC_Regrouped_FlavorQCDUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_FlavorQCD_up";
+    else if (_syst == SystType::JEC_Regrouped_FlavorQCDDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_FlavorQCD_down";
 
+    // Regrouped_RelativeBal
+    else if (_syst == SystType::JEC_Regrouped_RelativeBalUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_RelativeBal_up";
+    else if (_syst == SystType::JEC_Regrouped_RelativeBalDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_RelativeBal_down";
+
+    // Regrouped_HF
+    else if (_syst == SystType::JEC_Regrouped_HFUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_HF_up";
+    else if (_syst == SystType::JEC_Regrouped_HFDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_HF_down";
+
+    // Regrouped_BBEC1
+    else if (_syst == SystType::JEC_Regrouped_BBEC1Up)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_BBEC1_up";
+    else if (_syst == SystType::JEC_Regrouped_BBEC1Down)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_BBEC1_down";
+
+    // Regrouped_EC2
+    else if (_syst == SystType::JEC_Regrouped_EC2Up)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_EC2_up";
+    else if (_syst == SystType::JEC_Regrouped_EC2Down)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_EC2_down";
+
+    // Regrouped_Absolute
+    else if (_syst == SystType::JEC_Regrouped_AbsoluteUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_Absolute_up";
+    else if (_syst == SystType::JEC_Regrouped_AbsoluteDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_Absolute_down";
+    // Regrouped_Absolute_YEAR
+    else if (_syst == SystType::JEC_Regrouped_Absolute_YearUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_Absolute_" + _year + "_up";
+    else if (_syst == SystType::JEC_Regrouped_Absolute_YearDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_Absolute_" + _year + "_down";
+
+    // Regrouped_HF_YEAR
+    else if (_syst == SystType::JEC_Regrouped_HF_YearUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_HF_" + _year + "_up";
+    else if (_syst == SystType::JEC_Regrouped_HF_YearDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_HF_" + _year + "_down";
+
+    // Regrouped_EC2_YEAR
+    else if (_syst == SystType::JEC_Regrouped_EC2_YearUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_EC2_" + _year + "_up";
+    else if (_syst == SystType::JEC_Regrouped_EC2_YearDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_EC2_" + _year + "_down";
+
+    // Regrouped_RelativeSample_YEAR
+    else if (_syst == SystType::JEC_Regrouped_RelativeSample_YearUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_RelativeSample_" + _year + "_up";
+    else if (_syst == SystType::JEC_Regrouped_RelativeSample_YearDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_RelativeSample_" + _year + "_down";
+
+    // Regrouped_BBEC1_YEAR
+    else if (_syst == SystType::JEC_Regrouped_BBEC1_YearUp)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_BBEC1_" + _year + "_up";
+    else if (_syst == SystType::JEC_Regrouped_BBEC1_YearDown)
+        branches.jet_pt = "Jet_pt_corr_Regrouped_BBEC1_" + _year + "_down";
+    //jer up
+    else if (_syst == SystType::JER_Up)
+        branches.jet_pt = "Jet_pt_corr_jer_up";
+    else if (_syst == SystType::JER_Down)
+        branches.jet_pt = "Jet_pt_corr_jer_up"; 
     // =========================
     // Define ACTIVE columns (only once)
     // =========================
@@ -863,7 +934,8 @@ void BaseAnalyser::defineSystematics()
         .Define("Electron_pt_active", branches.ele_pt)
         .Define("MET_pt_active",      branches.met_pt)
         .Define("MET_phi_active",     branches.met_phi)
-        .Define("Muon_pt_active",   branches.muon_pt);
+        .Define("Muon_pt_active",   branches.muon_pt)
+        .Define("Jet_pt_active", branches.jet_pt);
 
     if (debug) {
         std::cout << "\n[Systematics] Active branches\n"
@@ -871,6 +943,8 @@ void BaseAnalyser::defineSystematics()
                   << "  MET pt      : " << branches.met_pt << "\n"
                   << "  MET phi     : " << branches.met_phi << "\n"
                   << "  Muon pt      : " << branches.muon_pt << "\n"
+                  << "  jet pt      : " << branches.jet_pt << "\n"
+
                   << std::endl;
     }
 }
@@ -973,12 +1047,22 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("muon_SF_down");
     addVartoStore("subleading_lepton_pt");
     addVartoStore("hlt_sf_central");
-    addVartoStore("puWeight");
     addVartoStore("Jet_pt_corr_Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi_up");
     addVartoStore("Jet_pt_corr_Summer22_22Sep2023_V2_MC_RelativeStatHF_AK4PFPuppi_down");
     addVartoStore("puWeight_down");
     addVartoStore("puWeight_up");
     addVartoStore("puWeight");
+    addVartoStore("nLHEScaleWeight");
+    addVartoStore("nLHEPdfWeight");
+    addVartoStore("nPSWeight");
+    addVartoStore("LHEScaleWeight");
+    addVartoStore("LHEPdfWeight");
+    addVartoStore("PSWeight");
+    addVartoStore("LHEPdfSumw");
+    addVartoStore("LHEScaleSumw");
+    addVartoStore("PSSumw");
+    addVartoStore("Jet_pt_corr_jer_up");
+    addVartoStore("Jet_pt_corr_jer_down");
 
 } 
 

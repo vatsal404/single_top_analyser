@@ -3,31 +3,96 @@
 
 #include "NanoAODAnalyzerrdframe.h"
 
-// ================= Systematic enum ================= //
 enum class SystType {
+
+    // Nominal
     Nominal,
+
+    // Electron systematics
     EleSmearUp,
     EleSmearDown,
     EleScaleUp,
     EleScaleDown,
-    met_PUUp,
-    met_PUDown,
+
+    // MET PU
+    Met_PUUp,
+    Met_PUDown,
+
+    // Muon systematics
     muon_scaleup,
     muon_scaledn,
     muon_resoup,
-    muon_resodn
+    muon_resodn,
+
+    // ================= JEC systematics ================= //
+
+    // ================= JEC systematics (REGROUPED) ================= //
+
+    // -------- Global (correlated across years) -------- //
+
+    // FlavorQCD
+    JEC_Regrouped_FlavorQCDUp,
+    JEC_Regrouped_FlavorQCDDown,
+
+    // RelativeBal
+    JEC_Regrouped_RelativeBalUp,
+    JEC_Regrouped_RelativeBalDown,
+
+    // HF
+    JEC_Regrouped_HFUp,
+    JEC_Regrouped_HFDown,
+
+    // BBEC1
+    JEC_Regrouped_BBEC1Up,
+    JEC_Regrouped_BBEC1Down,
+
+    // EC2
+    JEC_Regrouped_EC2Up,
+    JEC_Regrouped_EC2Down,
+
+    // Absolute
+    JEC_Regrouped_AbsoluteUp,
+    JEC_Regrouped_AbsoluteDown,
+
+    // -------- Year-dependent (decorrelated) -------- //
+
+    // Absolute_YEAR
+    JEC_Regrouped_Absolute_YearUp,
+    JEC_Regrouped_Absolute_YearDown,
+
+    // HF_YEAR
+    JEC_Regrouped_HF_YearUp,
+    JEC_Regrouped_HF_YearDown,
+
+    // EC2_YEAR
+    JEC_Regrouped_EC2_YearUp,
+    JEC_Regrouped_EC2_YearDown,
+
+    // RelativeSample_YEAR
+    JEC_Regrouped_RelativeSample_YearUp,
+    JEC_Regrouped_RelativeSample_YearDown,
+
+    // BBEC1_YEAR
+    JEC_Regrouped_BBEC1_YearUp,
+    JEC_Regrouped_BBEC1_YearDown,
+     //JER variation
+    JER_Up,
+    JER_Down,
+
 };
 struct BranchSet {
     std::string ele_pt;
     std::string met_pt;
     std::string met_phi;
     std::string muon_pt;
+    std::string jet_pt;
 
     void setNominal() {
         ele_pt  = "Electron_pt_corr";
         met_pt  = "PuppiMET_pt_corr";
         met_phi = "PuppiMET_phi_corr";
         muon_pt = "Muon_pt_corr";
+        jet_pt = "Jet_pt_corr";
     }
 };
 

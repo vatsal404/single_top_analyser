@@ -63,22 +63,71 @@ int main(int argc, char* argv[]) {
 
     // Define systematics based on data/MC
     vector<SystType> systematics = {SystType::Nominal};
+
     if (!isData) {
-        systematics.push_back(SystType::EleSmearDown);
-        systematics.push_back(SystType::EleSmearUp);
-//        systematics.push_back(SystType::EleScaleUp);
-//        systematics.push_back(SystType::EleScaleDown);
-//        systematics.push_back(SystType::met_PUDown);
-//        systematics.push_back(SystType::met_PUUp);
-//        systematics.push_back(SystType::muon_scaleup);
-//        systematics.push_back(SystType::muon_scaledn);
-//        systematics.push_back(SystType::muon_resoup);
-//        systematics.push_back(SystType::muon_resodn);
-       }
-    else if (isData){
+
+        // Electron
+        //systematics.push_back(SystType::EleSmearDown);
+        //systematics.push_back(SystType::EleSmearUp);
+
+        // systematics.push_back(SystType::EleScaleUp);
+        // systematics.push_back(SystType::EleScaleDown);
+
+        // systematics.push_back(SystType::met_PUDown);
+        // systematics.push_back(SystType::met_PUUp);
+
+        // systematics.push_back(SystType::muon_scaleup);
+        // systematics.push_back(SystType::muon_scaledn);
+        // systematics.push_back(SystType::muon_resoup);
+        // systematics.push_back(SystType::muon_resodn);
+        // ================= JEC Regrouped Systematics ================= //
+
+        // -------- Global (correlated) -------- //
+
+        systematics.push_back(SystType::JER_Up);
+        systematics.push_back(SystType::JER_Down);
+        
+        systematics.push_back(SystType::JEC_Regrouped_FlavorQCDUp);
+        systematics.push_back(SystType::JEC_Regrouped_FlavorQCDDown);
+
+        systematics.push_back(SystType::JEC_Regrouped_RelativeBalUp);
+        systematics.push_back(SystType::JEC_Regrouped_RelativeBalDown);
+
+        systematics.push_back(SystType::JEC_Regrouped_HFUp);
+        systematics.push_back(SystType::JEC_Regrouped_HFDown);
+
+        systematics.push_back(SystType::JEC_Regrouped_BBEC1Up);
+        systematics.push_back(SystType::JEC_Regrouped_BBEC1Down);
+
+        systematics.push_back(SystType::JEC_Regrouped_EC2Up);
+        systematics.push_back(SystType::JEC_Regrouped_EC2Down);
+
+        systematics.push_back(SystType::JEC_Regrouped_AbsoluteUp);
+        systematics.push_back(SystType::JEC_Regrouped_AbsoluteDown);
+
+
+        // -------- Year-dependent (decorrelated) -------- //
+
+        systematics.push_back(SystType::JEC_Regrouped_Absolute_YearUp);
+        systematics.push_back(SystType::JEC_Regrouped_Absolute_YearDown);
+
+        systematics.push_back(SystType::JEC_Regrouped_HF_YearUp);
+        systematics.push_back(SystType::JEC_Regrouped_HF_YearDown);
+
+        systematics.push_back(SystType::JEC_Regrouped_EC2_YearUp);
+        systematics.push_back(SystType::JEC_Regrouped_EC2_YearDown);
+
+        systematics.push_back(SystType::JEC_Regrouped_RelativeSample_YearUp);
+        systematics.push_back(SystType::JEC_Regrouped_RelativeSample_YearDown);
+
+        systematics.push_back(SystType::JEC_Regrouped_BBEC1_YearUp);
+        systematics.push_back(SystType::JEC_Regrouped_BBEC1_YearDown);
+    
+    }
+    else if (isData) {
+
         systematics.push_back(SystType::EleScaleUp);
         systematics.push_back(SystType::EleScaleDown);
-
     }
 
     cout << "Running for " << (isData ? "Data" : "MC") << endl;
@@ -88,20 +137,69 @@ int main(int argc, char* argv[]) {
     for (auto syst : systematics) {
         string systName;
         switch (syst) {
+
             case SystType::Nominal:       systName = "Nominal"; break;
+
             case SystType::EleScaleDown:  systName = "EleScaleDown"; break;
             case SystType::EleScaleUp:    systName = "EleScaleUp"; break;
             case SystType::EleSmearDown:  systName = "EleSmearDown"; break;
             case SystType::EleSmearUp:    systName = "EleSmearUp"; break;
+
             case SystType::muon_resodn:   systName = "MuonSmearDown"; break;
             case SystType::muon_resoup:   systName = "MuonSmearUp"; break;
             case SystType::muon_scaleup:  systName = "MuonScaleUp"; break;
             case SystType::muon_scaledn:  systName = "MuonScaleDown"; break;
-            case SystType::met_PUDown:    systName = "Met_pu_down"; break;
-            case SystType::met_PUUp:      systName = "Met_pu_up"; break;
-            default:                      systName = "Unknown"; break;
-        }
 
+            case SystType::Met_PUDown:    systName = "Met_pu_down"; break;
+            case SystType::Met_PUUp:      systName = "Met_pu_up"; break;
+
+                                          // ================= JEC =================
+
+                                          // ================= JEC Regrouped Systematics ================= //
+
+                                          // -------- Global (correlated) -------- //
+
+            case SystType::JEC_Regrouped_FlavorQCDUp:   systName = "JEC_Regrouped_FlavorQCDUp"; break;
+            case SystType::JEC_Regrouped_FlavorQCDDown: systName = "JEC_Regrouped_FlavorQCDDown"; break;
+
+            case SystType::JEC_Regrouped_RelativeBalUp:   systName = "JEC_Regrouped_RelativeBalUp"; break;
+            case SystType::JEC_Regrouped_RelativeBalDown: systName = "JEC_Regrouped_RelativeBalDown"; break;
+
+            case SystType::JEC_Regrouped_HFUp:   systName = "JEC_Regrouped_HFUp"; break;
+            case SystType::JEC_Regrouped_HFDown: systName = "JEC_Regrouped_HFDown"; break;
+
+            case SystType::JEC_Regrouped_BBEC1Up:   systName = "JEC_Regrouped_BBEC1Up"; break;
+            case SystType::JEC_Regrouped_BBEC1Down: systName = "JEC_Regrouped_BBEC1Down"; break;
+
+            case SystType::JEC_Regrouped_EC2Up:   systName = "JEC_Regrouped_EC2Up"; break;
+            case SystType::JEC_Regrouped_EC2Down: systName = "JEC_Regrouped_EC2Down"; break;
+
+            case SystType::JEC_Regrouped_AbsoluteUp:   systName = "JEC_Regrouped_AbsoluteUp"; break;
+            case SystType::JEC_Regrouped_AbsoluteDown: systName = "JEC_Regrouped_AbsoluteDown"; break;
+
+
+                                                       // -------- Year-dependent (decorrelated) -------- //
+
+            case SystType::JEC_Regrouped_Absolute_YearUp:   systName = "JEC_Regrouped_Absolute_YearUp"; break;
+            case SystType::JEC_Regrouped_Absolute_YearDown: systName = "JEC_Regrouped_Absolute_YearDown"; break;
+
+            case SystType::JEC_Regrouped_HF_YearUp:   systName = "JEC_Regrouped_HF_YearUp"; break;
+            case SystType::JEC_Regrouped_HF_YearDown: systName = "JEC_Regrouped_HF_YearDown"; break;
+
+            case SystType::JEC_Regrouped_EC2_YearUp:   systName = "JEC_Regrouped_EC2_YearUp"; break;
+            case SystType::JEC_Regrouped_EC2_YearDown: systName = "JEC_Regrouped_EC2_YearDown"; break;
+
+            case SystType::JEC_Regrouped_RelativeSample_YearUp:   systName = "JEC_Regrouped_RelativeSample_YearUp"; break;
+            case SystType::JEC_Regrouped_RelativeSample_YearDown: systName = "JEC_Regrouped_RelativeSample_YearDown"; break;
+
+            case SystType::JEC_Regrouped_BBEC1_YearUp:   systName = "JEC_Regrouped_BBEC1_YearUp"; break;
+            case SystType::JEC_Regrouped_BBEC1_YearDown: systName = "JEC_Regrouped_BBEC1_YearDown"; break;
+
+            case SystType::JER_Up:   systName = "JER_Up"; break;
+            case SystType::JER_Down: systName = "JER_Down"; break;
+
+             default: systName = "Unknown"; break;
+        }
         string outputFile = "output_" + systName + "_" + year + ".root";
         cout << "Running systematic: " << systName << ", output: " << outputFile << endl;
 
@@ -129,7 +227,20 @@ int main(int argc, char* argv[]) {
         jercfname = "data/JERC/2022_preEE/jet_jerc.json";
         jerctag = "Summer22_22Sep2023_RunCD_V2_DATA_L1L2L3Res_AK4PFPuppi";
         jettagMC = "Summer22_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi";
-        jercunctag = {"Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi","Summer22_22Sep2023_V2_MC_RelativeStatHF_AK4PFPuppi"};
+        jercunctag = {
+            "Summer22_22Sep2023_V2_MC_Regrouped_FlavorQCD_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_RelativeBal_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_HF_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_BBEC1_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_EC2_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_Absolute_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_Absolute_2022_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_HF_2022_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_EC2_2022_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_RelativeSample_2022_AK4PFPuppi",
+            "Summer22_22Sep2023_V2_MC_Regrouped_BBEC1_2022_AK4PFPuppi"
+        };
+        
         muon_roch_fname = "data/MUON/2022_preEE/muon_scalesmearing.json";
         muon_fname = "data/MUON/2022_preEE/muon_Z.json.gz";
         muonHLTtype = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight";
