@@ -963,67 +963,61 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
     using pairf = std::pair<float, float>;
 
     // =====================
+    // Reusable eval lambda
+    // =====================
+    auto xyCorrect = [this, corr](float met_pt, float met_phi,
+                                   float npvGood,
+                                   const std::string& var) -> pairf
+    {
+        float pt_corr  = corr->evaluate({
+            "pt",  "PuppiMET", _year,
+            _isData ? "DATA" : "MC",
+            var, met_pt, met_phi, npvGood
+        });
+        float phi_corr = corr->evaluate({
+            "phi", "PuppiMET", _year,
+            _isData ? "DATA" : "MC",
+            var, met_pt, met_phi, npvGood
+        });
+        return {pt_corr, phi_corr};
+    };
+
+    // =====================
     // DATA (nominal only)
     // =====================
-    if (_isData) {
-
-        auto lambdaf_met_data =
-            [this, corr](float met_pt, float met_phi, unsigned char npvGood) -> pairf
-        {
-            float pt_corr = corr->evaluate({
-                "pt", "PuppiMET", _year, "DATA", "nom",
-                met_pt, met_phi, static_cast<float>(npvGood)
-            });
-
-            float phi_corr = corr->evaluate({
-                "phi", "PuppiMET", _year, "DATA", "nom",
-                met_pt, met_phi, static_cast<float>(npvGood)
-            });
-
-            return {pt_corr, phi_corr};
-        };
-
+    if (_isData)
+    {
         _rlm = _rlm
-            .Define("MET_pt_phi_corr", lambdaf_met_data,
-                    {"PuppiMET_pt_corr", "PuppiMET_phi_corr", "PV_npvsGood"})
-            .Define("MET_pt_corr", "MET_pt_phi_corr.first")
+            .Define("MET_pt_phi_corr",
+                [xyCorrect](float met_pt, float met_phi, unsigned char npvGood) -> pairf {
+                    return xyCorrect(met_pt, met_phi, float(npvGood), "nom");
+                },
+                {"PuppiMET_pt_corr", "PuppiMET_phi_corr", "PV_npvsGood"})
+            .Define("MET_pt_corr",  "MET_pt_phi_corr.first")
             .Define("MET_phi_corr", "MET_pt_phi_corr.second");
     }
 
     // =====================
-    // MC (nom + PU up/down)
+    // MC
     // =====================
-    else {
-
-        auto lambdaf_met_mc =
-            [this, corr](float met_pt, float met_phi, unsigned char npvGood)
-            -> std::tuple<pairf, pairf, pairf>
-        {
-            auto eval = [&](const std::string &var) -> pairf {
-
-                float pt_corr = corr->evaluate({
-                    "pt", "PuppiMET", _year, "MC", var,
-                    met_pt, met_phi, static_cast<float>(npvGood)
-                });
-
-                float phi_corr = corr->evaluate({
-                    "phi", "PuppiMET", _year, "MC", var,
-                    met_pt, met_phi, static_cast<float>(npvGood)
-                });
-
-                return {pt_corr, phi_corr};
-            };
-
-            pairf nom  = eval("nom");
-            pairf puUp = eval("pu_up");
-            pairf puDn = eval("pu_dn");
-
-            return {nom, puUp, puDn};
-        };
-
+    else
+    {
+        // --------------------------------------------------
+        // 1. Nominal + PU variations (on nominal Type-1 MET)
+        // --------------------------------------------------
         _rlm = _rlm
-            .Define("MET_pt_phi_corr_triple", lambdaf_met_mc,
-                    {"PuppiMET_pt_corr", "PuppiMET_phi_corr", "PV_npvsGood"})
+            .Define("MET_pt_phi_corr_triple",
+                [xyCorrect](float met_pt, float met_phi, unsigned char npvGood)
+                -> std::tuple<pairf, pairf, pairf>
+                {
+                    float npv = float(npvGood);
+                    return {
+                        xyCorrect(met_pt, met_phi, npv, "nom"),
+                        xyCorrect(met_pt, met_phi, npv, "pu_up"),
+                        xyCorrect(met_pt, met_phi, npv, "pu_dn")
+                    };
+                },
+                {"PuppiMET_pt_corr", "PuppiMET_phi_corr", "PV_npvsGood"})
 
             // nominal
             .Define("MET_pt_corr",
@@ -1031,17 +1025,79 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
             .Define("MET_phi_corr",
                     "std::get<0>(MET_pt_phi_corr_triple).second")
 
-            // PU up
-            .Define("PuppiMET_pt_corr_puUp",
+            // PU up  — consistent naming
+            .Define("MET_pt_corr_puUp",
                     "std::get<1>(MET_pt_phi_corr_triple).first")
             .Define("MET_phi_corr_puUp",
                     "std::get<1>(MET_pt_phi_corr_triple).second")
 
-            // PU down
-            .Define("PuppiMET_pt_corr_puDown",
+            // PU down — consistent naming
+            .Define("MET_pt_corr_puDown",
                     "std::get<2>(MET_pt_phi_corr_triple).first")
             .Define("MET_phi_corr_puDown",
                     "std::get<2>(MET_pt_phi_corr_triple).second");
+
+        // --------------------------------------------------
+        // 2. JEC/JER systematics — apply XY correction on
+        //    each Type-1 corrected MET variation
+        // --------------------------------------------------
+
+        // Build list of (inputPtCol, inputPhiCol, outPtCol, outPhiCol)
+        std::vector<std::tuple<std::string,std::string,std::string,std::string>> jecVariants =
+        {
+            // JER
+            {"PuppiMET_pt_corr_jer_up",   "PuppiMET_phi_corr_jer_up",
+             "MET_pt_corr_jer_up",        "MET_phi_corr_jer_up"},
+
+            {"PuppiMET_pt_corr_jer_down", "PuppiMET_phi_corr_jer_down",
+             "MET_pt_corr_jer_down",      "MET_phi_corr_jer_down"},
+        };
+
+        // Dynamically add all JEC uncertainty variants
+        // (mirrors the same loop in applyJetMETCorrections)
+        for (const auto& [tag, unc] : _jetCorrectionUnc)
+        {
+            std::string colBase;
+            size_t mc_pos  = tag.find("MC_");
+            size_t ak4_pos = tag.find("_AK4");
+
+            if (mc_pos != std::string::npos && ak4_pos != std::string::npos)
+                colBase = tag.substr(mc_pos + 3, ak4_pos - (mc_pos + 3));
+            else
+                colBase = tag;
+
+            std::replace_if(colBase.begin(), colBase.end(),
+                            [](char c){ return !std::isalnum(c); }, '_');
+
+            for (const std::string& dir : {"up", "down"})
+            {
+                std::string inPt   = "PuppiMET_pt_corr_"  + colBase + "_" + dir;
+                std::string inPhi  = "PuppiMET_phi_corr_" + colBase + "_" + dir;
+                std::string outPt  = "MET_pt_corr_"       + colBase + "_" + dir;
+                std::string outPhi = "MET_phi_corr_"      + colBase + "_" + dir;
+
+                jecVariants.emplace_back(inPt, inPhi, outPt, outPhi);
+            }
+        }
+
+        // Define XY-corrected MET for every JEC/JER variant
+        for (const auto& [inPtCol, inPhiCol, outPtCol, outPhiCol] : jecVariants)
+        {
+            std::string pairCol = outPtCol + "_pair";
+
+            _rlm = _rlm
+                .Define(pairCol,
+                    [xyCorrect](float met_pt, float met_phi,
+                                unsigned char npvGood) -> pairf {
+                        return xyCorrect(met_pt, met_phi, float(npvGood), "nom");
+                    },
+                    {inPtCol, inPhiCol, "PV_npvsGood"})
+                .Define(outPtCol,  pairCol + ".first")
+                .Define(outPhiCol, pairCol + ".second");
+
+            std::cout << "Defined XY-corrected MET: "
+                      << outPtCol << ", " << outPhiCol << std::endl;
+        }
     }
 }
 void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag,string JER_tag_res)

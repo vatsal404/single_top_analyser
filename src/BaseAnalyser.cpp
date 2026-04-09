@@ -835,12 +835,12 @@ void BaseAnalyser::defineSystematics()
         branches.ele_pt = "Electron_pt_corr_scaleDown";
     }
     else if (_syst == SystType::Met_PUUp) {
-        branches.met_pt  = "PuppiMET_pt_corr_puUp";
-        branches.met_phi = "PuppiMET_phi_corr_puUp";
+        branches.met_pt  = "MET_pt_corr_puUp";
+        branches.met_phi = "MET_phi_corr_puUp";
     }
     else if (_syst == SystType::Met_PUDown) {
-        branches.met_pt  = "PuppiMET_pt_corr_puDown";
-        branches.met_phi = "PuppiMET_phi_corr_puDown";
+        branches.met_pt  = "MET_pt_corr_puDown";
+        branches.met_phi = "MET_phi_corr_puDown";
     }
     else if (_syst == SystType::muon_scaleup) {
         branches.muon_pt = "Muon_pt_corr_scaleUp";
@@ -857,72 +857,161 @@ void BaseAnalyser::defineSystematics()
     // =========================
     // Jet Energy Scale systematics
     // =========================
-
     // Regrouped_FlavorQCD
     else if (_syst == SystType::JEC_Regrouped_FlavorQCDUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_FlavorQCD_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_FlavorQCD_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_FlavorQCD_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_FlavorQCD_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_FlavorQCDDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_FlavorQCD_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_FlavorQCD_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_FlavorQCD_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_FlavorQCD_down";
+    }
 
     // Regrouped_RelativeBal
     else if (_syst == SystType::JEC_Regrouped_RelativeBalUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_RelativeBal_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_RelativeBal_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_RelativeBal_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_RelativeBal_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_RelativeBalDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_RelativeBal_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_RelativeBal_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_RelativeBal_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_RelativeBal_down";
+    }
 
     // Regrouped_HF
     else if (_syst == SystType::JEC_Regrouped_HFUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_HF_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_HF_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_HF_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_HF_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_HFDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_HF_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_HF_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_HF_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_HF_down";
+    }
 
     // Regrouped_BBEC1
     else if (_syst == SystType::JEC_Regrouped_BBEC1Up)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_BBEC1_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_BBEC1_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_BBEC1_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_BBEC1_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_BBEC1Down)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_BBEC1_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_BBEC1_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_BBEC1_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_BBEC1_down";
+    }
 
     // Regrouped_EC2
     else if (_syst == SystType::JEC_Regrouped_EC2Up)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_EC2_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_EC2_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_EC2_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_EC2_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_EC2Down)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_EC2_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_EC2_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_EC2_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_EC2_down";
+    }
 
     // Regrouped_Absolute
     else if (_syst == SystType::JEC_Regrouped_AbsoluteUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_Absolute_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_Absolute_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_Absolute_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_Absolute_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_AbsoluteDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_Absolute_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_Absolute_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_Absolute_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_Absolute_down";
+    }
+
     // Regrouped_Absolute_YEAR
     else if (_syst == SystType::JEC_Regrouped_Absolute_YearUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_Absolute_" + _year + "_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_Absolute_" + _year + "_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_Absolute_" + _year + "_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_Absolute_" + _year + "_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_Absolute_YearDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_Absolute_" + _year + "_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_Absolute_" + _year + "_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_Absolute_" + _year + "_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_Absolute_" + _year + "_down";
+    }
 
     // Regrouped_HF_YEAR
     else if (_syst == SystType::JEC_Regrouped_HF_YearUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_HF_" + _year + "_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_HF_" + _year + "_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_HF_" + _year + "_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_HF_" + _year + "_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_HF_YearDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_HF_" + _year + "_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_HF_" + _year + "_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_HF_" + _year + "_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_HF_" + _year + "_down";
+    }
 
     // Regrouped_EC2_YEAR
     else if (_syst == SystType::JEC_Regrouped_EC2_YearUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_EC2_" + _year + "_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_EC2_" + _year + "_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_EC2_" + _year + "_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_EC2_" + _year + "_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_EC2_YearDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_EC2_" + _year + "_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_EC2_" + _year + "_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_EC2_" + _year + "_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_EC2_" + _year + "_down";
+    }
 
     // Regrouped_RelativeSample_YEAR
     else if (_syst == SystType::JEC_Regrouped_RelativeSample_YearUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_RelativeSample_" + _year + "_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_RelativeSample_" + _year + "_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_RelativeSample_" + _year + "_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_RelativeSample_" + _year + "_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_RelativeSample_YearDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_RelativeSample_" + _year + "_down";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_RelativeSample_" + _year + "_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_RelativeSample_" + _year + "_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_RelativeSample_" + _year + "_down";
+    }
 
     // Regrouped_BBEC1_YEAR
     else if (_syst == SystType::JEC_Regrouped_BBEC1_YearUp)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_BBEC1_" + _year + "_up";
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_BBEC1_" + _year + "_up";
+        branches.met_pt  = "MET_pt_corr_Regrouped_BBEC1_" + _year + "_up";
+        branches.met_phi = "MET_phi_corr_Regrouped_BBEC1_" + _year + "_up";
+    }
     else if (_syst == SystType::JEC_Regrouped_BBEC1_YearDown)
-        branches.jet_pt = "Jet_pt_corr_Regrouped_BBEC1_" + _year + "_down";
-    //jer up
+    {
+        branches.jet_pt  = "Jet_pt_corr_Regrouped_BBEC1_" + _year + "_down";
+        branches.met_pt  = "MET_pt_corr_Regrouped_BBEC1_" + _year + "_down";
+        branches.met_phi = "MET_phi_corr_Regrouped_BBEC1_" + _year + "_down";
+    }
+
+    // JER
     else if (_syst == SystType::JER_Up)
         branches.jet_pt = "Jet_pt_corr_jer_up";
     else if (_syst == SystType::JER_Down)
