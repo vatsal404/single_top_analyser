@@ -197,6 +197,43 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
     using floats = RVec<float>;
 
     //------------------------------------------------------------------
+    // MET Propagation (Type-1 PUPPI MET correction)
+    //------------------------------------------------------------------
+
+    // Helper lambda: propagates any jet pT correction column to PUPPI MET
+    auto propagatePuppiMET = [](
+            floats jetpt_corr,   // your corrected jet pT (any variation)
+            floats jeteta,
+            floats jetphi,
+            floats jetrawf,
+            floats jetpt_nano,   // NanoAOD Jet_pt (already has JEC baked in)
+            float  met_pt,
+            float  met_phi) -> floats
+    {
+        float met_x = met_pt * std::cos(met_phi);
+        float met_y = met_pt * std::sin(met_phi);
+
+        for (size_t i = 0; i < jetpt_corr.size(); i++)
+        {
+            // Undo NanoAOD's stored JEC to get true raw pT
+            float rawpt   = jetpt_nano[i] * (1.f - jetrawf[i]);
+            float corr_pt = jetpt_corr[i];
+
+            // Standard CMS Type-1 cuts
+            if (corr_pt < 15.f || std::abs(jeteta[i]) > 5.2f) continue;
+
+            float dpx = (corr_pt - rawpt) * std::cos(jetphi[i]);
+            float dpy = (corr_pt - rawpt) * std::sin(jetphi[i]);
+
+            met_x -= dpx;
+            met_y -= dpy;
+        }
+
+        return floats{ std::sqrt(met_x*met_x + met_y*met_y),
+            std::atan2(met_y, met_x) };
+    };
+
+    //------------------------------------------------------------------
     // 1. Create a vectorized run branch (needed only for Data)
     //------------------------------------------------------------------
     if (_isData)
@@ -243,7 +280,20 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                 jetCorrLambda_Data,
                 {"Jet_pt", "Jet_eta", "Jet_area", "Jet_rawFactor",
                  "Rho_fixedGridRhoFastjetAll","Jet_phi","run_f"});
-             
+
+            _rlm = _rlm.Define("PuppiMET_pt_corr_vec",
+                    [propagatePuppiMET](floats jpt_corr, floats jeta, floats jphi,
+                        floats jrawf,    floats jpt,
+                        float  met_pt,   float  met_phi)
+                    {
+                    return propagatePuppiMET(jpt_corr, jeta, jphi, jrawf, jpt, met_pt, met_phi);
+                    },
+                    {"Jet_pt_corr", "Jet_eta", "Jet_phi", "Jet_rawFactor",
+                    "Jet_pt", "PuppiMET_pt", "PuppiMET_phi"});
+
+            _rlm = _rlm.Define("PuppiMET_pt_corr",  "PuppiMET_pt_corr_vec[0]");
+            _rlm = _rlm.Define("PuppiMET_phi_corr", "PuppiMET_pt_corr_vec[1]");
+
         }
         else
         {
@@ -281,47 +331,57 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
             // ------------------------------------------
             // 2. Apply JER Smearing (Correct Way)
-            // ------------------------------------------
-            // 2. Apply JER Smearing (Correct Way)
-            // ------------------------------------------
-
-            // 🔑 Generalized lambda with variation
             auto jerSmearLambda =
                 [this](floats jetpts,
                         floats jetetas,
                         floats jetgenpt,
                         float rho,
+                        unsigned int run_n,      // ← renamed from run to avoid clash with class method
+                        unsigned int lumi,       // ← add lumi
+                        unsigned long long event, // ← add event
                         std::string variation) -> floats
                 {
                     floats out;
                     out.reserve(jetpts.size());
 
-                    TRandom3 rand(12345);  // fixed seed (better than 0)
+                    std::normal_distribution<float> gauss(0.f, 1.f);  // ← declare here, outside jet loop
 
                     for (size_t i = 0; i < jetpts.size(); i++)
                     {
-                        float pt  = jetpts[i];
-                        float eta = jetetas[i];
+                        float pt    = jetpts[i];
+                        float eta   = jetetas[i];
                         float genpt = jetgenpt[i];
 
-                        // Get resolution
-                        float resolution = _jer_resolution->evaluate({eta, pt, rho});
+                        // Full 64-bit seed
+                        uint64_t seed =
+                            (uint64_t(run_n) << 32) ^
+                            (uint64_t(lumi)  << 16) ^
+                            (uint64_t(event))       ^
+                            uint64_t(i);
 
-                        // 🔑 variation applied here
-                        float sf = _jer_corrector->evaluate({eta, pt, variation});
+                        // Hash finalizer
+                        seed ^= (seed >> 33);
+                        seed *= 0xff51afd7ed558ccdULL;
+                        seed ^= (seed >> 33);
+                        seed *= 0xc4ceb9fe1a85ec53ULL;
+                        seed ^= (seed >> 33);
+
+                        std::mt19937_64 gen(seed);  // ← local per jet, thread safe
+
+                        float resolution = _jer_resolution->evaluate({eta, pt, rho});
+                        float sf         = _jer_corrector->evaluate({eta, pt, variation});
 
                         float smeared_pt = pt;
 
-                        if (genpt > 0) // matched
+                        if (genpt > 0)  // matched to gen jet
                         {
-                            smeared_pt = std::max(0.f,
-                                    genpt + sf * (pt - genpt));
+                            smeared_pt = std::max(0.f, genpt + sf * (pt - genpt));
                         }
-                        else // stochastic smearing
+                        else  // stochastic smearing
                         {
-                            float sigma = resolution * std::sqrt(std::max(sf*sf - 1.f, 0.f));
-                            float gauss = rand.Gaus(0., sigma);
-                            smeared_pt = pt * (1.f + gauss);
+                            float sigma    = resolution * std::sqrt(std::max(sf*sf - 1.f, 0.f));
+                            float gaus_val = gauss(gen);          // ← correct usage
+                            smeared_pt     = pt * (1.f + sigma * gaus_val);
                         }
 
                         out.emplace_back(smeared_pt);
@@ -329,8 +389,9 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
                     return out;
                 };
-
-
+            // 🔑 Generalized lambda with variation
+            
+            
             // ------------------------------------------
             // GenJet matching (unchanged)
             // ------------------------------------------
@@ -358,39 +419,41 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
             // ------------------------------------------
             // Nominal JER
-            // ------------------------------------------
             _rlm = _rlm.Define("Jet_pt_corr",
-                    [jerSmearLambda](floats pt, floats eta, floats genpt, float rho)
+                    [jerSmearLambda](floats pt, floats eta, floats genpt,
+                        float rho,
+                        unsigned int run_n,
+                        unsigned int lumi,
+                        unsigned long long event)
                     {
-                    return jerSmearLambda(pt, eta, genpt, rho, "nom");
+                    return jerSmearLambda(pt, eta, genpt, rho, run_n, lumi, event, "nom");
                     },
                     {"Jet_pt_JEC", "Jet_eta", "Jet_genJetPt",
-                    "Rho_fixedGridRhoFastjetAll"});
+                    "Rho_fixedGridRhoFastjetAll", "run", "luminosityBlock", "event"});
 
-
-            // ------------------------------------------
-            // JER UP
-            // ------------------------------------------
             _rlm = _rlm.Define("Jet_pt_corr_jer_up",
-                    [jerSmearLambda](floats pt, floats eta, floats genpt, float rho)
+                    [jerSmearLambda](floats pt, floats eta, floats genpt,
+                        float rho,
+                        unsigned int run_n,
+                        unsigned int lumi,
+                        unsigned long long event)
                     {
-                    return jerSmearLambda(pt, eta, genpt, rho, "up");
+                    return jerSmearLambda(pt, eta, genpt, rho, run_n, lumi, event, "up");
                     },
                     {"Jet_pt_JEC", "Jet_eta", "Jet_genJetPt",
-                    "Rho_fixedGridRhoFastjetAll"});
+                    "Rho_fixedGridRhoFastjetAll", "run", "luminosityBlock", "event"});
 
-
-            // ------------------------------------------
-            // JER DOWN
-            // ------------------------------------------
             _rlm = _rlm.Define("Jet_pt_corr_jer_down",
-                    [jerSmearLambda](floats pt, floats eta, floats genpt, float rho)
+                    [jerSmearLambda](floats pt, floats eta, floats genpt,
+                        float rho,
+                        unsigned int run_n,
+                        unsigned int lumi,
+                        unsigned long long event)
                     {
-                    return jerSmearLambda(pt, eta, genpt, rho, "down");
+                    return jerSmearLambda(pt, eta, genpt, rho, run_n, lumi, event, "down");
                     },
                     {"Jet_pt_JEC", "Jet_eta", "Jet_genJetPt",
-                    "Rho_fixedGridRhoFastjetAll"});
-
+                    "Rho_fixedGridRhoFastjetAll", "run", "luminosityBlock", "event"});
 
             // ------------------------------------------
             // JEC uncertainties (UNCHANGED)
@@ -450,6 +513,65 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
             }
         }
+    }
+
+    // ---- Build the list of (jetPtCol, outPtCol, outPhiCol) ----
+    std::vector<std::tuple<std::string,std::string,std::string>> metVariants =
+    {
+        // Nominal
+        {"Jet_pt_corr",          "PuppiMET_pt_corr",          "PuppiMET_phi_corr"},
+        // JER
+        {"Jet_pt_corr_jer_up",   "PuppiMET_pt_corr_jer_up",   "PuppiMET_phi_corr_jer_up"},
+        {"Jet_pt_corr_jer_down", "PuppiMET_pt_corr_jer_down", "PuppiMET_phi_corr_jer_down"},
+    };
+
+    // Dynamically add every JEC uncertainty variant you already defined
+    for (const auto& [tag, unc] : _jetCorrectionUnc)
+    {
+        std::string colBase;
+        size_t mc_pos  = tag.find("MC_");
+        size_t ak4_pos = tag.find("_AK4");
+
+        if (mc_pos != std::string::npos && ak4_pos != std::string::npos)
+            colBase = tag.substr(mc_pos + 3, ak4_pos - (mc_pos + 3));
+        else
+            colBase = tag;
+
+        std::replace_if(colBase.begin(), colBase.end(),
+                [](char c){ return !std::isalnum(c); }, '_');
+
+        metVariants.emplace_back(
+                "Jet_pt_corr_" + colBase + "_up",
+                "PuppiMET_pt_corr_"  + colBase + "_up",
+                "PuppiMET_phi_corr_" + colBase + "_up"
+                );
+        metVariants.emplace_back(
+                "Jet_pt_corr_" + colBase + "_down",
+                "PuppiMET_pt_corr_"  + colBase + "_down",
+                "PuppiMET_phi_corr_" + colBase + "_down"
+                );
+    }
+
+    // ---- Define RDF columns for every variant ----
+    for (const auto& [jetCol, metPtCol, metPhiCol] : metVariants)
+    {
+        std::string vecCol = metPtCol + "_vec";
+
+        _rlm = _rlm.Define(vecCol,
+                [propagatePuppiMET](floats jpt_corr, floats jeta, floats jphi,
+                    floats jrawf,    floats jpt,
+                    float  met_pt,   float  met_phi)
+                {
+                return propagatePuppiMET(jpt_corr, jeta, jphi, jrawf, jpt, met_pt, met_phi);
+                },
+                {jetCol, "Jet_eta", "Jet_phi", "Jet_rawFactor",
+                "Jet_pt", "PuppiMET_pt", "PuppiMET_phi"});
+
+        _rlm = _rlm.Define(metPtCol,  vecCol + "[0]");
+        _rlm = _rlm.Define(metPhiCol, vecCol + "[1]");
+
+        std::cout << "Defined MET columns: " << metPtCol
+            << ", " << metPhiCol << std::endl;
     }
 }
 
@@ -863,9 +985,9 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
 
         _rlm = _rlm
             .Define("MET_pt_phi_corr", lambdaf_met_data,
-                    {"PuppiMET_pt", "PuppiMET_phi", "PV_npvsGood"})
-            .Define("PuppiMET_pt_corr", "MET_pt_phi_corr.first")
-            .Define("PuppiMET_phi_corr", "MET_pt_phi_corr.second");
+                    {"PuppiMET_pt_corr", "PuppiMET_phi_corr", "PV_npvsGood"})
+            .Define("MET_pt_corr", "MET_pt_phi_corr.first")
+            .Define("MET_phi_corr", "MET_pt_phi_corr.second");
     }
 
     // =====================
@@ -901,24 +1023,24 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
 
         _rlm = _rlm
             .Define("MET_pt_phi_corr_triple", lambdaf_met_mc,
-                    {"PuppiMET_pt", "PuppiMET_phi", "PV_npvsGood"})
+                    {"PuppiMET_pt_corr", "PuppiMET_phi_corr", "PV_npvsGood"})
 
             // nominal
-            .Define("PuppiMET_pt_corr",
+            .Define("MET_pt_corr",
                     "std::get<0>(MET_pt_phi_corr_triple).first")
-            .Define("PuppiMET_phi_corr",
+            .Define("MET_phi_corr",
                     "std::get<0>(MET_pt_phi_corr_triple).second")
 
             // PU up
             .Define("PuppiMET_pt_corr_puUp",
                     "std::get<1>(MET_pt_phi_corr_triple).first")
-            .Define("PuppiMET_phi_corr_puUp",
+            .Define("MET_phi_corr_puUp",
                     "std::get<1>(MET_pt_phi_corr_triple).second")
 
             // PU down
             .Define("PuppiMET_pt_corr_puDown",
                     "std::get<2>(MET_pt_phi_corr_triple).first")
-            .Define("PuppiMET_phi_corr_puDown",
+            .Define("MET_phi_corr_puDown",
                     "std::get<2>(MET_pt_phi_corr_triple).second");
     }
 }
@@ -1331,7 +1453,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
         };
 
         std::vector<std::string> variations = {
-            "central", "up", "down"
+            "central", "up_correlated","up_uncorrelated", "down_uncorrelated","down_correlated"
         };
 
         for (const std::string &variation : variations) {

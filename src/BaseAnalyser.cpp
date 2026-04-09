@@ -974,8 +974,8 @@ void BaseAnalyser::defineMoreVars()
     //addVartoStore("genEventSumw");
     addVartoStore("evWeight");
 
-    addVartoStore("PuppiMET_pt_corr");
-    addVartoStore("PuppiMET_phi_corr");
+    addVartoStore("MET_pt_corr");
+    addVartoStore("MET_phi_corr");
     addVartoStore("no_puWeight");
     addVartoStore("Electron_pt_corr");
     addVartoStore("Muon_pt_corr");
