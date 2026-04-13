@@ -1319,7 +1319,50 @@ double NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const
     return hltSFHist_->GetBinContent(xbin, ybin);
 }
 
+double NanoAODAnalyzerrdframe::getTopPtWeight(
+    const ROOT::VecOps::RVec<float>& GenPart_pt,
+    const ROOT::VecOps::RVec<int>&   GenPart_pdgId,
+    const ROOT::VecOps::RVec<int>&   GenPart_status) const
+{
+    float pt_top     = -1.0f;
+    float pt_antitop = -1.0f;
 
+    for (unsigned int i = 0; i < GenPart_pt.size(); ++i) {
+        if (GenPart_status[i] != 62) continue;
+
+        if (GenPart_pdgId[i] ==  6 && pt_top     < 0) pt_top     = GenPart_pt[i];
+        if (GenPart_pdgId[i] == -6 && pt_antitop < 0) pt_antitop = GenPart_pt[i];
+
+        // Early exit once both are found
+        if (pt_top >= 0 && pt_antitop >= 0) break;
+    }
+
+    // Not a ttbar event (or status 62 tops not found) -> no reweighting
+    if (pt_top < 0 || pt_antitop < 0) return 1.0;
+
+    // POWHEG SF eq. (3): 0.103*exp(-0.0118*pT) - 0.000134*pT + 0.973
+    auto sf_powheg = [](float pt) -> double {
+        return 0.103 * std::exp(-0.0118 * pt) - 0.000134 * pt + 0.973;
+    };
+
+    // Extrapolation 13 -> 13.6 TeV eq. (4): 0.991 + 0.000075*pT
+    auto sf_extrap = [](float pt) -> double {
+        return 0.986 + 0.000111 * pt;
+    };
+
+    double sf_top     = sf_powheg(pt_top)     * sf_extrap(pt_top);
+    double sf_antitop = sf_powheg(pt_antitop) * sf_extrap(pt_antitop);
+
+    return sf_top * sf_antitop;
+
+
+
+}
+
+
+
+
+ 
  double NanoAODAnalyzerrdframe::getBTaggingEff(double hadflav, double eta, double pt){
    double efficiency = 1.0;
    int maxXBin = -1;
@@ -1351,6 +1394,21 @@ double NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const
  
    return efficiency;
  }
+
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyTopPtWeight(
+    ROOT::RDF::RNode _rlm,
+    std::string output_var)
+{
+    return _rlm.Define(
+        output_var,
+        [this](const ROOT::VecOps::RVec<float>& pt,
+               const ROOT::VecOps::RVec<int>&   pdgId,
+               const ROOT::VecOps::RVec<int>&   status) -> double {
+            return this->getTopPtWeight(pt, pdgId, status);
+        },
+        {"GenPart_pt", "GenPart_pdgId", "GenPart_status"}
+    );
+}
 
 ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateHLTSF(
     ROOT::RDF::RNode _rlm,

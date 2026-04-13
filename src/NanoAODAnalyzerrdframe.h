@@ -75,7 +75,9 @@ public:
 	void add2DHist(TH2DModel histdef, string variable1, string variable2, string weight, string mincutstep="");
 	double getBTaggingEff(double hadflav, double eta, double pt);
     double getHLTSF(double ele_pt, double mu_pt) const;
-	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, const double btag_cut, std::string _BTaggingWP = "M", std::string output_var = "btag_SF_");
+    double getTopPtWeight(const ROOT::VecOps::RVec<float>& GenPart_pt,const ROOT::VecOps::RVec<int>& GenPart_pdgId,const ROOT::VecOps::RVec<int>& GenPart_status) const;
+	ROOT::RDF::RNode applyTopPtWeight(ROOT::RDF::RNode _rlm, std::string output_var = "topPtWeight");
+    ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, const double btag_cut, std::string _BTaggingWP = "M", std::string output_var = "btag_SF_");
 //	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var = "btag_SF_");
 	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var = "muon_SF_");
 	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var = "ele_SF_");

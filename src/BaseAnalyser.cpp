@@ -745,6 +745,7 @@ _rlm = calculateMuSF(_rlm, muon_vars_names, output_mu_column_name);
 // apply for electrons only if any electron-like channel exists in the dataframe
 _rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
 _rlm = calculateHLTSF(_rlm);
+_rlm = applyTopPtWeight(_rlm);
 
   auto sumgenweight = _rd.Sum("genWeight");
   float lumi=(_year == "2023" ? 17794 :_year == "2022" ? 7980 : _year=="2022EE" ? 26671.7 : _year=="2023BPix" ? 9400 : 30 );
@@ -810,7 +811,6 @@ void BaseAnalyser::bdt_variables()
     _rlm = _rlm.Define("delR_dilepton_jet",:: calculate_deltaR,{"dilepton","dijet"});
     _rlm = _rlm.Define("delR_ele_muon",:: calculate_deltaR,{"goodElectron_TL4Vecs","goodmuons_TL4Vecs"});
     _rlm = _rlm.Define("delR_leadinglepton_jet",:: calculate_deltaR,{"leading_lepton","selected_cleanbjet_TL4vec"});
-
 
 }
 //=============================define variables==================================================//
@@ -1057,33 +1057,55 @@ void BaseAnalyser::defineMoreVars()
     //================================Store variables in tree=======================================//
     // define variables that you want to store
     //==============================================================================================//
-    
-    addVartoStore("genWeight");
-    addVartoStore("Weight");
-    //addVartoStore("genEventSumw");
-    addVartoStore("evWeight");
 
     addVartoStore("MET_pt_corr");
     addVartoStore("MET_phi_corr");
-    addVartoStore("no_puWeight");
-    addVartoStore("Electron_pt_corr");
-    addVartoStore("Muon_pt_corr");
 
     addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
     addVartoStore("goodElectrons_leading_phi");
+    addVartoStore("goodElectrons_leading_mass");
+    addVartoStore("ele_SF_central");
+
     addVartoStore("goodmuons_leading_pt");
     addVartoStore("goodmuons_leading_eta");
     addVartoStore("goodmuons_leading_phi");
-    addVartoStore("Weight");
-    addVartoStore("leading_lepton_pt");
-    addVartoStore("subleading_lepton_charge");
-    addVartoStore("leptons_invariant_mass");
-    addVartoStore("ele_SF_central");
+    addVartoStore("goodmuons_leading_mass");
+    addVartoStore("muon_SF_central");
+   
+    addVartoStore("Selected_jet_leading_pt");
+    addVartoStore("Selected_jet_leading_phi");
+    addVartoStore("Selected_jet_leading_eta");
+    addVartoStore("Selected_jet_leading_mass");
+    addVartoStore("Selected_jet_subleading_pt");
+    addVartoStore("Selected_jet_subleading_eta");
+    addVartoStore("Selected_jet_subleading_phi");
+    addVartoStore("Selected_jet_subleading_mass");
 
+    addVartoStore("Selected_bjet_leading_pt");
+    addVartoStore("Selected_bjet_leading_eta");
+    addVartoStore("Selected_bjet_leading_phi");
+    addVartoStore("Selected_bjet_leading_mass");
+
+    addVartoStore("leading_lepton_pt");
+    addVartoStore("leptons_invariant_mass");
     addVartoStore("ele_SF_up");
     addVartoStore("ele_SF_down");
     addVartoStore("no_puWeight");
+    addVartoStore("genWeight");
+    addVartoStore("evWeight");
+    addVartoStore("evWeight_hlt");
+    addVartoStore("region_1j1t");
+    addVartoStore("region_2j1t");
+    addVartoStore("region_2j2t");
+    addVartoStore("eu_channel");
+    addVartoStore("Weight");
+    addVartoStore("hlt_sf_central");
+    addVartoStore("puWeight");
+    
+    addVartoStore("leading_lepton_pt");
+    addVartoStore("subleading_lepton_pt");
+    addVartoStore("leptons_invariant_mass");
     addVartoStore("sphericity");
     addVartoStore("aplanery");
     addVartoStore("region_1j1t");
@@ -1121,26 +1143,29 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("run");
     addVartoStore("event");
     addVartoStore("luminosityBlock");
+    
+    
+    //----------------------Systemetics----------------------------------------------
+    
+    
     addVartoStore("btag_SF_bcflav_central");
     addVartoStore("btag_SF_lflav_central");
     addVartoStore("btag_SF_bcflav_down");
     addVartoStore("btag_SF_lflav_down");
-
     addVartoStore("btag_SF_bcflav_up");
     addVartoStore("btag_SF_lflav_up");
-    addVartoStore("evWeight_hlt");
-    addVartoStore("muon_SF_central");
+
+    addVartoStore("ele_SF_up");
+    addVartoStore("ele_SF_down");
+
 
     addVartoStore("muon_SF_stat");
     addVartoStore("muon_SF_up");
     addVartoStore("muon_SF_down");
-    addVartoStore("subleading_lepton_pt");
-    addVartoStore("hlt_sf_central");
-    addVartoStore("Jet_pt_corr_Summer22_22Sep2023_V2_MC_Total_AK4PFPuppi_up");
-    addVartoStore("Jet_pt_corr_Summer22_22Sep2023_V2_MC_RelativeStatHF_AK4PFPuppi_down");
+
     addVartoStore("puWeight_down");
     addVartoStore("puWeight_up");
-    addVartoStore("puWeight");
+    
     addVartoStore("nLHEScaleWeight");
     addVartoStore("nLHEPdfWeight");
     addVartoStore("nPSWeight");
@@ -1150,9 +1175,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("LHEPdfSumw");
     addVartoStore("LHEScaleSumw");
     addVartoStore("PSSumw");
-    addVartoStore("Jet_pt_corr_jer_up");
-    addVartoStore("Jet_pt_corr_jer_down");
-
+    addVartoStore("topPtWeight");
 } 
 
 void BaseAnalyser::bookHists()
