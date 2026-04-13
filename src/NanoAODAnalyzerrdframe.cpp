@@ -1288,9 +1288,14 @@ std::cout << "======================================\n" << std::endl;
         throw std::runtime_error("HLT scale_factor histogram not found");
     }
 
+    hltSF_unc_Hist_ = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor_total"));
+//    hltSFHist_err = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor_total"));
+    if (!hltSF_unc_Hist_) {
+        throw std::runtime_error("HLT scale_factor_total histogram not found");
+    }
     // Detach from file (important)
     hltSFHist_->SetDirectory(nullptr);
-
+    hltSF_unc_Hist_->SetDirectory(nullptr);
 
 	_jerctag = jerctag;
     _jerctagMC=jerctagMC;
@@ -1305,9 +1310,9 @@ std::cout << "======================================\n" << std::endl;
      applyMETPtPhiCorrection();
 
 }
-double NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const
+HLTSF NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const
 {
-    if (!hltSFHist_) return 1.0;
+    if (!hltSFHist_) return {1.0, 1.0, 1.0};
 
     int xbin = hltSFHist_->GetXaxis()->FindBin(ele_pt);
     int ybin = hltSFHist_->GetYaxis()->FindBin(mu_pt);
@@ -1316,9 +1321,20 @@ double NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const
     xbin = std::max(1, std::min(xbin, hltSFHist_->GetNbinsX()));
     ybin = std::max(1, std::min(ybin, hltSFHist_->GetNbinsY()));
 
-    return hltSFHist_->GetBinContent(xbin, ybin);
-}
+    double central = hltSFHist_->GetBinContent(xbin, ybin);
 
+    // Get uncertainty from the separate histogram (absolute uncertainty)
+    double unc = 0.0;
+    if (hltSF_unc_Hist_) {
+        int xbin_unc = hltSF_unc_Hist_->GetXaxis()->FindBin(ele_pt);
+        int ybin_unc = hltSF_unc_Hist_->GetYaxis()->FindBin(mu_pt);
+        xbin_unc = std::max(1, std::min(xbin_unc, hltSF_unc_Hist_->GetNbinsX()));
+        ybin_unc = std::max(1, std::min(ybin_unc, hltSF_unc_Hist_->GetNbinsY()));
+        unc = hltSF_unc_Hist_->GetBinContent(xbin_unc, ybin_unc);
+    }
+
+    return {central, central + unc, central - unc};
+}
 double NanoAODAnalyzerrdframe::getTopPtWeight(
     const ROOT::VecOps::RVec<float>& GenPart_pt,
     const ROOT::VecOps::RVec<int>&   GenPart_pdgId,
@@ -1414,15 +1430,35 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateHLTSF(
     ROOT::RDF::RNode _rlm,
     std::string output_var)
 {
-    return _rlm.Define(
+    // Define central value
+    _rlm = _rlm.Define(
         output_var,
         [this](double electron_pt, double muon_pt) {
-            return this->getHLTSF(electron_pt, muon_pt);
+            return this->getHLTSF(electron_pt, muon_pt).central;
         },
         {"goodElectrons_leading_pt", "goodmuons_leading_pt"}
     );
-}
 
+    // Define up variation
+    _rlm = _rlm.Define(
+        output_var + "_up",
+        [this](double electron_pt, double muon_pt) {
+            return this->getHLTSF(electron_pt, muon_pt).up;
+        },
+        {"goodElectrons_leading_pt", "goodmuons_leading_pt"}
+    );
+
+    // Define down variation
+    _rlm = _rlm.Define(
+        output_var + "_down",
+        [this](double electron_pt, double muon_pt) {
+            return this->getHLTSF(electron_pt, muon_pt).down;
+        },
+        {"goodElectrons_leading_pt", "goodmuons_leading_pt"}
+    );
+
+    return _rlm;
+}
 
 ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
     RNode _rlm,

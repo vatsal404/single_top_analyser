@@ -36,6 +36,11 @@ class TH1D;
 
 using json = nlohmann::json;
 
+struct HLTSF {
+    double central;
+    double up;
+    double down;
+};
 class NanoAODAnalyzerrdframe {
 	using RDF1DHist = RResultPtr<TH1D>;
 	using RDF2DHist = RResultPtr<TH2D>;
@@ -53,6 +58,7 @@ public:
 	bool readgoodjson(string goodjsonfname); // get ready for applying golden JSON
 	void selectFatJets();
 
+HLTSF getHLTSF(double ele_pt, double mu_pt) const;
 	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,string muon_roch_fname, string muon_fname, string muon_hlt_type, string muon_id_type, string muon_iso_type, string electron_fname,string Hlt_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jettagMC,  vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag, string electron_SSF,string metpt_fname ,string JER_tag,string JER_tag_res);
 	void setupJetMETCorrection(string fname, string jettag,string jettagMC,string JER_tag,string JER_tag_res);
 	void applyJetMETCorrections();
@@ -74,14 +80,13 @@ public:
 	void add1DHist(TH1DModel histdef, string variable, string weight, string mincutstep="");
 	void add2DHist(TH2DModel histdef, string variable1, string variable2, string weight, string mincutstep="");
 	double getBTaggingEff(double hadflav, double eta, double pt);
-    double getHLTSF(double ele_pt, double mu_pt) const;
     double getTopPtWeight(const ROOT::VecOps::RVec<float>& GenPart_pt,const ROOT::VecOps::RVec<int>& GenPart_pdgId,const ROOT::VecOps::RVec<int>& GenPart_status) const;
 	ROOT::RDF::RNode applyTopPtWeight(ROOT::RDF::RNode _rlm, std::string output_var = "topPtWeight");
     ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars, int _case, const double btag_cut, std::string _BTaggingWP = "M", std::string output_var = "btag_SF_");
 //	ROOT::RDF::RNode calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var = "btag_SF_");
 	ROOT::RDF::RNode calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var = "muon_SF_");
 	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var = "ele_SF_");
-    ROOT::RDF::RNode calculateHLTSF(RNode _rlm, std::string output_var = "hlt_sf_central");
+    ROOT::RDF::RNode calculateHLTSF(RNode _rlm, std::string output_var = "hlt_sf");
 	ROOT::RDF::RNode applyPrefiringWeight(RNode _rlm, std::string output_var="prefiring_SF_");
         ROOT::RDF::RNode applyJetVetoMap(ROOT::RDF::RNode _rlm,const std::string& eta_var,const std::string& phi_var, const std::string& output_var = "vetoed_jets");
 	void setupCuts_and_Hists();
@@ -198,7 +203,7 @@ public:
 	TH2D *hist_btagEff_lflav;
     TFile* hltSFFile_ = nullptr;
     TH2* hltSFHist_ = nullptr;
-
+    TH2* hltSF_unc_Hist_ = nullptr;
 	RNodeTree _rnt;
 
 	bool isDefined(string v);

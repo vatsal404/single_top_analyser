@@ -767,7 +767,7 @@ _rlm = applyTopPtWeight(_rlm);
         
 //  _rlm = _rlm.Define("evWeight", " Lumifactor * btag_SF_bcflav_central  * btag_SF_lflav_central * puWeight*genWeight * muon_SF_central * ele_SF_central"); // btag_SF_bcflav_central * btag_SF_lflav_central
  _rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
- _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf_central");
+ _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf");
  } 
 
 }
@@ -1100,7 +1100,10 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("region_2j2t");
     addVartoStore("eu_channel");
     addVartoStore("Weight");
-    addVartoStore("hlt_sf_central");
+    addVartoStore("hlt_sf");
+    addVartoStore("hlt_sf_up");
+    addVartoStore("hlt_sf_down");
+    
     addVartoStore("puWeight");
     
     addVartoStore("leading_lepton_pt");
