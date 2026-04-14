@@ -25,7 +25,30 @@ class SystType(Enum):
     muon_scaledn = 8
     muon_resoup  = 9
     muon_resodn  = 10
-
+    JEC_Regrouped_FlavorQCDUp = 11
+    JEC_Regrouped_FlavorQCDDown = 12
+    JEC_Regrouped_RelativeBalUp = 13
+    JEC_Regrouped_RelativeBalDown = 14
+    JEC_Regrouped_HFUp = 15
+    JEC_Regrouped_HFDown = 16
+    JEC_Regrouped_BBEC1Up = 17
+    JEC_Regrouped_BBEC1Down = 18
+    JEC_Regrouped_EC2Up = 19
+    JEC_Regrouped_EC2Down = 20
+    JEC_Regrouped_AbsoluteUp = 21 
+    JEC_Regrouped_AbsoluteDown = 22
+    JEC_Regrouped_Absolute_YearUp = 23
+    JEC_Regrouped_Absolute_YearDown = 24
+    JEC_Regrouped_HF_YearUp = 25
+    JEC_Regrouped_HF_YearDown =26
+    JEC_Regrouped_EC2_YearUp = 27
+    JEC_Regrouped_EC2_YearDown = 28
+    JEC_Regrouped_RelativeSample_YearUp = 29
+    JEC_Regrouped_RelativeSample_YearDown = 30
+    JEC_Regrouped_BBEC1_YearUp = 31
+    JEC_Regrouped_BBEC1_YearDown = 32
+    JER_Up = 33
+    JER_Down = 34
 def is_filelist(path):
     """
     Check if the input path is a text file (list of files) or a ROOT file/directory.
@@ -340,10 +363,40 @@ if __name__ == '__main__':
             systematics = [SystType.EleScaleUp, SystType.EleScaleDown]
         else:
             systematics = [
-         SystType.EleSmearDown,
-         SystType.EleSmearUp,
-        # uncomment as needed
-    ]
+                SystType.Nominal,
+                SystType.EleSmearUp,
+                SystType.EleSmearDown,
+                SystType.met_PUUp,
+                SystType.met_PUDown,
+                SystType.muon_scaleup,
+                SystType.muon_scaledn,
+                SystType.muon_resoup,
+                SystType.muon_resodn,
+                SystType.JEC_Regrouped_FlavorQCDUp,
+                SystType.JEC_Regrouped_FlavorQCDDown,
+                SystType.JEC_Regrouped_RelativeBalUp,
+                SystType.JEC_Regrouped_RelativeBalDown,
+                SystType.JEC_Regrouped_HFUp,
+                SystType.JEC_Regrouped_HFDown,
+                SystType.JEC_Regrouped_BBEC1Up,
+                SystType.JEC_Regrouped_BBEC1Down,
+                SystType.JEC_Regrouped_EC2Up,
+                SystType.JEC_Regrouped_EC2Down,
+                SystType.JEC_Regrouped_AbsoluteUp,
+                SystType.JEC_Regrouped_AbsoluteDown,
+                SystType.JEC_Regrouped_Absolute_YearUp,
+                SystType.JEC_Regrouped_Absolute_YearDown,
+                SystType.JEC_Regrouped_HF_YearUp,
+                SystType.JEC_Regrouped_HF_YearDown,
+                SystType.JEC_Regrouped_EC2_YearUp,
+                SystType.JEC_Regrouped_EC2_YearDown,
+                SystType.JEC_Regrouped_RelativeSample_YearUp,
+                SystType.JEC_Regrouped_RelativeSample_YearDown,
+                SystType.JEC_Regrouped_BBEC1_YearUp,
+                SystType.JEC_Regrouped_BBEC1_YearDown,
+                SystType.JER_Up,
+                SystType.JER_Down
+        ]
         for syst in systematics:
             syst_name = syst.name
             output_file = f"output_{syst_name}_{config['year']}.root"

@@ -730,7 +730,7 @@ std::cout << "DEBUG: _year.empty() = " << _year.empty() << std::endl;
 std::cout << "DEBUG: (_year == \"2022EE\") = " << (_year == "2022EE") << std::endl;
 
 std::cout << "DEBUG: btag_cut_value = " << btag_cut_value << " for year = " << _year << std::endl;
-_rlm = calculateBTagSF(_rlm, Jets_vars_names,1,btag_cut_value,"L", output_btag_column_name);
+_rlm = calculateBTagSF(_rlm, Jets_vars_names,1,btag_cut_value,"M", output_btag_column_name);
 // ---------- create unified muon eta/pt columns (per-event) ----------
 std::vector<std::string> ele_vars_names= {"goodElectron_eta_supercluster", "goodElectrons_pt","goodElectrons_phi"};
 std::vector<std::string> muon_vars_names = {"goodmuons_eta", "goodmuons_pt"};
@@ -1060,6 +1060,8 @@ void BaseAnalyser::defineMoreVars()
 
     addVartoStore("MET_pt_corr");
     addVartoStore("MET_phi_corr");
+    addVartoStore("goodMET_pt");
+    addVartoStore("goodMET_phi");
 
     addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
@@ -1086,11 +1088,9 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("Selected_bjet_leading_eta");
     addVartoStore("Selected_bjet_leading_phi");
     addVartoStore("Selected_bjet_leading_mass");
+    addVartoStore("btag_SF_bcflav_central");
+    addVartoStore("btag_SF_lflav_central");
 
-    addVartoStore("leading_lepton_pt");
-    addVartoStore("leptons_invariant_mass");
-    addVartoStore("ele_SF_up");
-    addVartoStore("ele_SF_down");
     addVartoStore("no_puWeight");
     addVartoStore("genWeight");
     addVartoStore("evWeight");
@@ -1105,16 +1105,11 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("hlt_sf_down");
     
     addVartoStore("puWeight");
-    
     addVartoStore("leading_lepton_pt");
     addVartoStore("subleading_lepton_pt");
     addVartoStore("leptons_invariant_mass");
     addVartoStore("sphericity");
     addVartoStore("aplanery");
-    addVartoStore("region_1j1t");
-    addVartoStore("region_2j1t");
-    addVartoStore("region_2j2t");
-    addVartoStore("eu_channel");
     addVartoStore("dilepton_invariant_mass");
     addVartoStore("dilepton_jet_pt");
     addVartoStore("Selected_loosejet_leadingpt");
@@ -1125,11 +1120,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("delR_ele_muon");
     addVartoStore("delR_leadinglepton_jet");
     addVartoStore("centrality");
-    addVartoStore("Selected_jet_leading_pt");
-    addVartoStore("Selected_jet_subleading_pt");
-    addVartoStore("Selected_jet_leading_phi");
-    addVartoStore("Selected_jet_leading_eta");
-    addVartoStore("Selected_jet_leading_mass");
+
 //    addVartoStore("Jet_pt");
     addVartoStore("btagpass_bcflav_goodJets");
     addVartoStore("goodJets_btagpass_bcflav_pt");
@@ -1151,16 +1142,17 @@ void BaseAnalyser::defineMoreVars()
     //----------------------Systemetics----------------------------------------------
     
     
-    addVartoStore("btag_SF_bcflav_central");
-    addVartoStore("btag_SF_lflav_central");
-    addVartoStore("btag_SF_bcflav_down");
-    addVartoStore("btag_SF_lflav_down");
-    addVartoStore("btag_SF_bcflav_up");
-    addVartoStore("btag_SF_lflav_up");
+    addVartoStore("btag_SF_bcflav_down_correlated");
+    addVartoStore("btag_SF_bcflav_down_uncorrelated");
+    addVartoStore("btag_SF_bcflav_up_correlated");
+    addVartoStore("btag_SF_bcflav_up_uncorrelated");
+    addVartoStore("btag_SF_lflav_down_correlated");
+    addVartoStore("btag_SF_lflav_down_uncorrelated");
+    addVartoStore("btag_SF_lflav_up_correlated");
+    addVartoStore("btag_SF_lflav_up_uncorrelated");
 
     addVartoStore("ele_SF_up");
     addVartoStore("ele_SF_down");
-
 
     addVartoStore("muon_SF_stat");
     addVartoStore("muon_SF_up");

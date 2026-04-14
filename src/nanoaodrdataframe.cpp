@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 
     // Configure input files and era
     if (year == "2022") {
-        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/670acfa8-2b1a-4ec5-932b-0512e54fd5f8.root"};
+        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v5/120000/765ae6c3-8627-4bc3-a2e2-d19396ae34de.root"};
 
      //   inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"};
         era = "PreEE";
@@ -67,19 +67,16 @@ int main(int argc, char* argv[]) {
     if (!isData) {
 
         // Electron
-        //systematics.push_back(SystType::EleSmearDown);
-        //systematics.push_back(SystType::EleSmearUp);
+        systematics.push_back(SystType::EleSmearDown);
+        systematics.push_back(SystType::EleSmearUp);
 
-        // systematics.push_back(SystType::EleScaleUp);
-        // systematics.push_back(SystType::EleScaleDown);
+        systematics.push_back(SystType::Met_PUDown);
+        systematics.push_back(SystType::Met_PUUp);
 
-        // systematics.push_back(SystType::met_PUDown);
-        // systematics.push_back(SystType::met_PUUp);
-
-        // systematics.push_back(SystType::muon_scaleup);
-        // systematics.push_back(SystType::muon_scaledn);
-        // systematics.push_back(SystType::muon_resoup);
-        // systematics.push_back(SystType::muon_resodn);
+         systematics.push_back(SystType::muon_scaleup);
+         systematics.push_back(SystType::muon_scaledn);
+         systematics.push_back(SystType::muon_resoup);
+         systematics.push_back(SystType::muon_resodn);
         // ================= JEC Regrouped Systematics ================= //
 
         // -------- Global (correlated) -------- //
