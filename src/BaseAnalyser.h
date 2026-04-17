@@ -88,11 +88,11 @@ struct BranchSet {
     std::string jet_pt;
 
     void setNominal() {
-        ele_pt  = "Electron_pt_corr";
-        met_pt  = "MET_pt_corr";
-        met_phi = "MET_phi_corr";
-        muon_pt = "Muon_pt_corr";
-        jet_pt = "Jet_pt_corr";
+        ele_pt  = "Electron_pt";
+        //met_pt  = "MET_pt_corr";
+        //met_phi = "MET_phi_corr";
+        muon_pt = "Muon_pt";
+        jet_pt = "Jet_pt";
     }
 };
 

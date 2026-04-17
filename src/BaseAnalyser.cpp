@@ -26,11 +26,7 @@ BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename,float crossection,f
 
 
     //initiliaze the HLT names in your analyzer class
-    HLT2024Names= {"HLT_PFHT380_SixJet32_DoubleBTagCSV_p075",
-                    "HLT_PFHT300PT30_QuadPFJet_75_60_45_40_TriplePFBTagCSV_3p0",
-                    "HLT_PFHT330PT30_QuadPFJet_75_60_45_40_TriplePFBTagDeepCSV_4p5",
-                    "HLT_PFJet550","HLT_PFHT400_FivePFJet_100_100_60_30_30_DoublePFBTagDeepCSV_4p5",
-                    "HLT_PFHT400_FivePFJet_120_120_60_30_30_DoublePFBTagDeepCSV_4p5"};
+    HLT2024Names= {"HLT_IsoMu27","HLT_Ele35_WPTight_Gsf","HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned"};
 	HLT2023Names= {"HLT_IsoMu27","HLT_Ele35_WPTight_Gsf","HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned"};//HLT_IsoTkMu24
     HLT2022Names= {"HLT_Ele30_WPTight_Gsf","HLT_IsoMu24"};
 }
@@ -158,12 +154,12 @@ void BaseAnalyser::defineCuts(){
 
 
 
-//addCuts("( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)","0");
+//addCuts(" eu_channel  && (HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)","0");
 
 
 addCuts("eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
 
-addCuts("(!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56))","00");//include this in 2022 EE
+//addCuts("(!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56))","00");//include this in 2022 EE
 //
 //
 //
@@ -393,10 +389,8 @@ void BaseAnalyser::selectJets()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-    _rlm = _rlm.Define("goodJetsID", "Jet_jetId == 6"); //without pt-eta cuts
-    //_rlm = _rlm.Define("goodJets_low_eta", "goodJetsID && Jet_pt>50.0 && abs(Jet_eta)<3.0 && abs(Jet_eta)>2.5 ");
-    _rlm = _rlm.Define("goodJets", "goodJetsID && Jet_pt_corr>30 && abs(Jet_eta)<2.4 ");
-    _rlm =_rlm.Define("looseJets", "goodJetsID && Jet_pt_corr<30 && Jet_pt>20 && abs(Jet_eta)<2.4 ");
+    _rlm = _rlm.Define("goodJets", "Jet_passJetIdTightLepVeto && Jet_pt_corr>30 && abs(Jet_eta)<2.4 ");
+    _rlm =_rlm.Define("looseJets", "Jet_passJetIdTightLepVeto && Jet_pt_corr<30 && Jet_pt>20 && abs(Jet_eta)<2.4 ");
 
     //  _rlm = _rlm.Define("goodJets", " goodJets_low_eta || goodJets_high_eta ");
 
@@ -418,8 +412,12 @@ void BaseAnalyser::selectJets()
         _rlm = _rlm.Define("goodJets_hadflav", "Jet_hadronFlavour[goodJets]");
     }
     //goot jets deep-b tag
-    _rlm = _rlm.Define("goodjets_pnetbtag", "Jet_btagRobustParTAK4B[goodJets]")
-        .Define("NgoodJets", "int(goodJets_pt.size())")
+    if(_year=="2024"){
+    _rlm = _rlm.Define("goodjets_pnetbtag", "Jet_btagUParTAK4B[goodJets]");
+    }else{
+    _rlm = _rlm.Define("goodjets_pnetbtag", "Jet_btagRobustParTAK4B[goodJets]");
+    }
+     _rlm=_rlm.Define("NgoodJets", "int(goodJets_pt.size())")
         .Define("goodJets_4vecs", ::generate_4vec, {"goodJets_pt", "goodJets_eta", "goodJets_phi", "goodJets_mass"});
     _rlm = _rlm.Define("looseJets_4vecs", ::generate_4vec, {"looseJets_pt", "looseJets_eta", "looseJets_phi", "looseJets_mass"});
 
@@ -433,7 +431,7 @@ void BaseAnalyser::selectJets()
 (_year == "2022EE")   ?  0.451  ://         0.0897 :
 (_year == "2023")     ?  0.3487 ://           0.0681 :
 (_year == "2023BPix") ?  0.3494 ://     0.0683 :
-                        0.0;
+                        0.3;
 
 
     _rlm = _rlm.Define(
@@ -536,14 +534,8 @@ void BaseAnalyser::removeOverlaps()
         //	.Define("ncleanjetspass", "int(Selected_jetpt.size())")
         .Define("cleanjet4vecs_loose", ::generate_4vec, {"Selected_loosejetpt", "Selected_loosejeteta", "Selected_loosejetphi", "Selected_loosejetmass"});
 
-    // 	    auto Nentry_nojetveto = _rlm.Count();
-    //    cout << "Usage of ranges:\n"
-    //		<< " before jet veto application" << *Nentry_nojetveto << endl;               
     _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi");
     _rlm = applyJetVetoMap(_rlm,"Selected_loosejeteta","Selected_loosejetphi","loose_vetoed_jets");
-    // 	    auto Nentry_jetveto = _rlm.Count();
-    //    cout << "Usage of ranges:\n"
-    //		<< " after jet veto application " << *Nentry_jetveto << endl;     
 
     _rlm=_rlm.Define("ncleanjetspass", "int(Selected_jetpt.size())");
     //auto n_pass_jet =_rlm.Define("pass_goodjets","ncleanjetspass>0").Sum("pass_goodjets");
@@ -727,10 +719,9 @@ std::cout << "DEBUG: _year = '" << _year << "'" << std::endl;
 
 std::cout << "DEBUG: _year.length() = " << _year.length() << std::endl;
 std::cout << "DEBUG: _year.empty() = " << _year.empty() << std::endl;
-std::cout << "DEBUG: (_year == \"2022EE\") = " << (_year == "2022EE") << std::endl;
 
 std::cout << "DEBUG: btag_cut_value = " << btag_cut_value << " for year = " << _year << std::endl;
-_rlm = calculateBTagSF(_rlm, Jets_vars_names,1,btag_cut_value,"M", output_btag_column_name);
+//_rlm = calculateBTagSF(_rlm, Jets_vars_names,1,btag_cut_value,"M", output_btag_column_name);
 // ---------- create unified muon eta/pt columns (per-event) ----------
 std::vector<std::string> ele_vars_names= {"goodElectron_eta_supercluster", "goodElectrons_pt","goodElectrons_phi"};
 std::vector<std::string> muon_vars_names = {"goodmuons_eta", "goodmuons_pt"};
@@ -740,15 +731,15 @@ std::string output_mu_column_name  = "muon_SF_";
 std::string output_ele_column_name = "ele_SF_";
 
 // apply for muons only if any muon-like channel exists in the dataframe
-_rlm = calculateMuSF(_rlm, muon_vars_names, output_mu_column_name);
+//_rlm = calculateMuSF(_rlm, muon_vars_names, output_mu_column_name);
 
 // apply for electrons only if any electron-like channel exists in the dataframe
-_rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
-_rlm = calculateHLTSF(_rlm);
-_rlm = applyTopPtWeight(_rlm);
+//_rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
+//_rlm = calculateHLTSF(_rlm);
+//_rlm = applyTopPtWeight(_rlm);
 
   auto sumgenweight = _rd.Sum("genWeight");
-  float lumi=(_year == "2023" ? 17794 :_year == "2022" ? 7980 : _year=="2022EE" ? 26671.7 : _year=="2023BPix" ? 9400 : 30 );
+  float lumi=(_year == "2023" ? 17794 :_year == "2022" ? 7980 : _year=="2022EE" ? 26671.7 : _year=="2023BPix" ? 9400 : _year=="2024"? 109950  : 30 );
   double lumifactor = (_crossection * lumi) / (_sumgenWeight);
   _rlm = _rlm.Define("Lumifactor", [lumifactor]() {
     return lumifactor;
@@ -761,13 +752,13 @@ _rlm = applyTopPtWeight(_rlm);
 //     _rlm = _rlm.Define("lepton_SF_central", "(muonChannel || QCDmuonChannel) ? muon_SF_central : (electronChannel || QCDelectronChannel)? ele_SF_central : 1");
 
   // _rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* lepton_SF_central*btag_SF_central");
-   _rlm = _rlm.Define("no_puWeight","Lumifactor * genWeight");
-   _rlm = _rlm.Define("Weight","Lumifactor * puWeight*genWeight ");//* btag_SF_central"); 
+//   _rlm = _rlm.Define("no_puWeight","Lumifactor * genWeight");
+//   _rlm = _rlm.Define("Weight","Lumifactor * puWeight*genWeight ");//* btag_SF_central"); 
 
         
 //  _rlm = _rlm.Define("evWeight", " Lumifactor * btag_SF_bcflav_central  * btag_SF_lflav_central * puWeight*genWeight * muon_SF_central * ele_SF_central"); // btag_SF_bcflav_central * btag_SF_lflav_central
- _rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
- _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf");
+// _rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
+// _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf");
  } 
 
 }
@@ -781,9 +772,9 @@ void BaseAnalyser::selectMET()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-    _rlm = _rlm.Define("goodMET", "MET_pt_active")  // Boolean flag
-        .Define("goodMET_pt", "goodMET ?  MET_pt_active: numb")  // Assign numb for events failing cut
-        .Define("goodMET_phi", "goodMET ? MET_phi_active : numb ");
+//    _rlm = _rlm.Define("goodMET", "MET_pt_active")  // Boolean flag
+//        .Define("goodMET_pt", "goodMET ?  MET_pt_active: numb")  // Assign numb for events failing cut
+//        .Define("goodMET_phi", "goodMET ? MET_phi_active : numb ");
 }
 
 void BaseAnalyser::bdt_variables()
@@ -1021,16 +1012,16 @@ void BaseAnalyser::defineSystematics()
     // =========================
     _rlm = _rlm
         .Define("Electron_pt_active", branches.ele_pt)
-        .Define("MET_pt_active",      branches.met_pt)
-        .Define("MET_phi_active",     branches.met_phi)
+//        .Define("MET_pt_active",      branches.met_pt)
+//        .Define("MET_phi_active",     branches.met_phi)
         .Define("Muon_pt_active",   branches.muon_pt)
         .Define("Jet_pt_active", branches.jet_pt);
 
     if (debug) {
         std::cout << "\n[Systematics] Active branches\n"
                   << "  Electron pt : " << branches.ele_pt << "\n"
-                  << "  MET pt      : " << branches.met_pt << "\n"
-                  << "  MET phi     : " << branches.met_phi << "\n"
+  //                << "  MET pt      : " << branches.met_pt << "\n"
+  //                << "  MET phi     : " << branches.met_phi << "\n"
                   << "  Muon pt      : " << branches.muon_pt << "\n"
                   << "  jet pt      : " << branches.jet_pt << "\n"
 
@@ -1058,12 +1049,13 @@ void BaseAnalyser::defineMoreVars()
     // define variables that you want to store
     //==============================================================================================//
 
-    addVartoStore("MET_pt_corr");
-    addVartoStore("MET_phi_corr");
-    addVartoStore("goodMET_pt");
-    addVartoStore("goodMET_phi");
-
-    addVartoStore("goodElectrons_leading_pt");
+//    addVartoStore("MET_pt_corr");
+//    addVartoStore("MET_phi_corr");
+//    addVartoStore("goodMET_pt");
+//    addVartoStore("goodMET_phi");
+ //   addVartoStore("PuppiMET_pt_corr");
+ //   addVartoStore("PuppiMET_phi_corr");
+/*    addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
     addVartoStore("goodElectrons_leading_phi");
     addVartoStore("goodElectrons_leading_mass");
@@ -1170,7 +1162,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("LHEPdfSumw");
     addVartoStore("LHEScaleSumw");
     addVartoStore("PSSumw");
-    addVartoStore("topPtWeight");
+    addVartoStore("topPtWeight");*/
 } 
 
 void BaseAnalyser::bookHists()
@@ -1264,9 +1256,9 @@ void BaseAnalyser::setupObjects()
 	    selectJets();
         removeOverlaps();
         defineRegion();
-	    calculateEvWeight(); // PU, genweight and BTV and Mu and Ele
+        calculateEvWeight(); // PU, genweight and BTV and Mu and Ele
 	    selectMET();
-//        reconstructWboson();
+  //      reconstructWboson();
 	    bdt_variables();
 //       auto Nentry_2 = _rlm.Count();
 //    cout << "Usage of ranges:\n"

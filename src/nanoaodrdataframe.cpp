@@ -16,8 +16,8 @@ int main(int argc, char* argv[]) {
     std::string year = "2023BPix"; // default
     if (argc > 1) {
         year = argv[1];
-        if (year != "2022" && year != "2023" && year != "2022EE" && year != "2023BPix") {
-            cerr << "Error: Year must be 2022, 2022EE, 2023, or 2023BPix" << endl;
+        if (year != "2022" && year != "2023" && year != "2022EE" && year != "2023BPix" && year != "2024") {
+            cerr << "Error: Year must be 2022, 2022EE, 2023, or 2023BPix or 2024" << endl;
             cerr << "Usage: " << argv[0] << " [year]" << endl;
             return EXIT_FAILURE;
         }
@@ -35,13 +35,18 @@ int main(int argc, char* argv[]) {
     if (year == "2022") {
         inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v5/120000/765ae6c3-8627-4bc3-a2e2-d19396ae34de.root"};
 
-     //   inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"};
+      //  inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"};
         era = "PreEE";
     } else if (year == "2022EE") {
         inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22EENanoAODv12/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2520000/716d2d2f-6ac3-4ac2-aa93-ad9034e8a9fd.root"};
 
        // inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022F/MuonEG/NANOAOD/22Sep2023-v1/2520000/11f0ddf5-660e-4066-b4a1-ad5ec991baa1.root"};
         era = "PostEE";
+    } else if (year == "2024") {
+        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/RunIII2024Summer24NanoAODv15/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/08d67afd-e421-492c-b3fe-8c5d8878950c.root"};
+
+       //inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2024I/EGamma1/NANOAOD/PromptReco-v2/000/386/704/00000/09da43bb-3bf7-4c93-b9c5-fc3e263a1bc2.root"};
+        era = "none";
     } else if (year == "2023") {
         inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root"};
 
@@ -239,18 +244,18 @@ int main(int argc, char* argv[]) {
         };
         
         muon_roch_fname = "data/MUON/2022_preEE/muon_scalesmearing.json";
-        muon_fname = "data/MUON/2022_preEE/muon_Z.json.gz";
+        muon_fname = "data/MUON/2022_preEE/muon_Z.json";
         muonHLTtype = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight";
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
-        electron_fname = "data/EGM/2022_preEE/electron.json.gz";
+        electron_fname = "data/EGM/2022_preEE/electron.json";
         Hlt_fname = "data/Hlt_scale_factor/2022/trigger_scale_factors.root";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
-        jet_veto_f_name = "data/JERC/2022_preEE/jetvetomaps.json.gz";
+        jet_veto_f_name = "data/JERC/2022_preEE/jetvetomaps.json";
         jet_veto_tag = "Summer22_23Sep2023_RunCD_V1";
-        electron_SSF = "data/EGM/2022_preEE/electronSS_EtDependent.json.gz";
+        electron_SSF = "data/EGM/2022_preEE/electronSS_EtDependent.json";
         metpt_fname = "data/JERC/2022_preEE/met_xyCorrections_2022_2022.json";
         JER_tag = "Summer22_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi";
         JER_tag_res = "Summer22_22Sep2023_JRV1_MC_PtResolution_AK4PFPuppi";
@@ -267,20 +272,20 @@ int main(int argc, char* argv[]) {
         jerctag = "Summer22EE_22Sep2023_RunF_V2_DATA_L1L2L3Res_AK4PFPuppi";
         jettagMC = "Summer22EE_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi";
         jercunctag = {"Summer22EE_22Sep2023_V2_MC_Total_AK4PFPuppi"};
-        muon_roch_fname = "data/MUON/2022_postEE/muon_scalesmearing.json.gz";
-        muon_fname = "data/MUON/2022_postEE/muon_Z.json.gz";
+        muon_roch_fname = "data/MUON/2022_postEE/muon_scalesmearing.json";
+        muon_fname = "data/MUON/2022_postEE/muon_Z.json";
         muonHLTtype = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight";
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
-        electron_fname = "data/EGM/2022_postEE/electron.json.gz";
+        electron_fname = "data/EGM/2022_postEE/electron.json";
         Hlt_fname = "data/Hlt_scale_factor/2022EE/trigger_scale_factors.root";
         electron_reco_type1 = "Reco20to75";
         electron_reco_type2 = "RecoAbove75";
         electron_id_type = "Tight";
-        jet_veto_f_name = "data/JERC/2022_postEE/jetvetomaps.json.gz";
+        jet_veto_f_name = "data/JERC/2022_postEE/jetvetomaps.json";
         jet_veto_tag = "Summer22EE_23Sep2023_RunEFG_V1";
-        electron_SSF = "data/EGM/2022_postEE/electronSS_EtDependent.json.gz";
-        metpt_fname = "data/JERC/2022_postEE/met_xyCorrections_2022_2022EE.json.gz";
+        electron_SSF = "data/EGM/2022_postEE/electronSS_EtDependent.json";
+        metpt_fname = "data/JERC/2022_postEE/met_xyCorrections_2022_2022EE.json";
         JER_tag = "Summer22EE_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi";
         JER_tag_res = "Summer22EE_22Sep2023_JRV1_MC_PtResolution_AK4PFPuppi";
     } else if (year == "2023") {
@@ -293,11 +298,11 @@ int main(int argc, char* argv[]) {
         hname_btagEff_bcflav = "hist_btagEff_bcflav";
         hname_btagEff_lflav = "hist_btagEff_lflav";
         jercfname = "data/JERC/2023/jet_jerc.json";
-        jerctag = "Summer23Prompt23_V2_DATA_L1L2L3Res_AK4PFPuppi";
+        jerctag = "Summer24Prompt24_V2_DATA_L1L2L3Res_AK4PFPuppi";
         jettagMC = "Summer23Prompt23_V2_MC_L1L2L3Res_AK4PFPuppi";
         jercunctag = {"Summer23Prompt23_V2_MC_Total_AK4PFPuppi"};
         muon_roch_fname = "data/MUON/2023/muon_scalesmearing.json";
-        muon_fname = "data/MUON/2023/muon_Z.json.gz";
+        muon_fname = "data/MUON/2023/muon_Z.json";
         muonHLTtype = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight";
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
@@ -312,7 +317,36 @@ int main(int argc, char* argv[]) {
         metpt_fname = "data/JERC/2023/met_xyCorrections_2023_2023.json";
         JER_tag = "Summer23Prompt23_RunCv1234_JRV1_MC_ScaleFactor_AK4PFPuppi";
         JER_tag_res = "Summer23Prompt23_RunCv1234_JRV1_MC_PtResolution_AK4PFPuppi";
-} else {  // 2023BPix
+}  else if (year == "2024") {
+        goodjsonfname = "data/golden_json_2024.json";
+        pileupfname = "data/LUM/2024/puWeights.json";
+        pileuptag = "Collisions24_BCDEFGHI_goldenJSON";
+        btvfname = "data/BTV/2024/btagging.json";
+        btvtype = "deepJet_shape";
+        fname_btagEff = "data/BTV/2023/BtaggingEfficiency.root";
+        hname_btagEff_bcflav = "hist_btagEff_bcflav";
+        hname_btagEff_lflav = "hist_btagEff_lflav";
+        jercfname = "data/JERC/2024/jet_jerc.json";
+        jerctag = "Summer24Prompt24_V2_DATA_L1L2L3Res_AK4PFPuppi";
+        jettagMC = "Summer24Prompt24_V2_MC_L1L2L3Res_AK4PFPuppi";
+        jercunctag = {"Summer24Prompt24_V2_MC_Regrouped_Total_AK4PFPuppi"};
+        muon_roch_fname = "data/MUON/2024/muon_scalesmearing.json";
+        muon_fname = "data/MUON/2024/muon_Z.json";
+        muonHLTtype = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight";
+        muonIDtype = "NUM_TightID_DEN_TrackerMuons";
+        muonISOtype = "NUM_TightPFIso_DEN_TightID";
+        electron_fname = "data/EGM/2024/electron.json";
+        Hlt_fname = "data/Hlt_scale_factor/2023/trigger_scale_factors.root";
+        electron_reco_type1 = "Reco20to75";
+        electron_reco_type2 = "RecoAbove75";
+        electron_id_type = "Tight";
+        jet_veto_f_name = "data/JERC/2024/jetvetomaps.json";
+        jet_veto_tag = "Summer24Prompt24_RunBCDEFGHI_V1";
+        electron_SSF = "data/EGM/2024/electronSS_EtDependent.json";
+        metpt_fname = "data/JERC/2023/met_xyCorrections_2023_2023.json";
+        JER_tag = "Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor_AK4PFPuppi";
+        JER_tag_res = "Summer23BPixPrompt23_RunD_JRV1_MC_PtResolution_AK4PFPuppi";
+}else {  // 2023BPix
         goodjsonfname = "data/golden_json_2023.json";
         pileupfname = "data/LUM/2023_post_BPIX/puWeights.json";
         pileuptag = "Collisions2023_369803_370790_eraD_GoldenJson";
@@ -326,7 +360,7 @@ int main(int argc, char* argv[]) {
         jettagMC = "Summer23BPixPrompt23_V3_MC_L1L2L3Res_AK4PFPuppi";
         jercunctag = {"Summer23BPixPrompt23_V3_MC_Total_AK4PFPuppi"};
         muon_roch_fname = "data/MUON/2023_post_BPIX/muon_scalesmearing.json";
-        muon_fname = "data/MUON/2023_post_BPIX/muon_Z.json.gz";
+        muon_fname = "data/MUON/2023_post_BPIX/muon_Z.json";
         muonHLTtype = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight";
         muonIDtype = "NUM_TightID_DEN_TrackerMuons";
         muonISOtype = "NUM_TightPFIso_DEN_TightID";
@@ -338,7 +372,7 @@ int main(int argc, char* argv[]) {
         jet_veto_f_name = "data/JERC/2023_post_BPIX/jetvetomaps.json";
         jet_veto_tag = "Summer23BPixPrompt23_RunD_V1";
         electron_SSF = "data/EGM/2023_post_BPIX/electronSS_EtDependent.json";
-        metpt_fname = "data/JERC/2023_post_BPIX/met_xyCorrections_2023_2023BPix.json.gz";
+        metpt_fname = "data/JERC/2023_post_BPIX/met_xyCorrections_2023_2023BPix.json";
         JER_tag = "Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor_AK4PFPuppi";
         JER_tag_res = "Summer23BPixPrompt23_RunD_JRV1_MC_PtResolution_AK4PFPuppi";
 }

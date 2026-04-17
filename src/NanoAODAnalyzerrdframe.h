@@ -88,8 +88,9 @@ HLTSF getHLTSF(double ele_pt, double mu_pt) const;
 	ROOT::RDF::RNode calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var = "ele_SF_");
     ROOT::RDF::RNode calculateHLTSF(RNode _rlm, std::string output_var = "hlt_sf");
 	ROOT::RDF::RNode applyPrefiringWeight(RNode _rlm, std::string output_var="prefiring_SF_");
-        ROOT::RDF::RNode applyJetVetoMap(ROOT::RDF::RNode _rlm,const std::string& eta_var,const std::string& phi_var, const std::string& output_var = "vetoed_jets");
-	void setupCuts_and_Hists();
+    ROOT::RDF::RNode applyJetVetoMap(ROOT::RDF::RNode _rlm,const std::string& eta_var,const std::string& phi_var, const std::string& output_var = "vetoed_jets");
+    void applyGoodJetId();
+        void setupCuts_and_Hists();
 	void drawHists(RNode t);
 	void run(bool saveAll=true, string outtreename="outputTree");
 

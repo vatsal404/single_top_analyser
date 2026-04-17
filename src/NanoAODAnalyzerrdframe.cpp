@@ -166,11 +166,14 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,s
     cout << "SETUP JETMET correction" << endl;
 	// read from file 
 	_correction_jerc = correction::CorrectionSet::from_file(fname);//jercfname=json
+
 	assert(_correction_jerc->validate()); //the assert functionality : check if the parameters passed to a function are valid =1:true
 	// correction type(jobconfiganalysis.py)
 	cout<<"JERC JSON file : " << fname<<endl;
     if (_isData){
+
         _jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON (JEC,compound)compoundLevel="L1L2L3Res"
+    
     }
     else {
         cout<<"JERC JSON file : " << fname<<endl;
@@ -185,7 +188,9 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,s
     }
     cout<< "JER tag in json: " << JER_tag << endl;
     _jer_corrector = _correction_jerc->at(JER_tag);
+
     _jer_resolution = _correction_jerc->at(JER_tag_res);
+
 	std::cout<< "================================//=================================" << std::endl;
 }
 
@@ -288,11 +293,10 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
                 if (_year == "2023")
                     corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, run_f[i]});
-                else if (_year == "2023BPix")
+                else if (_year == "2023BPix" || _year == "2024")
                     corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, jetphis[i], run_f[i]});
                 else
                     corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
-
                 out.emplace_back(rawpt * corr);
             }
             return out;
@@ -328,7 +332,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
             for (size_t i = 0; i < jetpts.size(); i++)
             {
                 float rawpt = jetpts[i] * (1.f - jetrawf[i]);
-                float corr  = (_year == "2023BPix")
+                float corr  = (_year == "2023BPix" && _year == "2024")
                     ? _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, jetphis[i]})
                     : _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
 
@@ -710,12 +714,9 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
 
     using ROOT::VecOps::RVec;
     using floats = RVec<float>;
-    cout << "Works fine till her" << endl;
     auto smear_corr = _correction_electronss->at("SmearAndSyst");
-    cout << "Works fine till her" << endl;
 
     auto scale_corr = _correction_electronss->compound().at("Scale");
-    cout << "Works fine till her" << endl;
 
     // Define supercluster eta once (used by both DATA and MC)
 
@@ -899,7 +900,7 @@ _rlm = _rlm.Define(
 
     }
 }
-
+/*
 void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
 {
     std::cout << "apply MET Pt and Phi correction" << std::endl;
@@ -1049,7 +1050,7 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
                       << outPtCol << ", " << outPhiCol << std::endl;
         }
     }
-}
+}*/
 void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag,string JER_tag_res)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
@@ -1090,11 +1091,15 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	 // cout<< "MUON RECO type in JSON  : " << _muon_reco_type << endl;
 	  cout<< "MUON ID type in JSON  : " << _muon_id_type << endl;
 	  cout<< "MUON ISO type in JSON  : " << _muon_iso_type << endl;
-	  assert(_correction_muon->validate());
+
+
+//	  assert(_correction_muon->validate());
 	  
+	  cout<< "works" << endl;
 	  //Electron corrections
 	  _correction_electron = correction::CorrectionSet::from_file(electron_fname);
 
+	  cout<< "works" << _muon_iso_type << endl;
 	  _electron_reco_type1=electron_reco_type1;
 	  _electron_reco_type2=electron_reco_type2;
 	  _electron_id_type = electron_id_type;
@@ -1141,6 +1146,7 @@ else if (f_btagEff->IsZombie()) {
     std::cerr << "ERROR: File is a Zombie (corrupt or doesn't exist): " << fname_btagEff << std::endl;
     hist_btagEff_bcflav = nullptr;
     hist_btagEff_lflav = nullptr;
+    f_btagEff->Close();
     delete f_btagEff;
     f_btagEff = nullptr;
     // Don't return - let other corrections continue
@@ -1227,26 +1233,29 @@ std::cout << "======================================\n" << std::endl;
 	  
 	  
 	}
-        hltSFFile_ = TFile::Open(Hlt_fname.c_str(), "READ");
+    hltSFFile_ = TFile::Open(Hlt_fname.c_str(), "READ");
     if (!hltSFFile_ || hltSFFile_->IsZombie()) {
         throw std::runtime_error("Cannot open trigger_scale_factors.root");
     }
 
     hltSFHist_ = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor"));
-//    hltSFHist_err = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor_total"));
     if (!hltSFHist_) {
         throw std::runtime_error("HLT scale_factor histogram not found");
     }
 
     hltSF_unc_Hist_ = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor_total"));
-//    hltSFHist_err = dynamic_cast<TH2*>(hltSFFile_->Get("scale_factor_total"));
     if (!hltSF_unc_Hist_) {
         throw std::runtime_error("HLT scale_factor_total histogram not found");
     }
-    // Detach from file (important)
+
+    // ✅ detach histograms
     hltSFHist_->SetDirectory(nullptr);
     hltSF_unc_Hist_->SetDirectory(nullptr);
 
+    // 🔥 critical fix
+    hltSFFile_->Close();
+    delete hltSFFile_;
+    hltSFFile_ = nullptr;
 	_jerctag = jerctag;
     _jerctagMC=jerctagMC;
 	_jercunctag = jercunctag;
@@ -1257,7 +1266,8 @@ std::cout << "======================================\n" << std::endl;
 	applyJetMETCorrections();
 	applyMuPtCorrection();
     applyElectronPtCorrection();
-     applyMETPtPhiCorrection();
+    applyGoodJetId();
+//     applyMETPtPhiCorrection();
 
 }
 HLTSF NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const
@@ -2100,18 +2110,23 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
     std::cout << "Applying Jet veto map..." << std::endl;
 
     auto is_vetoed_event = [this](const ROOT::VecOps::RVec<float>& etas,
-                                  const ROOT::VecOps::RVec<float>& phis) -> bool {
-        // Get the correction object
+            const ROOT::VecOps::RVec<float>& phis) -> bool {
         auto veto_corr = _correction_jetveto->at(_jet_veto_tag);
         std::string veto_type = "jetvetomap";
 
         for (size_t i = 0; i < etas.size(); ++i) {
-            double veto_val = veto_corr->evaluate({veto_type, etas[i], phis[i]});
-            if (veto_val != 0) {
-                return true;  // At least one jet in vetoed region
+            // DEBUG: print suspicious values
+            if (std::abs(etas[i]) > 5.2 || std::abs(phis[i]) > M_PI + 0.01) {
+                std::cout << "OUT OF RANGE: eta=" << etas[i] 
+                    << " phi=" << phis[i] << std::endl;
+            }
+            if (std::isnan(etas[i]) || std::isnan(phis[i]) ||
+                    std::isinf(etas[i]) || std::isinf(phis[i])) {
+                std::cout << "NaN/Inf found: eta=" << etas[i] 
+                    << " phi=" << phis[i] << std::endl;
             }
         }
-        return false;  // No jet in vetoed region
+        return false; // temporarily disable veto to just see the prints
     };
 
     // Define a new column with a single boolean per event
@@ -2119,6 +2134,113 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
 
 }
 
+void NanoAODAnalyzerrdframe::applyGoodJetId()
+{
+    std::cout << "Applying Good Jet ID (year=" << _year << ")..." << std::endl;
+
+    if (_year == "2024") {
+        // ── NanoV15: full kinematic recipe ──────────────────────────────────
+
+        auto jet_pass_tight_v15 = [](const ROOT::VecOps::RVec<float>&         etas,
+                                     const ROOT::VecOps::RVec<float>&         neHEFs,
+                                     const ROOT::VecOps::RVec<float>&         neEmEFs,
+                                     const ROOT::VecOps::RVec<float>&         chHEFs,
+                                     const ROOT::VecOps::RVec<unsigned char>& chMults,
+                                     const ROOT::VecOps::RVec<unsigned char>& neMults)
+            -> ROOT::VecOps::RVec<bool> {
+            ROOT::VecOps::RVec<bool> result(etas.size(), false);
+            for (size_t i = 0; i < etas.size(); ++i) {
+                float absEta = std::abs(etas[i]);
+                bool  passId = false;
+                if (absEta <= 2.6)
+                    passId = (neHEFs[i]  < 0.99) &&
+                             (neEmEFs[i] < 0.90) &&
+                             (static_cast<int>(chMults[i]) + static_cast<int>(neMults[i]) > 1) &&
+                             (chHEFs[i]  > 0.01) &&
+                             (chMults[i] > 0);
+                else if (absEta > 2.6 && absEta <= 2.7)
+                    passId = (neHEFs[i]  < 0.90) &&
+                             (neEmEFs[i] < 0.99);
+                else if (absEta > 2.7 && absEta <= 3.0)
+                    passId = (neHEFs[i] < 0.99);
+                else if (absEta > 3.0)
+                    passId = (static_cast<int>(neMults[i]) >= 2) &&
+                             (neEmEFs[i] < 0.4);
+                result[i] = passId;
+            }
+            return result;
+        };
+
+        auto jet_pass_tightlv_v15 = [](const ROOT::VecOps::RVec<float>& etas,
+                                       const ROOT::VecOps::RVec<bool>&  tightPass,
+                                       const ROOT::VecOps::RVec<float>& muEFs,
+                                       const ROOT::VecOps::RVec<float>& chEmEFs)
+            -> ROOT::VecOps::RVec<bool> {
+            ROOT::VecOps::RVec<bool> result(etas.size(), false);
+            for (size_t i = 0; i < etas.size(); ++i) {
+                if (std::abs(etas[i]) <= 2.7)
+                    result[i] = tightPass[i] && (muEFs[i] < 0.8) && (chEmEFs[i] < 0.8);
+                else
+                    result[i] = tightPass[i];
+            }
+            return result;
+        };
+
+        _rlm = _rlm.Define("Jet_passJetIdTight",
+                           jet_pass_tight_v15,
+                           {"Jet_eta", "Jet_neHEF", "Jet_neEmEF",
+                            "Jet_chHEF", "Jet_chMultiplicity", "Jet_neMultiplicity"});
+
+        _rlm = _rlm.Define("Jet_passJetIdTightLepVeto",
+                           jet_pass_tightlv_v15,
+                           {"Jet_eta", "Jet_passJetIdTight", "Jet_muEF", "Jet_chEmEF"});
+
+    } else {
+
+        auto jet_pass_tight_v12 = [](const ROOT::VecOps::RVec<float>&        etas,
+                                     const ROOT::VecOps::RVec<unsigned char>& jetids,
+                                     const ROOT::VecOps::RVec<float>&         neHEFs,
+                                     const ROOT::VecOps::RVec<float>&         neEmEFs)
+            -> ROOT::VecOps::RVec<bool> {
+            ROOT::VecOps::RVec<bool> result(etas.size(), false);
+            for (size_t i = 0; i < etas.size(); ++i) {
+                float absEta = std::abs(etas[i]);
+                bool  passId = false;
+                if (absEta <= 2.7)
+                    passId = jetids[i] & (1 << 1);
+                else if (absEta > 2.7 && absEta <= 3.0)
+                    passId = (jetids[i] & (1 << 1)) && (neHEFs[i] < 0.99);
+                else if (absEta > 3.0)
+                    passId = (jetids[i] & (1 << 1)) && (neEmEFs[i] < 0.4);
+                result[i] = passId;
+            }
+            return result;
+        };
+
+        auto jet_pass_tightlv_v12 = [](const ROOT::VecOps::RVec<float>&  etas,
+                                       const ROOT::VecOps::RVec<bool>&   tightPass,
+                                       const ROOT::VecOps::RVec<float>&  muEFs,
+                                       const ROOT::VecOps::RVec<float>&  chEmEFs)
+            -> ROOT::VecOps::RVec<bool> {
+            ROOT::VecOps::RVec<bool> result(etas.size(), false);
+            for (size_t i = 0; i < etas.size(); ++i) {
+                if (std::abs(etas[i]) <= 2.7)
+                    result[i] = tightPass[i] && (muEFs[i] < 0.8) && (chEmEFs[i] < 0.8);
+                else
+                    result[i] = tightPass[i];
+            }
+            return result;
+        };
+
+        _rlm = _rlm.Define("Jet_passJetIdTight",
+                           jet_pass_tight_v12,
+                           {"Jet_eta", "Jet_jetId", "Jet_neHEF", "Jet_neEmEF"});
+
+        _rlm = _rlm.Define("Jet_passJetIdTightLepVeto",
+                           jet_pass_tightlv_v12,
+                           {"Jet_eta", "Jet_passJetIdTight", "Jet_muEF", "Jet_chEmEF"});
+    }
+}
 
 bool NanoAODAnalyzerrdframe::helper_1DHistCreator(std::string hname, std::string title, const int nbins, const double xlow, const double xhi, std::string rdfvar, std::string evWeight, RNode *anode)
 {
@@ -2379,77 +2501,92 @@ void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename)
 
 */
 
-void NanoAODAnalyzerrdframe::run(bool saveAll, string outtreename){
-	vector<RNodeTree *> rntends;
-	_rnt.getRNodeLeafs(rntends);
-	_rnt.Print();
-	 cout << rntends.size() << endl;
-	for (auto arnt : rntends)
-	{
-		string nodename = arnt->getIndex();
-		string outname = _outfilename;
-		if (rntends.size() > 1)
-			outname.replace(outname.find(".root"), 5, "_" + nodename + ".root");
-		_outrootfilenames.push_back(outname);
-		RNode *arnode = arnt->getRNode();
-		std::cout << "-------------------------------------------------------------------" << std::endl;
-		cout << "cut : ";
-		cout << arnt->getIndex();
-		if (saveAll)
-		{
-			arnode->Snapshot(outtreename, outname);
-		}
-		else
-		{
-		
-			
-			cout << " --writing branches" << endl;
-			std::cout << "-------------------------------------------------------------------" << std::endl;
+void NanoAODAnalyzerrdframe::run(bool saveAll, std::string outtreename){
+    std::vector<RNodeTree *> rntends;
+    _rnt.getRNodeLeafs(rntends);
+    _rnt.Print();
 
-			for (auto bname : _varstostorepertree[nodename])
-			{
+    std::cout << rntends.size() << std::endl;
 
-			       
-			   	cout << bname << endl;
-			        cout << "-----branch stored" << endl;
-			}
+    for (auto arnt : rntends)
+    {
+        std::string nodename = arnt->getIndex();
+        std::string outname = _outfilename;
 
-			arnode->Snapshot(outtreename, outname, _varstostorepertree[nodename]);
+        if (rntends.size() > 1)
+            outname.replace(outname.find(".root"), 5, "_" + nodename + ".root");
+
+        _outrootfilenames.push_back(outname);
+
+        RNode *arnode = arnt->getRNode();
+
+        std::cout << "-------------------------------------------------------------------" << std::endl;
+        std::cout << "cut : " << nodename << std::endl;
+
+        if (saveAll)
+        {
+            arnode->Snapshot(outtreename, outname);
+        }
+        else
+        {
+            std::cout << " --writing branches" << std::endl;
+            std::cout << "-------------------------------------------------------------------" << std::endl;
+
+            for (auto bname : _varstostorepertree[nodename])
+            {
+                std::cout << bname << std::endl;
+                std::cout << "-----branch stored" << std::endl;
+            }
 
 
-		}
-		std::cout << "-------------------------------------------------------------------" << std::endl;
-		cout << "Creating output root file :  " << endl;
-		cout << outname << " ";
-		cout << endl;
-		std::cout << "-------------------------------------------------------------------" << std::endl;
-		_outrootfile = new TFile(outname.c_str(), "UPDATE");
-		cout << "Writing histograms...   " << endl;
-		std::cout << "-------------------------------------------------------------------" << std::endl;
-		for (auto &h : _th1dhistos)
-		{
-			if (h.second.GetPtr() != nullptr)
-			{
-				h.second.GetPtr()->Print();
-				h.second.GetPtr()->Write();
-			}
-		}
-		// for 2D histograms
-		for (auto &h : _th2dhistos)
-		{
-			if (h.second.GetPtr() != nullptr)
-			{
-				h.second.GetPtr()->Print();
-				h.second.GetPtr()->Write();
-			}
-		}
-		_outrootfile->Write(0, TObject::kOverwrite);
-		_outrootfile->Close();
-	}
-	std::cout << "-------------------------------------------------------------------" << std::endl;
-	std::cout << "END...  :) " << std::endl;
+            arnode->Snapshot(outtreename, outname, _varstostorepertree[nodename]);
+        }
+
+        std::cout << "-------------------------------------------------------------------" << std::endl;
+        std::cout << "Creating output root file :  " << std::endl;
+        std::cout << outname << std::endl;
+        std::cout << "-------------------------------------------------------------------" << std::endl;
+
+        _outrootfile = new TFile(outname.c_str(), "UPDATE");
+
+        std::cout << "Writing histograms...   " << std::endl;
+        std::cout << "-------------------------------------------------------------------" << std::endl;
+
+        // === 1D histograms ===
+        for (auto &h : _th1dhistos)
+        {
+            auto hist = h.second.GetPtr();
+            if (hist != nullptr)
+            {
+                hist->SetDirectory(0);   // 🔥 critical fix
+                hist->Print();
+                hist->Write();
+            }
+        }
+
+        // === 2D histograms ===
+        for (auto &h : _th2dhistos)
+        {
+            auto hist = h.second.GetPtr();
+            if (hist != nullptr)
+            {
+                hist->SetDirectory(0);   // 🔥 critical fix
+                hist->Print();
+                hist->Write();
+            }
+        }
+
+        _outrootfile->Write(0, TObject::kOverwrite);
+        _outrootfile->Close();
+
+        // 🔥 Proper cleanup
+        delete _outrootfile;
+        _outrootfile = nullptr;
+    }
+
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << "END...  :) " << std::endl;
 }
-
 
 void NanoAODAnalyzerrdframe::setParams(string year, string runtype, int datatype)
 {
@@ -2574,7 +2711,10 @@ std::string NanoAODAnalyzerrdframe::setHLT(std::string str_HLT){
                 HLTGlobalNames=HLT2024Names;
             }else if(_year=="2023BPix"){
                 HLTGlobalNames=HLT2024Names;
+            }else if(_year=="2024"){
+                HLTGlobalNames=HLT2024Names;
             }
+
 
 
             //loop on HLTs
