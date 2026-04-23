@@ -4,6 +4,7 @@
 Modified version of the NanoAOD processor with added XRootD support and extended corrections
 Original author: Suyong Choi (Department of Physics, Korea University suyong@korea.ac.kr)
 """
+from pathlib import Path
 from enum import Enum
 import os
 import re
@@ -324,6 +325,7 @@ def Nanoaodprocessor_singledir(indir, outputroot, procflags, config,crossection,
     aproc.setupAnalysis()
     aproc.run(saveallbranches, outtreename)
     return bool(aproc.isData())  # add this
+
 if __name__ == '__main__':
     from importlib import import_module
     from argparse import ArgumentParser
@@ -333,7 +335,7 @@ if __name__ == '__main__':
     parser.add_argument("outdir")
     parser.add_argument("jobconfmod")
     parser.add_argument("crossection", type=float, help="Cross-section value in pb")
-    parser.add_argument("sumgenWeight",type=float)
+    parser.add_argument("sumgenWeight", type=float)
     args = parser.parse_args()
 
     # Load compiled C++ libraries
@@ -353,53 +355,55 @@ if __name__ == '__main__':
     else:
         print("allinone")
 
-    # Run Nominal first, detect data/MC
+        # Run Nominal first, detect data/MC
         is_data = Nanoaodprocessor_singledir(args.indir, args.outdir, procflags, config,
-        args.crossection, args.sumgenWeight,
-        SystType.Nominal.value)
+                                             args.crossection, args.sumgenWeight,
+                                             SystType.Nominal.value)
 
-    # Build systematics list
+        # Build systematics list
         if is_data:
-            systematics = [SystType.EleScaleUp, SystType.EleScaleDown]
+            # systematics = [SystType.EleScaleUp, SystType.EleScaleDown]
+            systematics = []
         else:
             systematics = [
-                SystType.Nominal,
-                SystType.EleSmearUp,
-                SystType.EleSmearDown,
-                SystType.met_PUUp,
-                SystType.met_PUDown,
-                SystType.muon_scaleup,
-                SystType.muon_scaledn,
-                SystType.muon_resoup,
-                SystType.muon_resodn,
-                SystType.JEC_Regrouped_FlavorQCDUp,
-                SystType.JEC_Regrouped_FlavorQCDDown,
-                SystType.JEC_Regrouped_RelativeBalUp,
-                SystType.JEC_Regrouped_RelativeBalDown,
-                SystType.JEC_Regrouped_HFUp,
-                SystType.JEC_Regrouped_HFDown,
-                SystType.JEC_Regrouped_BBEC1Up,
-                SystType.JEC_Regrouped_BBEC1Down,
-                SystType.JEC_Regrouped_EC2Up,
-                SystType.JEC_Regrouped_EC2Down,
-                SystType.JEC_Regrouped_AbsoluteUp,
-                SystType.JEC_Regrouped_AbsoluteDown,
-                SystType.JEC_Regrouped_Absolute_YearUp,
-                SystType.JEC_Regrouped_Absolute_YearDown,
-                SystType.JEC_Regrouped_HF_YearUp,
-                SystType.JEC_Regrouped_HF_YearDown,
-                SystType.JEC_Regrouped_EC2_YearUp,
-                SystType.JEC_Regrouped_EC2_YearDown,
-                SystType.JEC_Regrouped_RelativeSample_YearUp,
-                SystType.JEC_Regrouped_RelativeSample_YearDown,
-                SystType.JEC_Regrouped_BBEC1_YearUp,
-                SystType.JEC_Regrouped_BBEC1_YearDown,
-                SystType.JER_Up,
-                SystType.JER_Down
-        ]
+                # SystType.EleSmearUp,
+                # SystType.EleSmearDown,
+                # SystType.met_PUUp,
+                # SystType.met_PUDown,
+                # SystType.muon_scaleup,
+                # SystType.muon_scaledn,
+                # SystType.muon_resoup,
+                # SystType.muon_resodn,
+                # SystType.JEC_Regrouped_FlavorQCDUp,
+                # SystType.JEC_Regrouped_FlavorQCDDown,
+                # SystType.JEC_Regrouped_RelativeBalUp,
+                # SystType.JEC_Regrouped_RelativeBalDown,
+                # SystType.JEC_Regrouped_HFUp,
+                # SystType.JEC_Regrouped_HFDown,
+                # SystType.JEC_Regrouped_BBEC1Up,
+                # SystType.JEC_Regrouped_BBEC1Down,
+                # SystType.JEC_Regrouped_EC2Up,
+                # SystType.JEC_Regrouped_EC2Down,
+                # SystType.JEC_Regrouped_AbsoluteUp,
+                # SystType.JEC_Regrouped_AbsoluteDown,
+                # SystType.JEC_Regrouped_Absolute_YearUp,
+                # SystType.JEC_Regrouped_Absolute_YearDown,
+                # SystType.JEC_Regrouped_HF_YearUp,
+                # SystType.JEC_Regrouped_HF_YearDown,
+                # SystType.JEC_Regrouped_EC2_YearUp,
+                # SystType.JEC_Regrouped_EC2_YearDown,
+                # SystType.JEC_Regrouped_RelativeSample_YearUp,
+                # SystType.JEC_Regrouped_RelativeSample_YearDown,
+                # SystType.JEC_Regrouped_BBEC1_YearUp,
+                # SystType.JEC_Regrouped_BBEC1_YearDown,
+                # SystType.JER_Up,
+                # SystType.JER_Down
+            ]
+
+        prefix = Path(args.outdir).stem
         for syst in systematics:
             syst_name = syst.name
-            output_file = f"output_{syst_name}_{config['year']}.root"
+            output_file = f"{prefix}_{syst_name}_{config['year']}.root"
             Nanoaodprocessor_singledir(args.indir, output_file, procflags, config,
-            args.crossection, args.sumgenWeight,
-            syst.value)
+                                       args.crossection, args.sumgenWeight,
+                                       syst.value)

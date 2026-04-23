@@ -8,8 +8,8 @@ crossection=$4
 sumgenWeight=$5
 
 # Configuration variables
-jobconfmod="jobconfiganalysis_2022EE_G"
-eos_output_dir="/eos/uscms/store/user/vsinha/Result_2022EE"
+jobconfmod="jobconfiganalysis_2024"
+eos_output_dir="/eos/uscms/store/user/vsinha/Result_2024"
 
 echo "Running analysis with the following parameters:"
 echo "Input directory: $input_dir"
@@ -82,8 +82,8 @@ echo "=========================================="
 
 # Look for output files - processnanoaod.py creates files with suffixes (_0.root, _1.root, etc.)
 echo "Looking for output files..."
-base_name="${output_file%.root}"
-output_pattern="${base_name}*.root"
+base_name="${output_file%%_*}"
+output_pattern="${base_name}_*.root"
 
 echo "Searching for files matching: $output_pattern"
 ls -lh ${output_pattern} 2>/dev/null

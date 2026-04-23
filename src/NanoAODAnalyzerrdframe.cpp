@@ -332,7 +332,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
             for (size_t i = 0; i < jetpts.size(); i++)
             {
                 float rawpt = jetpts[i] * (1.f - jetrawf[i]);
-                float corr  = (_year == "2023BPix" && _year == "2024")
+                float corr  = (_year == "2023BPix" || _year == "2024")
                     ? _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, jetphis[i]})
                     : _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
 
@@ -1447,9 +1447,9 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
             NanoAODAnalyzerrdframe* analyzer;
             std::string var;
             int max_debug;
-            
-            BTagWeightCalculator(NanoAODAnalyzerrdframe* a, std::string v, int md)
-                : analyzer(a), var(v), max_debug(md) {}
+            std::string _year; 
+            BTagWeightCalculator(NanoAODAnalyzerrdframe* a, std::string v, int md, const std::string& y)
+                : analyzer(a), var(v), max_debug(md),_year(y) {}
             
             float operator()(const ROOT::VecOps::RVec<unsigned char> &hadflav,
                            const ROOT::VecOps::RVec<float> &etas,
@@ -1490,8 +1490,22 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
                         }
                         continue;
                     }
-
                     double sf;
+                    if (_year == "2024"){
+                    try {
+                        if (is_bcflav) {
+                            sf = analyzer->_correction_btag1->at("UParTAK4_comb")
+                                     ->evaluate({var, btag_wp, hadflav[i],
+                                                std::fabs(etas[i]), pts[i]});
+                        } else {
+                            sf = analyzer->_correction_btag1->at("UParTAK4_light")
+                                     ->evaluate({var, btag_wp, hadflav[i],
+                                                std::fabs(etas[i]), pts[i]});
+                        }
+                    } catch (...) {
+                        throw;
+                    }
+                  }else{
                     try {
                         if (is_bcflav) {
                             sf = analyzer->_correction_btag1->at("robustParticleTransformer_comb")
@@ -1505,7 +1519,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
                     } catch (...) {
                         throw;
                     }
-
+                  }
                     if (do_debug) {
                         std::cout << "  Jet " << i << ":" << std::endl;
                         std::cout << "    Hadron flavor: " << (int)hadflav[i] << std::endl;
@@ -1570,7 +1584,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
 
             {
                 std::string col_bc = output_var + "bcflav_" + variation;
-                auto calculator_bc = BTagWeightCalculator(this, variation, 2);
+                auto calculator_bc = BTagWeightCalculator(this, variation, 2,_year);
 
                 _rlm = _rlm.Define(
                     col_bc,
@@ -1589,7 +1603,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(
 
             {
                 std::string col_l = output_var + "lflav_" + variation;
-                auto calculator_l = BTagWeightCalculator(this, variation, 2);
+                auto calculator_l = BTagWeightCalculator(this, variation, 2,_year);
 
                 _rlm = _rlm.Define(
                     col_l,
@@ -1861,7 +1875,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
 	column_name += "stat";
       }
 
-	std::string sf_definition = column_name_id+" * "+column_name_iso;
+	std::string sf_definition = column_name_id;
 	_rlm = _rlm.Define(column_name, sf_definition);
 	std::cout<< "Muon SF column name: " << column_name << std::endl;
     }
@@ -2013,7 +2027,14 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(
                     ->at("Electron-ID-SF")
                     ->evaluate({"2023PromptD", variation, eletype,
                             std::fabs(etas[i]), pts[i], phis[i]});
+            }else if (_year == "2024")
+            {
+                w = _correction_electron
+                    ->at("Electron-ID-SF")
+                    ->evaluate({"2024Prompt", variation, eletype,
+                            std::fabs(etas[i]), pts[i]});
             }
+
 
             w_tot *= w;
         }
@@ -2103,35 +2124,54 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(
     return _rlm;
 }
 
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(ROOT::RDF::RNode _rlm,
-                                                          const std::string& eta_var,
-                                                          const std::string& phi_var,
-                                                          const std::string& output_var) {
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(
+    ROOT::RDF::RNode _rlm,
+    const std::string& eta_var,
+    const std::string& phi_var,
+    const std::string& output_var) {
+
     std::cout << "Applying Jet veto map..." << std::endl;
 
     auto is_vetoed_event = [this](const ROOT::VecOps::RVec<float>& etas,
-            const ROOT::VecOps::RVec<float>& phis) -> bool {
+                                 const ROOT::VecOps::RVec<float>& phis) -> bool {
+
+        static int event_counter = 0;
+        const int max_debug_events = 5;
+
         auto veto_corr = _correction_jetveto->at(_jet_veto_tag);
         std::string veto_type = "jetvetomap";
 
-        for (size_t i = 0; i < etas.size(); ++i) {
-            // DEBUG: print suspicious values
-            if (std::abs(etas[i]) > 5.2 || std::abs(phis[i]) > M_PI + 0.01) {
-                std::cout << "OUT OF RANGE: eta=" << etas[i] 
-                    << " phi=" << phis[i] << std::endl;
-            }
-            if (std::isnan(etas[i]) || std::isnan(phis[i]) ||
+        bool veto_decision = false; // still disabled for now
+
+        if (event_counter < max_debug_events) {
+            std::cout << "\n[DEBUG] Event " << event_counter << std::endl;
+            std::cout << "  Number of jets = " << etas.size() << std::endl;
+
+            size_t nprint = std::min<size_t>(etas.size(), 5);
+            for (size_t i = 0; i < nprint; ++i) {
+                std::cout << "    jet[" << i << "] eta=" << etas[i]
+                          << " phi=" << phis[i] << std::endl;
+
+                if (std::abs(etas[i]) > 5.2 || std::abs(phis[i]) > M_PI + 0.01) {
+                    std::cout << "      -> OUT OF RANGE!" << std::endl;
+                }
+
+                if (std::isnan(etas[i]) || std::isnan(phis[i]) ||
                     std::isinf(etas[i]) || std::isinf(phis[i])) {
-                std::cout << "NaN/Inf found: eta=" << etas[i] 
-                    << " phi=" << phis[i] << std::endl;
+                    std::cout << "      -> NaN/Inf detected!" << std::endl;
+                }
             }
         }
-        return false; // temporarily disable veto to just see the prints
+
+        if (event_counter < max_debug_events) {
+            std::cout << "  Output veto_decision = " << veto_decision << std::endl;
+        }
+
+        event_counter++;
+        return veto_decision;
     };
 
-    // Define a new column with a single boolean per event
     return _rlm.Define(output_var, is_vetoed_event, {eta_var, phi_var});
-
 }
 
 void NanoAODAnalyzerrdframe::applyGoodJetId()
@@ -2139,7 +2179,6 @@ void NanoAODAnalyzerrdframe::applyGoodJetId()
     std::cout << "Applying Good Jet ID (year=" << _year << ")..." << std::endl;
 
     if (_year == "2024") {
-        // ── NanoV15: full kinematic recipe ──────────────────────────────────
 
         auto jet_pass_tight_v15 = [](const ROOT::VecOps::RVec<float>&         etas,
                                      const ROOT::VecOps::RVec<float>&         neHEFs,

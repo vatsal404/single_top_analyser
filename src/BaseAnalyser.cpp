@@ -156,8 +156,9 @@ void BaseAnalyser::defineCuts(){
 
 //addCuts(" eu_channel  && (HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)","0");
 
+addCuts("eu_channel &&  !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
 
-addCuts("eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
+//addCuts("eu_channel &&  Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
 
 //addCuts("(!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56))","00");//include this in 2022 EE
 //
@@ -266,8 +267,8 @@ void BaseAnalyser::selectMuons()
     }
 
     _rlm = _rlm.Define("goodmuonsID", MuonID(4));
-    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_pt_corr > 20 && abs(Muon_eta) < 2.4 ");
-    _rlm = _rlm.Define("goodmuons_pt", "Muon_pt_corr[goodmuons]")
+    _rlm = _rlm.Define("goodmuons", "goodmuonsID && Muon_pt_active > 20 && abs(Muon_eta) < 2.4 ");
+    _rlm = _rlm.Define("goodmuons_pt", "Muon_pt_active[goodmuons]")
         .Define("goodmuons_leading_pt_index","ArgMax(goodmuons_pt)")
         .Define("goodmuons_pdgId","Muon_pdgId[goodmuons]")
 
@@ -389,19 +390,19 @@ void BaseAnalyser::selectJets()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-    _rlm = _rlm.Define("goodJets", "Jet_passJetIdTightLepVeto && Jet_pt_corr>30 && abs(Jet_eta)<2.4 ");
-    _rlm =_rlm.Define("looseJets", "Jet_passJetIdTightLepVeto && Jet_pt_corr<30 && Jet_pt>20 && abs(Jet_eta)<2.4 ");
+    _rlm = _rlm.Define("goodJets", "Jet_passJetIdTightLepVeto && Jet_pt_active>30 && abs(Jet_eta)<2.4 ");
+    _rlm =_rlm.Define("looseJets", "Jet_passJetIdTightLepVeto && Jet_pt_active<30 && Jet_pt_active>20 && abs(Jet_eta)<2.4 ");
 
     //  _rlm = _rlm.Define("goodJets", " goodJets_low_eta || goodJets_high_eta ");
 
 
-    _rlm = _rlm.Define("goodJets_pt", "Jet_pt_corr[goodJets]")
+    _rlm = _rlm.Define("goodJets_pt", "Jet_pt_active[goodJets]")
                 .Define("goodJets_eta", "Jet_eta[goodJets]")
                 .Define("goodJets_phi", "Jet_phi[goodJets]")
                 .Define("goodJets_mass", "Jet_mass[goodJets]")
                 .Define("goodJets_idx", ::good_idx, {"goodJets"});
 
-     _rlm = _rlm.Define("looseJets_pt", "Jet_pt_corr[looseJets]")
+     _rlm = _rlm.Define("looseJets_pt", "Jet_pt_active[looseJets]")
                 .Define("looseJets_eta", "Jet_eta[looseJets]")
                 .Define("looseJets_phi", "Jet_phi[looseJets]")
                 .Define("looseJets_mass", "Jet_mass[looseJets]");
@@ -431,6 +432,7 @@ void BaseAnalyser::selectJets()
 (_year == "2022EE")   ?  0.451  ://         0.0897 :
 (_year == "2023")     ?  0.3487 ://           0.0681 :
 (_year == "2023BPix") ?  0.3494 ://     0.0683 :
+(_year == "2024")     ?  0.1272 :                        
                         0.3;
 
 
@@ -713,7 +715,7 @@ if (!_isData) // Only use genWeight
 //           string sumofgenweight1 = Form("%f",*sumgenweight1);
 //           std::cout<<"Sum of genWeights = "<<sumofgenweight1.c_str()<<std::endl;
 
-//  _rlm = calculateBTagSF(_rlm, Jets_vars_names, _case, 0.2783, "M", output_btag_column_name);
+  _rlm = calculateBTagSF(_rlm, Jets_vars_names, _case, 0.2783, "M", output_btag_column_name);
 
 std::cout << "DEBUG: _year = '" << _year << "'" << std::endl;
 
@@ -731,12 +733,12 @@ std::string output_mu_column_name  = "muon_SF_";
 std::string output_ele_column_name = "ele_SF_";
 
 // apply for muons only if any muon-like channel exists in the dataframe
-//_rlm = calculateMuSF(_rlm, muon_vars_names, output_mu_column_name);
+_rlm = calculateMuSF(_rlm, muon_vars_names, output_mu_column_name);
 
 // apply for electrons only if any electron-like channel exists in the dataframe
-//_rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
-//_rlm = calculateHLTSF(_rlm);
-//_rlm = applyTopPtWeight(_rlm);
+_rlm = calculateEleSF(_rlm, ele_vars_names, output_ele_column_name);
+_rlm = calculateHLTSF(_rlm);
+_rlm = applyTopPtWeight(_rlm);
 
   auto sumgenweight = _rd.Sum("genWeight");
   float lumi=(_year == "2023" ? 17794 :_year == "2022" ? 7980 : _year=="2022EE" ? 26671.7 : _year=="2023BPix" ? 9400 : _year=="2024"? 109950  : 30 );
@@ -748,17 +750,12 @@ std::string output_ele_column_name = "ele_SF_";
    std::cout << "[DEBUG] In Analyze. lumifactor = " << lumifactor << std::endl;
    std::cout << "[DEBUG] In Analyze. sum of genweight = " << _sumgenWeight << std::endl;
 
-// _rlm=_rlm .Define("evWeight", "Lumifactor *puWeight*genWeight*ele_SF_central");  	
-//     _rlm = _rlm.Define("lepton_SF_central", "(muonChannel || QCDmuonChannel) ? muon_SF_central : (electronChannel || QCDelectronChannel)? ele_SF_central : 1");
-
-  // _rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* lepton_SF_central*btag_SF_central");
-//   _rlm = _rlm.Define("no_puWeight","Lumifactor * genWeight");
-//   _rlm = _rlm.Define("Weight","Lumifactor * puWeight*genWeight ");//* btag_SF_central"); 
+   _rlm = _rlm.Define("no_puWeight","Lumifactor * genWeight");
+   _rlm = _rlm.Define("Weight","Lumifactor * puWeight*genWeight ");//* btag_SF_central"); 
 
         
-//  _rlm = _rlm.Define("evWeight", " Lumifactor * btag_SF_bcflav_central  * btag_SF_lflav_central * puWeight*genWeight * muon_SF_central * ele_SF_central"); // btag_SF_bcflav_central * btag_SF_lflav_central
-// _rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
-// _rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf");
+_rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
+_rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf");
  } 
 
 }
@@ -1049,13 +1046,12 @@ void BaseAnalyser::defineMoreVars()
     // define variables that you want to store
     //==============================================================================================//
 
-//    addVartoStore("MET_pt_corr");
 //    addVartoStore("MET_phi_corr");
 //    addVartoStore("goodMET_pt");
 //    addVartoStore("goodMET_phi");
  //   addVartoStore("PuppiMET_pt_corr");
  //   addVartoStore("PuppiMET_phi_corr");
-/*    addVartoStore("goodElectrons_leading_pt");
+    addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
     addVartoStore("goodElectrons_leading_phi");
     addVartoStore("goodElectrons_leading_mass");
@@ -1067,7 +1063,7 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodmuons_leading_mass");
     addVartoStore("muon_SF_central");
    
-    addVartoStore("Selected_jet_leading_pt");
+    //addVartoStore("Selected_jet_leading_pt");
     addVartoStore("Selected_jet_leading_phi");
     addVartoStore("Selected_jet_leading_eta");
     addVartoStore("Selected_jet_leading_mass");
@@ -1133,7 +1129,7 @@ void BaseAnalyser::defineMoreVars()
     
     //----------------------Systemetics----------------------------------------------
     
-    
+/* 
     addVartoStore("btag_SF_bcflav_down_correlated");
     addVartoStore("btag_SF_bcflav_down_uncorrelated");
     addVartoStore("btag_SF_bcflav_up_correlated");
