@@ -156,7 +156,7 @@ void BaseAnalyser::defineCuts(){
 
 //addCuts(" eu_channel  && (HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)","0");
 
-addCuts("eu_channel &&  !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
+//addCuts("eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
 
 //addCuts("eu_channel &&  Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
 
@@ -168,27 +168,27 @@ addCuts("eu_channel &&  !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices 
 //addCuts("!loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56)) ","0");
 //
 //
-/*
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","0");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","1");
+addCuts(" eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","0");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (nJet>0) && (PV_npvsGood>=35) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","2");
+addCuts(" eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","1");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=35) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","3");
+addCuts(" eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (nJet>0) && (PV_npvsGood>=35) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","2");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (PV_npvsGood>=1 && PV_npvsGood<35) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","4");
+addCuts(" eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=35) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","3");
 
-addCuts(" eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (PV_npvsGood>=1 && PV_npvsGood<35) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","5");
+addCuts(" eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (PV_npvsGood>=1 && PV_npvsGood<35) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","4");
+
+addCuts(" eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (PV_npvsGood>=1 && PV_npvsGood<35) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","5");
 
 addCuts(" NgoodJets>=3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) &&  (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","6");
 
-addCuts("NgoodJets>=3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","7");
+addCuts("NgoodJets>=3 && !loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter &&  (nJet>0) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","7");
 
-addCuts("NgoodJets<3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1 ) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","8");
+addCuts("NgoodJets<3 && !loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1 ) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","8");
 
-addCuts("NgoodJets<3 && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","9");
-*/
+addCuts("NgoodJets<3 && !loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","9");
+
 }
 //===============================Find Good Electrons===========================================//
 //: Define Good Electrons in rdata frame
@@ -321,7 +321,6 @@ void BaseAnalyser::reconstructWboson()
         std::cout<< "================================//=================================" << std::endl;
     }
 
-    //*--------------------- Reconstruct neutrino ---------------------*/
 
     std::cout<<"Reconstructing neutrino from MET"<<std::endl;
     _rlm = _rlm.Define("nu_pt", "static_cast<float>(goodMET_pt)")
@@ -432,7 +431,7 @@ void BaseAnalyser::selectJets()
 (_year == "2022EE")   ?  0.451  ://         0.0897 :
 (_year == "2023")     ?  0.3487 ://           0.0681 :
 (_year == "2023BPix") ?  0.3494 ://     0.0683 :
-(_year == "2024")     ?  0.1272 :                        
+(_year == "2024")     ?  0.0246 :  //0.1272 :                        
                         0.3;
 
 
@@ -715,7 +714,7 @@ if (!_isData) // Only use genWeight
 //           string sumofgenweight1 = Form("%f",*sumgenweight1);
 //           std::cout<<"Sum of genWeights = "<<sumofgenweight1.c_str()<<std::endl;
 
-  _rlm = calculateBTagSF(_rlm, Jets_vars_names, _case, 0.2783, "M", output_btag_column_name);
+//  _rlm = calculateBTagSF(_rlm, Jets_vars_names, _case, 0.2783, "M", output_btag_column_name);
 
 std::cout << "DEBUG: _year = '" << _year << "'" << std::endl;
 
@@ -723,7 +722,7 @@ std::cout << "DEBUG: _year.length() = " << _year.length() << std::endl;
 std::cout << "DEBUG: _year.empty() = " << _year.empty() << std::endl;
 
 std::cout << "DEBUG: btag_cut_value = " << btag_cut_value << " for year = " << _year << std::endl;
-//_rlm = calculateBTagSF(_rlm, Jets_vars_names,1,btag_cut_value,"M", output_btag_column_name);
+_rlm = calculateBTagSF(_rlm, Jets_vars_names,1,btag_cut_value,"M", output_btag_column_name);
 // ---------- create unified muon eta/pt columns (per-event) ----------
 std::vector<std::string> ele_vars_names= {"goodElectron_eta_supercluster", "goodElectrons_pt","goodElectrons_phi"};
 std::vector<std::string> muon_vars_names = {"goodmuons_eta", "goodmuons_pt"};
@@ -799,7 +798,6 @@ void BaseAnalyser::bdt_variables()
     _rlm = _rlm.Define("delR_dilepton_jet",:: calculate_deltaR,{"dilepton","dijet"});
     _rlm = _rlm.Define("delR_ele_muon",:: calculate_deltaR,{"goodElectron_TL4Vecs","goodmuons_TL4Vecs"});
     _rlm = _rlm.Define("delR_leadinglepton_jet",:: calculate_deltaR,{"leading_lepton","selected_cleanbjet_TL4vec"});
-
 }
 //=============================define variables==================================================//
 void BaseAnalyser::defineSystematics()
@@ -1051,7 +1049,7 @@ void BaseAnalyser::defineMoreVars()
 //    addVartoStore("goodMET_phi");
  //   addVartoStore("PuppiMET_pt_corr");
  //   addVartoStore("PuppiMET_phi_corr");
-    addVartoStore("goodElectrons_leading_pt");
+ /*   addVartoStore("goodElectrons_leading_pt");
     addVartoStore("goodElectrons_leading_eta");
     addVartoStore("goodElectrons_leading_phi");
     addVartoStore("goodElectrons_leading_mass");
@@ -1121,13 +1119,34 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("goodJets_btagpass_lflav_eta");
     addVartoStore("all_lflav_goodJets");
     addVartoStore("goodJets_all_lflav_pt");
-    addVartoStore("goodJets_all_lflav_eta");
+    addVartoStore("goodJets_all_lflav_eta");*/
     addVartoStore("run");
     addVartoStore("event");
     addVartoStore("luminosityBlock");
+    addVartoStore("goodElectrons_leading_pt");
+    addVartoStore("Electron_pt_active");
+    addVartoStore("Electron_pt");
+    addVartoStore("Electron_eta");
+    addVartoStore("Electron_phi");
+    addVartoStore("Muon_eta");
+    addVartoStore("Muon_phi");
+    addVartoStore("eu_channel");
+    addVartoStore("region_1j1t");
+    addVartoStore("region_2j1t");
+    addVartoStore("region_2j2t");
     
-    
-    //----------------------Systemetics----------------------------------------------
+    addVartoStore("goodElectrons_leading_eta");
+    addVartoStore("goodElectrons_leading_phi");
+    addVartoStore("goodElectrons_leading_mass");
+    addVartoStore("goodmuons_leading_pt");
+    addVartoStore("goodmuons_leading_phi");
+    addVartoStore("goodmuons_leading_eta");
+    addVartoStore("goodmuons_leading_mass");
+
+    addVartoStore("centrality");
+    addVartoStore("centrality_euchannel");
+    addVartoStore("evWeight");
+//----------------------Systemetics----------------------------------------------
     
 /* 
     addVartoStore("btag_SF_bcflav_down_correlated");

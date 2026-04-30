@@ -33,9 +33,9 @@ int main(int argc, char* argv[]) {
 
     // Configure input files and era
     if (year == "2022") {
-        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v5/120000/765ae6c3-8627-4bc3-a2e2-d19396ae34de.root"};
+//        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v5/120000/765ae6c3-8627-4bc3-a2e2-d19396ae34de.root"};
 
-      //  inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"};
+        inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"};
         era = "PreEE";
     } else if (year == "2022EE") {
         inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22EENanoAODv12/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2520000/716d2d2f-6ac3-4ac2-aa93-ad9034e8a9fd.root"};
@@ -43,9 +43,9 @@ int main(int argc, char* argv[]) {
        // inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022F/MuonEG/NANOAOD/22Sep2023-v1/2520000/11f0ddf5-660e-4066-b4a1-ad5ec991baa1.root"};
         era = "PostEE";
     } else if (year == "2024") {
-        //inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/RunIII2024Summer24NanoAODv15/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/08d67afd-e421-492c-b3fe-8c5d8878950c.root"};
+        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/RunIII2024Summer24NanoAODv15/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/08d67afd-e421-492c-b3fe-8c5d8878950c.root"};
 
-       inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2024I/EGamma1/NANOAOD/PromptReco-v2/000/386/704/00000/09da43bb-3bf7-4c93-b9c5-fc3e263a1bc2.root"};
+       //inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2024D/Muon0/NANOAOD/PromptReco-v1/000/380/306/00000/0ae75550-22d5-455e-848c-11d3c4b3a2ee.root"};
         era = "none";
     } else if (year == "2023") {
         inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root"};
@@ -323,7 +323,7 @@ int main(int argc, char* argv[]) {
         pileuptag = "Collisions24_BCDEFGHI_goldenJSON";
         btvfname = "data/BTV/2024/btagging.json";
         btvtype = "deepJet_shape";
-        fname_btagEff = "data/BTV/2023/BtaggingEfficiency.root";
+        fname_btagEff = "data/BTV/2024/BtaggingEfficiency.root";
         hname_btagEff_bcflav = "hist_btagEff_bcflav";
         hname_btagEff_lflav = "hist_btagEff_lflav";
         jercfname = "data/JERC/2024/jet_jerc.json";

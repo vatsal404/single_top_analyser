@@ -33,7 +33,7 @@ config = {
 
         # BTV correction type
         'btvtype': 'deepJet_shape',
-        'fname_btagEff': 'data/BTV/2023/BtaggingEfficiency.root',
+        'fname_btagEff': 'data/BTV/2024/BtaggingEfficiency.root',
         'hname_btagEff_bcflav':'hist_btagEff_bcflav',
         'hname_btagEff_lflav': 'hist_btagEff_lflav',
 
