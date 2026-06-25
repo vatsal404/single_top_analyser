@@ -49,10 +49,23 @@ config = {
         'jerctag': 'Summer23BPixPrompt23_V3_DATA_L1L2L3Res_AK4PFPuppi', 
 
         # jet uncertainty 
-        'jercunctag': 'Summer23BPixPrompt23_V3_MC_Total_AK4PFPuppi',
+        'jercunctag':[
+
+                'Summer23BPixPrompt23_V3_MC_Regrouped_FlavorQCD_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_RelativeBal_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_HF_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_BBEC1_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_EC2_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_Absolute_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_Absolute_2023BPix_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_HF_2023BPix_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_EC2_2023BPix_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_RelativeSample_2023BPix_AK4PFPuppi',
+                'Summer23BPixPrompt23_V3_MC_Regrouped_BBEC1_2023BPix_AK4PFPuppi',
+],
         'jettagMC' :'Summer23BPixPrompt23_V3_MC_L1L2L3Res_AK4PFPuppi',
         'muon_roch_fname': 'data/MUON/2023_post_BPIX/muon_scalesmearing.json',
-        'muon_fname': 'data/MUON/2023_post_BPIX/muon_Z.json.gz',
+        'muon_fname': 'data/MUON/2023_post_BPIX/muon_Z.json',
         'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
       #  'muonRECOtype': 'NUM_TrackerMuons_DEN_genTracks',
         'muonIDtype': 'NUM_TightID_DEN_TrackerMuons',
@@ -65,7 +78,7 @@ config = {
         'jet_veto_f_name':'data/JERC/2023_post_BPIX/jetvetomaps.json',
         'jet_veto_tag' : 'Summer23BPixPrompt23_RunD_V1',
         'electron_SSF' :'data/EGM/2023_post_BPIX/electronSS_EtDependent.json',
-        'metpt_fname' : 'data/JERC/2023_post_BPIX/met_xyCorrections_2023_2023BPix.json.gz',
+        'metpt_fname' : 'data/JERC/2023_post_BPIX/met_xyCorrections_2023_2023BPix.json',
         'JER_tag' : 'Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor_AK4PFPuppi',
         'JER_tag_res' : 'Summer23BPixPrompt23_RunD_JRV1_MC_PtResolution_AK4PFPuppi',
         }

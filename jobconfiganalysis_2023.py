@@ -49,10 +49,22 @@ config = {
         'jerctag': 'Summer23Prompt23_V2_DATA_L1L2L3Res_AK4PFPuppi', 
 
         # jet uncertainty 
-        'jercunctag': 'Summer23Prompt23_V2_MC_Total_AK4PFPuppi',
+        'jercunctag': [
+            'Summer23Prompt23_V2_MC_Regrouped_FlavorQCD_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_RelativeBal_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_HF_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_BBEC1_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_EC2_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_Absolute_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_Absolute_2023_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_HF_2023_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_EC2_2023_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_RelativeSample_2023_AK4PFPuppi',
+            'Summer23Prompt23_V2_MC_Regrouped_BBEC1_2023_AK4PFPuppi',
+        ],
         'jettagMC' :'Summer23Prompt23_V2_MC_L1L2L3Res_AK4PFPuppi',
         'muon_roch_fname': 'data/MUON/2023/muon_scalesmearing.json',
-        'muon_fname': 'data/MUON/2023/muon_Z.json.gz',
+        'muon_fname': 'data/MUON/2023/muon_Z.json',
         'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
       #  'muonRECOtype': 'NUM_TrackerMuons_DEN_genTracks',
         'muonIDtype': 'NUM_TightID_DEN_TrackerMuons',
@@ -69,7 +81,6 @@ config = {
         'JER_tag' : 'Summer23Prompt23_RunCv1234_JRV1_MC_ScaleFactor_AK4PFPuppi',
         'JER_tag_res' :'Summer23Prompt23_RunCv1234_JRV1_MC_PtResolution_AK4PFPuppi'
 }
-
 # processing options
 procflags = {
         ###### how many jobs? ######
