@@ -1,5 +1,6 @@
 universe = vanilla
 executable = runjob.sh
++JobFlavour = "nextweek"
 arguments = $(input_dir) $(output_file) $(stderr_file) $(crossection) $(sumgenWeight)
 
 output = logs/$(ClusterId).$(Process).out
@@ -9,14 +10,14 @@ log    = logs/$(ClusterId).log
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 
-transfer_input_files = runjob.sh,jobconfiganalysis_2023.py,processnanoaod.py,sample_list.txt,submitanalysisjob.py,job.submit,libnanoadrdframe.so,rootdict_rdict.pcm,package.tar.gz,sample_list_modified.txt,crashed_jobs.txt,jobconfiganalysis_2022.py, jobconfiganalysis_2023BPix.py,jobconfiganalysis_2022EE.py, missing_jobs.txt, jobconfiganalysis_2022EE_F.py, jobconfiganalysis_2022EE_G.py
+transfer_input_files = jobconfiganalysis_2023.py,job.submit,libnanoadrdframe.so,rootdict_rdict.pcm,package.tar.gz,jobconfiganalysis_2022.py, jobconfiganalysis_2023BPix.py,jobconfiganalysis_2022EE.py,jobconfiganalysis_2022EE_F.py,jobconfiganalysis_2022EE_G.py,jobconfiganalysis_2024.py,missing_jobs_22.txt
 
 # Do not bring back output to submit machine
 transfer_output_files = ""
 
 request_cpus   = 1
 request_memory = 12 GB
-request_disk   = 50 GB
+request_disk   = 20 GB
 
-queue input_dir, output_file, stderr_file, crossection, sumgenWeight from sample_list_split.txt 
+queue input_dir, output_file, stderr_file, crossection, sumgenWeight from sample_list/sample_list_split.txt 
 
