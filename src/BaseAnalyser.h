@@ -15,8 +15,8 @@ enum class SystType {
     EleScaleDown,
 
     // MET PU
-    Met_PUUp,
-    Met_PUDown,
+//    Met_PUUp,
+//    Met_PUDown,
 
     // Muon systematics
     muon_scaleup,
@@ -89,8 +89,8 @@ struct BranchSet {
 
     void setNominal() {
         ele_pt  = "Electron_pt_corr";
-        //met_pt  = "MET_pt_corr";
-        //met_phi = "MET_phi_corr";
+//        met_pt  = "MET_pt_corr";
+//        met_phi = "MET_phi_corr";
         muon_pt = "Muon_pt_corr";
         jet_pt = "Jet_pt_corr";
     }

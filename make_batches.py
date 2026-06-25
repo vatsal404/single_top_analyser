@@ -4,7 +4,7 @@ import math
 import subprocess
 
 # Batch size for MC
-MC_BATCH_SIZE = 5
+MC_BATCH_SIZE = 1
 
 REDIRECTOR = "root://cmsxrootd.fnal.gov"
 def clean_directory(d):
@@ -32,8 +32,8 @@ def ensure_dir(d):
         os.makedirs(d, exist_ok=True)
 
 def main():
-    in_list = "sample_list_2022EE_G.txt"
-    out_list = "sample_list_split.txt"
+    in_list = "sample_list/sample_list_2022EE_syst.txt"
+    out_list = "sample_list/sample_list_split.txt"
     batch_dir = "batches"
 
     # Create batches directory

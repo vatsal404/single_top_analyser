@@ -1,8 +1,8 @@
-#!/bin/bash
+!/bin/bash
 
-INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2022EE/"
+INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2024"
 OUTPUT_DIR="$(pwd)/merged"
-
+REMOVE_DUPES_MACRO="/uscms/home/vsinha/nobackup/CMSSW_13_3_3/src/fly/removeDuplicates.C"
 # Optional index passed as first argument
 INDEX="$1"
 
@@ -45,5 +45,22 @@ fi
 # Merge all Data samples (both modes)
 echo "Merging data samples"
 hadd -f "${OUTPUT_DIR}/data.root" "${OUTPUT_DIR}"/Data*.root 2>/dev/null
+
+
+DATAFILE="${OUTPUT_DIR}/data.root"
+CLEANFILE="${OUTPUT_DIR}/data_clean.root"
+
+if [[ -f "$DATAFILE" ]]; then
+    log "Running removeDuplicates on $DATAFILE ..."
+    root -l -b -q \
+        "${REMOVE_DUPES_MACRO}(\"${DATAFILE}\",\"${CLEANFILE}\")" \
+        || die "removeDuplicates.C failed"
+    mv -f "$CLEANFILE" "$DATAFILE"
+    log "Duplicate removal done."
+else
+    warn "Data file not found: $DATAFILE — skipping duplicate removal."
+fi
+
+
 
 echo "Done. Merged files are in $OUTPUT_DIR"

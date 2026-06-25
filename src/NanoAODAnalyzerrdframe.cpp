@@ -172,7 +172,7 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,s
 	cout<<"JERC JSON file : " << fname<<endl;
     if (_isData){
 
-        _jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON (JEC,compound)compoundLevel="L1L2L3Res"
+        _jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON 
     
     }
     else {
@@ -385,7 +385,9 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                 std::mt19937_64 gen(seed);
 
                 float resolution = _jer_resolution->evaluate({eta, pt, rho});
-                float sf         = _jer_corrector->evaluate({eta, pt, variation});
+                float sf = (_year == "2024")
+                    ? _jer_corrector->evaluate({eta, pt})
+                    : _jer_corrector->evaluate({eta, pt, variation});
                 float smeared_pt = pt;
 
                 if (genpt > 0)
@@ -802,6 +804,8 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
                     },
                     {"Electron_pt", "Electron_eta_supercluster", "Electron_r9",
                      "Electron_seedGain", "run"});
+    
+
     }
 
     // =====================================================
@@ -900,7 +904,7 @@ _rlm = _rlm.Define(
 
     }
 }
-/*
+
 void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
 {
     std::cout << "apply MET Pt and Phi correction" << std::endl;
@@ -1050,7 +1054,7 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
                       << outPtCol << ", " << outPhiCol << std::endl;
         }
     }
-}*/
+}
 void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag,string JER_tag_res)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
@@ -1267,7 +1271,7 @@ std::cout << "======================================\n" << std::endl;
 	applyMuPtCorrection();
     applyElectronPtCorrection();
     applyGoodJetId();
-//     applyMETPtPhiCorrection();
+    //applyMETPtPhiCorrection();
 
 }
 HLTSF NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const

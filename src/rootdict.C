@@ -53,10 +53,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const ::NanoAODAnalyzerrdframe*)
    {
-      ::NanoAODAnalyzerrdframe *ptr = 0;
+      ::NanoAODAnalyzerrdframe *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(::NanoAODAnalyzerrdframe));
       static ::ROOT::TGenericClassInfo 
-         instance("NanoAODAnalyzerrdframe", "NanoAODAnalyzerrdframe.h", 39,
+         instance("NanoAODAnalyzerrdframe", "NanoAODAnalyzerrdframe.h", 44,
                   typeid(::NanoAODAnalyzerrdframe), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &NanoAODAnalyzerrdframe_Dictionary, isa_proxy, 4,
                   sizeof(::NanoAODAnalyzerrdframe) );
@@ -67,14 +67,14 @@ namespace ROOT {
    }
    TGenericClassInfo *GenerateInitInstance(const ::NanoAODAnalyzerrdframe*)
    {
-      return GenerateInitInstanceLocal((::NanoAODAnalyzerrdframe*)0);
+      return GenerateInitInstanceLocal((::NanoAODAnalyzerrdframe*)nullptr);
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::NanoAODAnalyzerrdframe*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::NanoAODAnalyzerrdframe*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *NanoAODAnalyzerrdframe_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const ::NanoAODAnalyzerrdframe*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const ::NanoAODAnalyzerrdframe*)nullptr)->GetClass();
       NanoAODAnalyzerrdframe_TClassManip(theClass);
    return theClass;
    }
@@ -94,10 +94,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const ::BaseAnalyser*)
    {
-      ::BaseAnalyser *ptr = 0;
+      ::BaseAnalyser *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(::BaseAnalyser));
       static ::ROOT::TGenericClassInfo 
-         instance("BaseAnalyser", "BaseAnalyser.h", 34,
+         instance("BaseAnalyser", "BaseAnalyser.h", 99,
                   typeid(::BaseAnalyser), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &BaseAnalyser_Dictionary, isa_proxy, 4,
                   sizeof(::BaseAnalyser) );
@@ -108,14 +108,14 @@ namespace ROOT {
    }
    TGenericClassInfo *GenerateInitInstance(const ::BaseAnalyser*)
    {
-      return GenerateInitInstanceLocal((::BaseAnalyser*)0);
+      return GenerateInitInstanceLocal((::BaseAnalyser*)nullptr);
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::BaseAnalyser*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::BaseAnalyser*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *BaseAnalyser_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const ::BaseAnalyser*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const ::BaseAnalyser*)nullptr)->GetClass();
       BaseAnalyser_TClassManip(theClass);
    return theClass;
    }
@@ -156,7 +156,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *vectorlEvarinfogR_Dictionary();
    static void vectorlEvarinfogR_TClassManip(TClass*);
-   static void *new_vectorlEvarinfogR(void *p = 0);
+   static void *new_vectorlEvarinfogR(void *p = nullptr);
    static void *newArray_vectorlEvarinfogR(Long_t size, void *p);
    static void delete_vectorlEvarinfogR(void *p);
    static void deleteArray_vectorlEvarinfogR(void *p);
@@ -165,10 +165,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const vector<varinfo>*)
    {
-      vector<varinfo> *ptr = 0;
+      vector<varinfo> *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<varinfo>));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<varinfo>", -2, "vector", 389,
+         instance("vector<varinfo>", -2, "vector", 423,
                   typeid(vector<varinfo>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEvarinfogR_Dictionary, isa_proxy, 0,
                   sizeof(vector<varinfo>) );
@@ -183,11 +183,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<varinfo>*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<varinfo>*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *vectorlEvarinfogR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<varinfo>*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<varinfo>*)nullptr)->GetClass();
       vectorlEvarinfogR_TClassManip(theClass);
    return theClass;
    }
@@ -221,7 +221,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *vectorlEstringgR_Dictionary();
    static void vectorlEstringgR_TClassManip(TClass*);
-   static void *new_vectorlEstringgR(void *p = 0);
+   static void *new_vectorlEstringgR(void *p = nullptr);
    static void *newArray_vectorlEstringgR(Long_t size, void *p);
    static void delete_vectorlEstringgR(void *p);
    static void deleteArray_vectorlEstringgR(void *p);
@@ -230,10 +230,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const vector<string>*)
    {
-      vector<string> *ptr = 0;
+      vector<string> *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<string>));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<string>", -2, "vector", 389,
+         instance("vector<string>", -2, "vector", 423,
                   typeid(vector<string>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEstringgR_Dictionary, isa_proxy, 0,
                   sizeof(vector<string>) );
@@ -248,11 +248,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<string>*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<string>*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *vectorlEstringgR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<string>*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<string>*)nullptr)->GetClass();
       vectorlEstringgR_TClassManip(theClass);
    return theClass;
    }
@@ -286,7 +286,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_Dictionary();
    static void vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_TClassManip(TClass*);
-   static void *new_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p = 0);
+   static void *new_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p = nullptr);
    static void *newArray_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(Long_t size, void *p);
    static void delete_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p);
    static void deleteArray_vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR(void *p);
@@ -295,10 +295,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const vector<pair<string,shared_ptr<const correction::Correction> > >*)
    {
-      vector<pair<string,shared_ptr<const correction::Correction> > > *ptr = 0;
+      vector<pair<string,shared_ptr<const correction::Correction> > > *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<pair<string,shared_ptr<const correction::Correction> > >));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<pair<string,shared_ptr<const correction::Correction> > >", -2, "vector", 389,
+         instance("vector<pair<string,shared_ptr<const correction::Correction> > >", -2, "vector", 423,
                   typeid(vector<pair<string,shared_ptr<const correction::Correction> > >), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_Dictionary, isa_proxy, 0,
                   sizeof(vector<pair<string,shared_ptr<const correction::Correction> > >) );
@@ -313,11 +313,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<pair<string,shared_ptr<const correction::Correction> > >*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<pair<string,shared_ptr<const correction::Correction> > >*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<pair<string,shared_ptr<const correction::Correction> > >*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<pair<string,shared_ptr<const correction::Correction> > >*)nullptr)->GetClass();
       vectorlEpairlEstringcOshared_ptrlEconstsPcorrectioncLcLCorrectiongRsPgRsPgR_TClassManip(theClass);
    return theClass;
    }
@@ -351,7 +351,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *vectorlEhist2dinfogR_Dictionary();
    static void vectorlEhist2dinfogR_TClassManip(TClass*);
-   static void *new_vectorlEhist2dinfogR(void *p = 0);
+   static void *new_vectorlEhist2dinfogR(void *p = nullptr);
    static void *newArray_vectorlEhist2dinfogR(Long_t size, void *p);
    static void delete_vectorlEhist2dinfogR(void *p);
    static void deleteArray_vectorlEhist2dinfogR(void *p);
@@ -360,10 +360,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const vector<hist2dinfo>*)
    {
-      vector<hist2dinfo> *ptr = 0;
+      vector<hist2dinfo> *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<hist2dinfo>));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<hist2dinfo>", -2, "vector", 389,
+         instance("vector<hist2dinfo>", -2, "vector", 423,
                   typeid(vector<hist2dinfo>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEhist2dinfogR_Dictionary, isa_proxy, 0,
                   sizeof(vector<hist2dinfo>) );
@@ -378,11 +378,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<hist2dinfo>*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<hist2dinfo>*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *vectorlEhist2dinfogR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<hist2dinfo>*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<hist2dinfo>*)nullptr)->GetClass();
       vectorlEhist2dinfogR_TClassManip(theClass);
    return theClass;
    }
@@ -416,7 +416,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *vectorlEhist1dinfogR_Dictionary();
    static void vectorlEhist1dinfogR_TClassManip(TClass*);
-   static void *new_vectorlEhist1dinfogR(void *p = 0);
+   static void *new_vectorlEhist1dinfogR(void *p = nullptr);
    static void *newArray_vectorlEhist1dinfogR(Long_t size, void *p);
    static void delete_vectorlEhist1dinfogR(void *p);
    static void deleteArray_vectorlEhist1dinfogR(void *p);
@@ -425,10 +425,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const vector<hist1dinfo>*)
    {
-      vector<hist1dinfo> *ptr = 0;
+      vector<hist1dinfo> *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<hist1dinfo>));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<hist1dinfo>", -2, "vector", 389,
+         instance("vector<hist1dinfo>", -2, "vector", 423,
                   typeid(vector<hist1dinfo>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEhist1dinfogR_Dictionary, isa_proxy, 0,
                   sizeof(vector<hist1dinfo>) );
@@ -443,11 +443,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<hist1dinfo>*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<hist1dinfo>*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *vectorlEhist1dinfogR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<hist1dinfo>*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<hist1dinfo>*)nullptr)->GetClass();
       vectorlEhist1dinfogR_TClassManip(theClass);
    return theClass;
    }
@@ -481,7 +481,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *vectorlEcutinfogR_Dictionary();
    static void vectorlEcutinfogR_TClassManip(TClass*);
-   static void *new_vectorlEcutinfogR(void *p = 0);
+   static void *new_vectorlEcutinfogR(void *p = nullptr);
    static void *newArray_vectorlEcutinfogR(Long_t size, void *p);
    static void delete_vectorlEcutinfogR(void *p);
    static void deleteArray_vectorlEcutinfogR(void *p);
@@ -490,10 +490,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const vector<cutinfo>*)
    {
-      vector<cutinfo> *ptr = 0;
+      vector<cutinfo> *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<cutinfo>));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<cutinfo>", -2, "vector", 389,
+         instance("vector<cutinfo>", -2, "vector", 423,
                   typeid(vector<cutinfo>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEcutinfogR_Dictionary, isa_proxy, 0,
                   sizeof(vector<cutinfo>) );
@@ -508,11 +508,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<cutinfo>*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<cutinfo>*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *vectorlEcutinfogR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<cutinfo>*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<cutinfo>*)nullptr)->GetClass();
       vectorlEcutinfogR_TClassManip(theClass);
    return theClass;
    }
@@ -546,7 +546,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR_Dictionary();
    static void vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR_TClassManip(TClass*);
-   static void *new_vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR(void *p = 0);
+   static void *new_vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR(void *p = nullptr);
    static void *newArray_vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR(Long_t size, void *p);
    static void delete_vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR(void *p);
    static void deleteArray_vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR(void *p);
@@ -555,10 +555,10 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >*)
    {
-      vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > > *ptr = 0;
+      vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > > *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >", -2, "vector", 389,
+         instance("vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >", -2, "vector", 423,
                   typeid(vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR_Dictionary, isa_proxy, 4,
                   sizeof(vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >) );
@@ -573,11 +573,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > >*)nullptr)->GetClass();
       vectorlEROOTcLcLMathcLcLLorentzVectorlEROOTcLcLMathcLcLPtEtaPhiM4DlEdoublegRsPgRsPgR_TClassManip(theClass);
    return theClass;
    }
@@ -611,7 +611,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *maplEstringcOvectorlEstringgRsPgR_Dictionary();
    static void maplEstringcOvectorlEstringgRsPgR_TClassManip(TClass*);
-   static void *new_maplEstringcOvectorlEstringgRsPgR(void *p = 0);
+   static void *new_maplEstringcOvectorlEstringgRsPgR(void *p = nullptr);
    static void *newArray_maplEstringcOvectorlEstringgRsPgR(Long_t size, void *p);
    static void delete_maplEstringcOvectorlEstringgRsPgR(void *p);
    static void deleteArray_maplEstringcOvectorlEstringgRsPgR(void *p);
@@ -620,7 +620,7 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const map<string,vector<string> >*)
    {
-      map<string,vector<string> > *ptr = 0;
+      map<string,vector<string> > *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(map<string,vector<string> >));
       static ::ROOT::TGenericClassInfo 
          instance("map<string,vector<string> >", -2, "map", 100,
@@ -638,11 +638,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const map<string,vector<string> >*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const map<string,vector<string> >*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *maplEstringcOvectorlEstringgRsPgR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const map<string,vector<string> >*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const map<string,vector<string> >*)nullptr)->GetClass();
       maplEstringcOvectorlEstringgRsPgR_TClassManip(theClass);
    return theClass;
    }
@@ -676,7 +676,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR_Dictionary();
    static void maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR_TClassManip(TClass*);
-   static void *new_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR(void *p = 0);
+   static void *new_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR(void *p = nullptr);
    static void *newArray_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR(Long_t size, void *p);
    static void delete_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR(void *p);
    static void deleteArray_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR(void *p);
@@ -685,7 +685,7 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const map<string,ROOT::RDF::RResultPtr<TH2D> >*)
    {
-      map<string,ROOT::RDF::RResultPtr<TH2D> > *ptr = 0;
+      map<string,ROOT::RDF::RResultPtr<TH2D> > *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(map<string,ROOT::RDF::RResultPtr<TH2D> >));
       static ::ROOT::TGenericClassInfo 
          instance("map<string,ROOT::RDF::RResultPtr<TH2D> >", -2, "map", 100,
@@ -703,11 +703,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const map<string,ROOT::RDF::RResultPtr<TH2D> >*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const map<string,ROOT::RDF::RResultPtr<TH2D> >*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const map<string,ROOT::RDF::RResultPtr<TH2D> >*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const map<string,ROOT::RDF::RResultPtr<TH2D> >*)nullptr)->GetClass();
       maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH2DgRsPgR_TClassManip(theClass);
    return theClass;
    }
@@ -741,7 +741,7 @@ namespace ROOT {
 namespace ROOT {
    static TClass *maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR_Dictionary();
    static void maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR_TClassManip(TClass*);
-   static void *new_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR(void *p = 0);
+   static void *new_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR(void *p = nullptr);
    static void *newArray_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR(Long_t size, void *p);
    static void delete_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR(void *p);
    static void deleteArray_maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR(void *p);
@@ -750,7 +750,7 @@ namespace ROOT {
    // Function generating the singleton type initializer
    static TGenericClassInfo *GenerateInitInstanceLocal(const map<string,ROOT::RDF::RResultPtr<TH1D> >*)
    {
-      map<string,ROOT::RDF::RResultPtr<TH1D> > *ptr = 0;
+      map<string,ROOT::RDF::RResultPtr<TH1D> > *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(map<string,ROOT::RDF::RResultPtr<TH1D> >));
       static ::ROOT::TGenericClassInfo 
          instance("map<string,ROOT::RDF::RResultPtr<TH1D> >", -2, "map", 100,
@@ -768,11 +768,11 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const map<string,ROOT::RDF::RResultPtr<TH1D> >*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const map<string,ROOT::RDF::RResultPtr<TH1D> >*)nullptr); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR_Dictionary() {
-      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const map<string,ROOT::RDF::RResultPtr<TH1D> >*)0x0)->GetClass();
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const map<string,ROOT::RDF::RResultPtr<TH1D> >*)nullptr)->GetClass();
       maplEstringcOROOTcLcLRDFcLcLRResultPtrlETH1DgRsPgR_TClassManip(theClass);
    return theClass;
    }
@@ -808,14 +808,14 @@ namespace {
     static const char* headers[] = {
 "src/NanoAODAnalyzerrdframe.h",
 "src/BaseAnalyser.h",
-0
+nullptr
     };
     static const char* includePaths[] = {
-"/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/py3-correctionlib/2.1.0-bc1f1a24613552be911056d8eb959866/lib/python3.9/site-packages/correctionlib/include",
+"/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-correctionlib/2.2.2-4f091fd2adcff55f05f1d262b3254c25/lib/python3.9/site-packages/correctionlib/include",
 "src",
-"/cvmfs/cms.cern.ch/el8_amd64_gcc10/lcg/root/6.24.07-6b24df5a7040a677b8f0d27957c7cb74/include/",
-"/uscms_data/d3/vsinha/CMSSW_12_3_4/src/fly/",
-0
+"/cvmfs/cms.cern.ch/el9_amd64_gcc12/lcg/root/6.26.11-bf905b525ba08330833d2acc7f29dee0/include/",
+"/uscms_data/d3/vsinha/CMSSW_13_3_3/src/fly/",
+nullptr
     };
     static const char* fwdDeclCode = R"DICTFWDDCLS(
 #line 1 "rootdict dictionary forward declarations' payload"

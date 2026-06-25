@@ -16,6 +16,7 @@
 #include <TMatrixDSymEigen.h>
 #include <TLorentzVector.h>
 #include <TVector3.h>
+#include "lester_mt2_bisect.h"
 // Utility function to generate fourvector objects for thigs that pass selections
 
 using namespace std;
@@ -365,7 +366,7 @@ float calculate_centrality(const TLorentzVector &lep1,
 //float calculate_deltaR( const LorentzVector &p1,const LorentzVector &p2){
 //	return ROOT::Math::VectorUtil::DeltaR(p1, p2);
 //}
-float calculate_deltaR(TLorentzVector &p1, TLorentzVector &p2) {
+float calculate_deltaR(const TLorentzVector &p1,const TLorentzVector &p2) {
     double eta1 = p1.Eta();
     double eta2 = p2.Eta();
     double phi1 = p1.Phi();
@@ -729,4 +730,38 @@ TLorentzVector reconstructWboson_TL4vec(TLorentzVector &lepton, TLorentzVector &
 {
 	TLorentzVector Wboson_TL4vec = lepton + neutrino;
 	return Wboson_TL4vec;
+}
+float calculateMT2(const TLorentzVector& lep1,
+                   const TLorentzVector& lep2,
+                   const TLorentzVector& met) {
+
+//    double chi = 5.0;  // tune this
+    asymm_mt2_lester_bisect::disableCopyrightMessage();
+    return asymm_mt2_lester_bisect::get_mT2(
+        lep1.M(), lep1.Px(), lep1.Py(),
+        lep2.M(), lep2.Px(), lep2.Py(),
+        met.Px(), met.Py(),
+        0 , 0 
+    );
+}
+
+
+float min_deltaR(const TLorentzVector &lep1,
+                 const TLorentzVector &lep2,
+                 const TLorentzVector &jet)
+{
+    float dr1 = calculate_deltaR(lep1, jet);
+    float dr2 = calculate_deltaR(lep2, jet);
+
+    return std::min(dr1, dr2);
+}
+
+float max_deltaR(const TLorentzVector &lep1,
+                 const TLorentzVector &lep2,
+                 const TLorentzVector &jet)
+{
+    float dr1 = calculate_deltaR(lep1, jet);
+    float dr2 = calculate_deltaR(lep2, jet);
+
+    return std::max(dr1, dr2);
 }

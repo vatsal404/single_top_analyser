@@ -44,6 +44,7 @@ config = {
         'jerctag': 'Summer22EE_22Sep2023_RunE_V2_DATA_L1L2L3Res_AK4PFPuppi', 
 
         # jet uncertainty 
+<<<<<<< Updated upstream
         'jercunctag': [
 
             'Summer22EE_22Sep2023_V2_MC_Regrouped_FlavorQCD_AK4PFPuppi',

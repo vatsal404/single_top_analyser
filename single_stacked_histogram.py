@@ -7,7 +7,7 @@ import os
 directory = "merged/"  # Path where all ROOT files are stored
 
 # Variable to plot (change this to any variable you want)
-variable_to_plot = "goodElectrons_leading_pt"
+variable_to_plot = "centrality"
 
 # Define custom binning: (start, end, num_bins)
 binning = (0,200, 30)
@@ -23,6 +23,10 @@ channels = {
 # Define file groups (MC samples)
 file_groups = {
     "drell_yan": [
+    "DYto2E-2Jets_MLL-10to50.root",
+    "DYto2E-2Jets_MLL-50.root",
+    "DYto2Mu-2Jets_MLL-10to50.root",
+    "DYto2Mu-2Jets_MLL-50.root",
         "DYjetsM10to50.root",
         "DYjetsM50.root",
         "TTLL_MLL-50.root",
@@ -54,7 +58,9 @@ file_groups = {
         "ZZto4L.root"
     ],
     "wjets": [
-        "WtoLNu.root"
+        "WtoLNu.root",
+        "WtoENu-2Jets.root",
+        "WtoMuNu-2Jets.root"
     ],
 }
 

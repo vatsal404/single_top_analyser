@@ -8,8 +8,8 @@ crossection=$4
 sumgenWeight=$5
 
 # Configuration variables
-jobconfmod="jobconfiganalysis_2024"
-eos_output_dir="/eos/uscms/store/user/vsinha/Result_2024"
+jobconfmod="jobconfiganalysis_2022EE"
+eos_output_dir="/eos/uscms/store/user/vsinha/Result_2022EE"
 
 echo "Running analysis with the following parameters:"
 echo "Input directory: $input_dir"
@@ -26,14 +26,14 @@ else
     echo "Condor Scratch Directory: ${_CONDOR_SCRATCH_DIR}"
 
     source /cvmfs/cms.cern.ch/cmsset_default.sh
-    export SCRAM_ARCH=el8_amd64_gcc10
+    export SCRAM_ARCH=el9_amd64_gcc12
 
     # Create CMSSW release if missing
-    if [ ! -d "CMSSW_12_3_4" ]; then
-        eval `scramv1 project CMSSW CMSSW_12_3_4`
+    if [ ! -d "CMSSW_13_3_3" ]; then
+        eval `scramv1 project CMSSW CMSSW_13_3_3`
     fi
 
-    cd CMSSW_12_3_4/src
+    cd CMSSW_13_3_3/src
     cmsenv
     eval `scramv1 runtime -sh`
     cd -

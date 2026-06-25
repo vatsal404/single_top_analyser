@@ -38,7 +38,7 @@ config = {
 
         # BTV correction type
         'btvtype': 'deepJet_shape',
-        'fname_btagEff': 'data/BTV/2023/BtaggingEfficiency.root',
+        'fname_btagEff': 'data/BTV/2023_post_BPIX/BtaggingEfficiency.root',
         'hname_btagEff_bcflav':'hist_btagEff_bcflav',
         'hname_btagEff_lflav': 'hist_btagEff_lflav',
 
@@ -63,8 +63,6 @@ config = {
                 'Summer23BPixPrompt23_V3_MC_Regrouped_RelativeSample_2023BPix_AK4PFPuppi',
                 'Summer23BPixPrompt23_V3_MC_Regrouped_BBEC1_2023BPix_AK4PFPuppi',
 ],
-        'jettagMC' :'Summer23BPixPrompt23_V3_MC_L1L2L3Res_AK4PFPuppi',
-        'muon_roch_fname': 'data/MUON/2023_post_BPIX/muon_scalesmearing.json',
         'muon_fname': 'data/MUON/2023_post_BPIX/muon_Z.json',
         'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
       #  'muonRECOtype': 'NUM_TrackerMuons_DEN_genTracks',
