@@ -1,5 +1,6 @@
 
 
+
 config = {
 
         # tree name of input file(s)
@@ -44,39 +45,26 @@ config = {
         'jerctag': 'Summer22EE_22Sep2023_RunG_V2_DATA_L1L2L3Res_AK4PFPuppi', 
 
         # jet uncertainty 
-        'jercunctag': [
-
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_FlavorQCD_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_RelativeBal_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_HF_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_BBEC1_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_EC2_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_Absolute_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_Absolute_2022EE_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_HF_2022EE_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_EC2_2022EE_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_RelativeSample_2022EE_AK4PFPuppi',
-            'Summer22EE_22Sep2023_V2_MC_Regrouped_BBEC1_2022EE_AK4PFPuppi'
-],
+        'jercunctag': 'Summer22EE_22Sep2023_V2_MC_Total_AK4PFPuppi',
         'jettagMC' :'Summer22EE_22Sep2023_V2_MC_L1L2L3Res_AK4PFPuppi',
-        'muon_roch_fname': 'data/MUON/2022_postEE/muon_scalesmearing.json',
-        'muon_fname': 'data/MUON/2022_postEE/muon_Z.json',
+        'muon_roch_fname': 'data/MUON/2022_postEE/muon_scalesmearing.json.gz',
+        'muon_fname': 'data/MUON/2022_postEE/muon_Z.json.gz',
         'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
       #  'muonRECOtype': 'NUM_TrackerMuons_DEN_genTracks',
         'muonIDtype': 'NUM_TightID_DEN_TrackerMuons',
         'muonISOtype': 'NUM_TightPFIso_DEN_TightID',
-        'electron_fname': 'data/EGM/2022_postEE/electron.json',
+        'electron_fname': 'data/EGM/2022_postEE/electron.json.gz',
         'Hlt_fname':'data/Hlt_scale_factor/2022EE/trigger_scale_factors.root',
         'electron_reco_type1': 'Reco20to75',
         'electron_reco_type2' :  'RecoAbove75',
         'electron_id_type': 'Tight',
-        'jet_veto_f_name':'data/JERC/2022_postEE/jetvetomaps.json',
+        'jet_veto_f_name':'data/JERC/2022_postEE/jetvetomaps.json.gz',
         'jet_veto_tag' : 'Summer22EE_23Sep2023_RunEFG_V1',
-        'electron_SSF' :'data/EGM/2022_postEE/electronSS_EtDependent.json',
-        'metpt_fname' : 'data/JERC/2022_postEE/met_xyCorrections_2022_2022EE.json',
+        'electron_SSF' :'data/EGM/2022_postEE/electronSS_EtDependent.json.gz',
+        'metpt_fname' : 'data/JERC/2022_postEE/met_xyCorrections_2022_2022EE.json.gz',
         'JER_tag' : 'Summer22EE_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi',
         'JER_tag_res' : 'Summer22EE_22Sep2023_JRV1_MC_PtResolution_AK4PFPuppi'
-        }
+}
 
 # processing options
 procflags = {
