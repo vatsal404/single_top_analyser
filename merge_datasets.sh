@@ -1,6 +1,6 @@
 !/bin/bash
 
-INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2024"
+INPUT_DIR="/eos/uscms/store/user/vsinha/Result_2024/statistical/"
 OUTPUT_DIR="$(pwd)/merged"
 REMOVE_DUPES_MACRO="/uscms/home/vsinha/nobackup/CMSSW_13_3_3/src/fly/removeDuplicates.C"
 # Optional index passed as first argument

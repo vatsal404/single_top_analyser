@@ -1,3 +1,6 @@
+*.csv
+*.pkl
+*.json
 # Ignore Mac system files
 .DS_store
 # Ignore root files
