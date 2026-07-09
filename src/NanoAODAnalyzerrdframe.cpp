@@ -2136,42 +2136,57 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyJetVetoMap(
 
     std::cout << "Applying Jet veto map..." << std::endl;
 
-    auto is_vetoed_event = [this](const ROOT::VecOps::RVec<float>& etas,
-                                 const ROOT::VecOps::RVec<float>& phis) -> bool {
+    auto is_vetoed_event =
+        [this](const ROOT::VecOps::RVec<float>& etas,
+               const ROOT::VecOps::RVec<float>& phis) -> bool {
 
         static int event_counter = 0;
         const int max_debug_events = 5;
 
         auto veto_corr = _correction_jetveto->at(_jet_veto_tag);
-        std::string veto_type = "jetvetomap";
 
-        bool veto_decision = false; // still disabled for now
+        bool veto_decision = false;
 
         if (event_counter < max_debug_events) {
             std::cout << "\n[DEBUG] Event " << event_counter << std::endl;
-            std::cout << "  Number of jets = " << etas.size() << std::endl;
+            std::cout << "Number of jets = " << etas.size() << std::endl;
+        }
 
-            size_t nprint = std::min<size_t>(etas.size(), 5);
-            for (size_t i = 0; i < nprint; ++i) {
-                std::cout << "    jet[" << i << "] eta=" << etas[i]
-                          << " phi=" << phis[i] << std::endl;
+        for (size_t i = 0; i < etas.size(); ++i) {
 
-                if (std::abs(etas[i]) > 5.2 || std::abs(phis[i]) > M_PI + 0.01) {
-                    std::cout << "      -> OUT OF RANGE!" << std::endl;
-                }
+            float eta = etas[i];
+            float phi = phis[i];
 
-                if (std::isnan(etas[i]) || std::isnan(phis[i]) ||
-                    std::isinf(etas[i]) || std::isinf(phis[i])) {
-                    std::cout << "      -> NaN/Inf detected!" << std::endl;
-                }
+            if (!std::isfinite(eta) || !std::isfinite(phi))
+                continue;
+
+            if (std::abs(eta) > 5.2)
+                continue;
+
+            int veto = veto_corr->evaluate(
+                {"jetvetomap", eta, phi}
+            );
+
+            if (event_counter < max_debug_events) {
+                std::cout << " Jet " << i
+                          << " eta=" << eta
+                          << " phi=" << phi
+                          << " veto=" << veto
+                          << std::endl;
+            }
+
+            if (veto != 0) {
+                veto_decision = true;
+                break;
             }
         }
 
         if (event_counter < max_debug_events) {
-            std::cout << "  Output veto_decision = " << veto_decision << std::endl;
+            std::cout << "Event veto = " << veto_decision << std::endl;
         }
 
-        event_counter++;
+        ++event_counter;
+
         return veto_decision;
     };
 
