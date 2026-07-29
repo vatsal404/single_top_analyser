@@ -445,21 +445,7 @@ def _data_hist(filepath, region_branch, variable, bins, nb):
             tree  = f[TREE_NAME]
             tkeys = set(tree.keys())
             if variable not in tkeys or region_branch not in tkeys: return h
-            f?~T~@
- 14 def _tw_drds_envelope(tw_dir, region_branch, cw_branches, variable, bins, nb):
- 15     if not os.path.isdir(tw_dir):
- 16         return None, None
- 17     root_files = sorted(glob.glob(os.path.join(tw_dir, "*.root")))
- 18     if not root_files:
- 19         return None, None
- 20     tag_hists = {}
- 21     prefix = "TWto2L2Nu-"; suffix = "_nominal"
- 22     for fp in root_files:
- 23         stem = os.path.splitext(os.path.basename(fp))[0]
- 24         tag  = stem
- 25         if tag.startswith(prefix):  tag = tag[len(prefix):]
- 26         if tag.endswith(suffix):    tag = tag[:-len(suffix)]
-or chunk in tree.iterate([variable, region_branch],
+            for chunk in tree.iterate([variable, region_branch],
                                       step_size=CHUNK, library="np"):
                 mask = np.asarray(chunk[region_branch], dtype=bool)
                 if not mask.any(): del chunk; continue
