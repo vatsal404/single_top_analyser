@@ -21,7 +21,12 @@ WHAT COUNTS AS A "WEIGHT SYSTEMATIC" HERE
    an up/down branch (btag SFs, ele/muon SF, HLT SF, pileup).
 2. THEORY_SYSTEMATICS: envelopes (bin-wise max/min) built from LHE weight
    vectors (PDF, alphaS, QCD scale, PS), each variation normalized by its
-   relative sum-of-weights.
+   relative sum-of-weights. Only built for the ttbar and single-tW processes
+   (THEORY_SYST_PROCESSES) -- everything else gets no theory systematic at
+   all. The two ttbar processes (dileptonic/semileptonic) share one nuisance
+   parameter per theory uncertainty ("ttbar_pdf", "ttbar_qcd_scale", ...);
+   the two single-tW processes share a separate one ("st_pdf",
+   "st_qcd_scale", ...).
 
 WHAT COUNTS AS A "FILE SYSTEMATIC" HERE
 ------------------------------------------
@@ -33,12 +38,17 @@ and filled directly.
 CONFIG YOU SHOULD DOUBLE-CHECK
 --------------------------------
 * REGIONS[*]["cut"]     -- uses region_1j1t / region_2j1t / region_2j2t flags.
-* REGIONS[*]["equal_weight_binning"] -- per-region toggle; 2j2b now uses
-  fixed binning (xmin/xmax/nbins) instead of equal-background-yield binning.
-* DATASET_ID_YEAR_MAP   -- datasetId branch: 0/1/2/3 -> 2022/2022EE/2023/2023BPix.
-                           Not used directly here since the per-year JEC/JER
-                           files already encode which events shift; kept for
-                           reference / future use.
+* REGIONS[*]["binning_mode"] -- per-region binning strategy:
+                           "equal_ttbar_yield" (1j1b/2j1b) splits bin edges so
+                           each bin holds an equal ttbar-weighted yield;
+                           "fixed_with_overflow" (2j2b) uses fixed-width bins
+                           out to xmax, with the last bin's upper edge pushed
+                           to catch every event above xmax as an overflow bin.
+* ERA_BASE_DIRS          -- one top-level directory per era (2022/2022EE/
+                           2023/2023BPix/2024). Each era's ROOT files live
+                           under their own path now (rather than all eras
+                           being mixed together and split apart via the
+                           datasetId branch) -- fill in the real EOS paths.
 """
 
 import os
@@ -68,21 +78,45 @@ ROOT.gROOT.SetBatch(True)
 # CONFIG
 # --------------------------------------------------------------------------
 
-BASE_DIR = "/eos/uscms/store/user/vsinha/combined"
+# Each era's ROOT files now live in a SEPARATE top-level directory (rather
+# than all being mixed together under one BASE_DIR and split apart event-by-
+# event via the datasetId branch). Fill in the actual EOS path for every era
+# you want to process -- directory layout under each path is unchanged from
+# before:
+#     <ERA_BASE_DIRS[era]>/<process>/<process>_nominal.root
+#     <ERA_BASE_DIRS[era]>/<process>/<process>_<systTag>.root
+# TODO: fill in the real paths below.
+ERA_BASE_DIRS = {
+    "2022":     "/eos/uscms/store/user/vsinha/Result_2022/systemetics/",
+    "2022EE":   "/eos/uscms/store/user/vsinha/Result_2022EE/systemetics/",
+    "2023":     "/eos/uscms/store/user/vsinha/Result_2023/systemetics/",
+    "2023BPix": "/eos/uscms/store/user/vsinha/Result_2023BPix/systemetics/",
+    "2024":     "/eos/uscms/store/user/vsinha/Result_2024/systemetics/",
+}
 OUT_FILE_TEMPLATE = "shapes_{era}.root"  # actual output files, one per era (see ERAS below)
 TREE_NAME = "outputTree"
 
-USE_EQUAL_WEIGHT_BINNING = True
-
 REGIONS = {
     "1j1b": dict(variable="bdt_variable_1j1t", cut="region_1j1t == 1",
-                 nbins=20, xmin=0.0, xmax=1.0, equal_weight_binning=True),
+                 nbins=15, xmin=0.0, xmax=1.0, binning_mode="equal_sb_yield"),
     "2j1b": dict(variable="bdt_variable_2j1t", cut="region_2j1t == 1",
-                 nbins=20, xmin=0.0, xmax=1.0, equal_weight_binning=True),
-    # equal-weight binning turned OFF here -- uses fixed nbins/xmin/xmax below
+                 nbins=15, xmin=0.0, xmax=1.0, binning_mode="equal_sb_yield"),
     "2j2b": dict(variable="Selected_jet_subleading_pt", cut="region_2j2t == 1",
-                 nbins=20, xmin=0.0, xmax=300.0, equal_weight_binning=False),
+                 nbins=15, xmin=0.0, xmax=180.0, binning_mode="fixed_with_overflow"),
 }
+
+# Raw process directory names (as they appear under BASE_DIR, matching the
+# ttbar_dileptonic/ttbar_semileptonic entries in FILE_GROUPS below). Only
+# used if you switch a region's binning_mode back to "equal_ttbar_yield"
+# (see compute_equal_weight_edges / compute_all_edges below) -- currently
+# unused since every region uses simple equal-width binning above.
+TTBAR_BINNING_PROCESSES = ["TTbar_Dilept", "TTbar_SemiLept"]
+
+# Upper edge substituted for a fixed-binning region's nominal xmax so that
+# every event beyond xmax (not just ones inside [xmin, xmax]) is captured in
+# the last bin instead of silently falling into ROOT's invisible overflow
+# bin. Far larger than any realistic value of the plotted variable.
+OVERFLOW_EDGE = 1.0e6
 
 # combine does not accept histogram/TDirectory ("bin"/channel) names that
 # start with a digit, so every region gets a "cat_" prefix wherever it is
@@ -103,8 +137,42 @@ DATA_PROCESS_NAME = "Data"
 # Processes to exclude from the equal-yield binning pool (e.g. real signal).
 SIGNAL_PROCESSES_EXCLUDED_FROM_BINNING = set()
 
-# datasetId branch mapping -- not used in this step, kept for the next one.
-DATASET_ID_YEAR_MAP = {0: "2022", 1: "2022EE", 2: "2023", 3: "2023BPix"}
+# datasetId branch mapping -- kept only to give the eras a canonical order
+# (0..4) for printouts; no longer used to split events by era, since each
+# era's events now live in their own directory (ERA_BASE_DIRS) rather than
+# being mixed together and filtered via the datasetId branch.
+DATASET_ID_YEAR_MAP = {0: "2022", 1: "2022EE", 2: "2023", 3: "2023BPix", 4: "2024"}
+
+ERAS_TO_INCLUDE = {"2022","2022EE", "2023", "2023BPix", "2024"}
+
+
+def _resolve_eras():
+    """Build the final, ordered list of era names to process: every name in
+    DATASET_ID_YEAR_MAP (canonical ordering) that (a) has an entry in
+    ERA_BASE_DIRS and (b) passes ERAS_TO_INCLUDE (if that filter is set).
+    Directory *existence* on disk is checked later, in build_shapes(), so a
+    missing/not-yet-staged era directory only skips that one era instead of
+    crashing here."""
+    names = [name for _, name in sorted(DATASET_ID_YEAR_MAP.items())]
+    resolved = [name for name in names if name in ERA_BASE_DIRS]
+    missing_dirs_cfg = [name for name in names if name not in ERA_BASE_DIRS]
+    if missing_dirs_cfg:
+        print(f"NOTE: no ERA_BASE_DIRS entry for era(s) {missing_dirs_cfg} -- excluded")
+    if ERAS_TO_INCLUDE:
+        excluded = [name for name in resolved if name not in ERAS_TO_INCLUDE]
+        if excluded:
+            print(f"NOTE: ERAS_TO_INCLUDE is set -- excluding era(s): {excluded}")
+        unknown = sorted(ERAS_TO_INCLUDE - set(names))
+        if unknown:
+            print(f"WARNING: ERAS_TO_INCLUDE contains unrecognized era name(s), ignored: {unknown}")
+        resolved = [name for name in resolved if name in ERAS_TO_INCLUDE]
+    if not resolved:
+        raise ValueError("No eras left to process -- check ERA_BASE_DIRS / ERAS_TO_INCLUDE")
+    return resolved
+
+
+ERAS = _resolve_eras()  # e.g. ["2022", "2023", "2023BPix", "2024"]
+print(f"Processing eras: {ERAS}")
 
 CENTRAL_WEIGHT_BRANCHES = [
     "no_puWeight", "muon_SF_central", "puWeight",
@@ -147,18 +215,46 @@ SF_BRANCH_SYSTEMATICS = [
 THEORY_SYSTEMATICS = [
     dict(branch="LHEPdfWeight",   sumw="LHEPdfSumw",   indices=list(range(0, 100)), name="pdf"),
     dict(branch="LHEPdfWeight",   sumw="LHEPdfSumw",   indices=[100, 101],          name="alphaS"),
-    dict(branch="LHEScaleWeight", sumw="LHEScaleSumw", indices=[1, 3, 5, 7],        name="qcd_scale"),
+    dict(branch="LHEScaleWeight", sumw="LHEScaleSumw", indices=[1, 6],              name="qcd_scale_ur"),
+    dict(branch="LHEScaleWeight", sumw="LHEScaleSumw", indices=[3, 4],              name="qcd_scale_uf"),
     dict(branch="PSWeight",       sumw="PSSumw",       indices=None,                name="ps"),
 ]
+
+# Theory envelopes (pdf/alphaS/qcd_scale/ps) are only meaningful -- and only
+# built -- for the ttbar and single-tW processes, not for every background.
+# Everything else (DY, VV, W+jets, ttG/ttV, ...) never gets a theory
+# systematic written, regardless of SYSTEMATIC_GROUP_SWITCHES["theory"].
+#
+# Within this set, the two ttbar processes (dileptonic/semileptonic) share
+# ONE nuisance parameter per theory uncertainty, and the two single-tW
+# processes share a separate, independent ONE nuisance parameter per theory
+# uncertainty -- i.e. 2 groups x 4 theory uncertainties = 8 theory nuisances
+# total (before era-decorrelation), not one per process. This is done by
+# naming the stored systematic "<group>_<theory_name>" (e.g. "ttbar_pdf",
+# "st_pdf") using modeling_prefix(proc) below to pick the group -- the same
+# helper already used to name the file-based modeling variations (hdamp/UE/
+# CR/tune), which follows the identical "ttbar"/"st" grouping convention.
+THEORY_SYST_PROCESSES = {
+    "TTbar_Dilept", "TTbar_SemiLept",           # -> group "ttbar"
+    "TWminusto2L2Nu", "TbarWplusto2L2Nu",       # -> group "st"
+}
 
 # --------------------------------------------------------------------------
 # DEBUG SWITCHES -- turn categories of systematics on/off, or isolate one
 # specific systematic by name, without touching the rest of the script.
 # --------------------------------------------------------------------------
 
+# When True: build ONLY the nominal histogram for every process/region/era --
+# no SF, theory, or file-based ("shape") systematics at all, regardless of
+# SYSTEMATIC_GROUP_SWITCHES / ONLY_THESE_SYSTEMATICS below. No systematic
+# weight columns get booked, no systematic files get globbed/opened. This is
+# for quickly rerunning build_shapes() + run_plots() just to check binning
+# and nominal yields/shapes without waiting on every variation.
+NOMINAL_ONLY = False
+
 SYSTEMATIC_GROUP_SWITCHES = dict(
     sf=True,             # btag/ele/muon/hlt/pileup SF up/down
-    theory=False,         # pdf/alphaS/qcd_scale/ps envelopes
+    theory=True,         # pdf/alphaS/qcd_scale/ps envelopes
     jec_jer=True,        # JES (regrouped) + JER
     met_pu=True,         # met_PU up/down
     lepton_scale=True,   # muon/ele scale+smear
@@ -186,33 +282,109 @@ def systematic_enabled(name, category):
     return SYSTEMATIC_GROUP_SWITCHES.get(category, True)
 
 
+# --------------------------------------------------------------------------
+# CROSS-ERA CORRELATION FOR COMBINE
+# --------------------------------------------------------------------------
+# When the per-era datacards (2022, 2022EE, 2023, 2023BPix, 2024) get merged
+# into one combined datacard with `combineCards.py`, combine treats any two
+# nuisance parameters that share the EXACT SAME NAME across channels as one
+# fully-correlated nuisance. Any nuisance name that differs between channels
+# comes out fully independent (uncorrelated).
+#
+# Systematics whose underlying name already varies by era -- JEC/JER,
+# met_PU, muon/electron scale+smear, which bake the year straight into the
+# name via SHAPE_SYST_PATTERNS (e.g. "scale_j_FlavorQCD_2022EE") -- are
+# already unique per era and are left completely untouched here.
+#
+# Everything else (SF weight systematics like pileup/eff_e/btag_*, theory
+# envelopes like pdf/qcd_scale, and ttbar/single-top modeling variations
+# like ttbar_hdamp) currently shares the exact same name across every era's
+# file, so combineCards.py would treat them as fully correlated by default.
+#
+# List the systematic names below that you actually WANT correlated across
+# eras (left unchanged). Every systematic NOT in this list gets "_<era>"
+# appended to its name wherever it's written to output (e.g. "pileup" ->
+# "pileup_2022EE"), so it naturally decorrelates once the per-era cards are
+# combined -- no need to touch write_datacard() or the plotting code, since
+# both just introspect whatever names end up in the shapes file.
+CORRELATED_SYSTEMATICS = {"pileup","btag_bc_corr","btag_lf_corr","pdf","alphaS","qcd_scale_ur","qcd_scale_uf","ps"
+                          
+
+
+    # "pdf", "qcd_scale",  -- e.g. add names here for anything that should
+    #                          stay correlated across eras
+}
+
+
+def apply_era_correlation(syst_name, era_name, already_has_year):
+    """Return the systematic name as it should be stored for this era.
+
+    - already_has_year=True (JEC/JER/met_PU/lepton scale -- year is already
+      baked into syst_name by SHAPE_SYST_PATTERNS): returned unchanged.
+    - syst_name in CORRELATED_SYSTEMATICS: returned unchanged (correlated
+      across eras once combined).
+    - otherwise: "<syst_name>_<era_name>" (uncorrelated across eras once
+      combined).
+    """
+    if already_has_year:
+        return syst_name
+    if syst_name in CORRELATED_SYSTEMATICS:
+        return syst_name
+    return f"{syst_name}_{era_name}"
+
 
 # These live in separate ROOT files (JEC/JER, lepton scale/smear, met_PU,
 # and ttbar/single-top modeling variations like Hdamp/MT/UE/CR/TuneCH3).
 # Each is read as a full nominal-style tree and reweighted with the same
 # central weight product as the nominal sample.
 
+def _year_suffixed(base, m):
+    """Append '_<year>' to `base` only if this match actually captured an
+    explicit year (some processes' shape-systematic files carry a
+    '..._2022EE' style suffix; most don't and are just one multi-era file
+    filtered by datasetId like the nominal file). Returns `base` unchanged
+    when no year was present."""
+    y = m.group('year')
+    return f"{base}_{y}" if y else base
+
+
+# The trailing "_<year>" is OPTIONAL in every pattern below: some processes'
+# shape-systematic files encode the era in the filename, most don't (the era
+# is picked out of the tree via the datasetId branch instead, same as the
+# nominal file). When there's no year in the filename, `year_fn` returns
+# None, so this systematic is built for every era's shapes file (same as
+# nominal), and its final stored name goes through the same
+# correlated/uncorrelated-by-era logic (apply_era_correlation) as the SF and
+# theory weight systematics.
 SHAPE_SYST_PATTERNS = [
-    (re.compile(r'^JEC_Regrouped_(?P<name>.+?)(?P<dir>Up|Down)_(?P<year>\d{4}\w*)$'),
-     lambda m: f"scale_j_{m.group('name')}_{m.group('year')}",
+    (re.compile(r'^JER_(?P<dir>Up|Down)(?:_(?P<year>\d{4}\w*))?$'),
+     lambda m: _year_suffixed("res_j", m),
      lambda m: m.group('dir'), "jec_jer", lambda m: m.group('year')),
-    (re.compile(r'^JER_(?P<dir>Up|Down)_(?P<year>\d{4}\w*)$'),
-     lambda m: f"res_j_{m.group('year')}",
-     lambda m: m.group('dir'), "jec_jer", lambda m: m.group('year')),
-    (re.compile(r'^met_PU(?P<dir>Up|Down)_(?P<year>\d{4}\w*)$'),
-     lambda m: f"met_PU_{m.group('year')}",
+    (re.compile(r'^met_PU(?P<dir>Up|Down)(?:_(?P<year>\d{4}\w*))?$'),
+     lambda m: _year_suffixed("met_PU", m),
      lambda m: m.group('dir'), "met_pu", lambda m: m.group('year')),
-    (re.compile(r'^muon_reso(?P<dir>up|dn)_(?P<year>\d{4}\w*)$'),
-     lambda m: f"res_m_{m.group('year')}",
+    (re.compile(r'^muon_reso(?P<dir>up|dn)(?:_(?P<year>\d{4}\w*))?$'),
+     lambda m: _year_suffixed("res_m", m),
      lambda m: "Up" if m.group('dir') == "up" else "Down", "lepton_scale", lambda m: m.group('year')),
-    (re.compile(r'^muon_scale(?P<dir>up|dn)_(?P<year>\d{4}\w*)$'),
-     lambda m: f"scale_m_{m.group('year')}",
+    (re.compile(r'^muon_scale(?P<dir>up|dn)(?:_(?P<year>\d{4}\w*))?$'),
+     lambda m: _year_suffixed("scale_m", m),
      lambda m: "Up" if m.group('dir') == "up" else "Down", "lepton_scale", lambda m: m.group('year')),
-    (re.compile(r'^EleSmear(?P<dir>Up|Down)_(?P<year>\d{4}\w*)$'),
-     lambda m: f"scale_e_{m.group('year')}",
+    (re.compile(r'^EleSmear(?P<dir>Up|Down)(?:_(?P<year>\d{4}\w*))?$'),
+     lambda m: _year_suffixed("scale_e", m),
      lambda m: m.group('dir'), "lepton_scale", lambda m: m.group('year')),
 ]
+# Regrouped-JES sources ending in "_Year" (Absolute_Year, BBEC1_Year,
+# EC2_Year, HF_Year, RelativeSample_Year) are the year-DEPENDENT half of
+# that source by construction of the regrouped JES scheme, and must be
+# decorrelated across eras. Everything else (Absolute, BBEC1, EC2, HF,
+# FlavorQCD, RelativeBal, ...) is the correlated half and must keep the
+# EXACT SAME stored name in every era's file/card so combineCards.py
+# merges it into one correlated nuisance instead of one-per-era.
+JEC_PATTERN = re.compile(r'^JEC_Regrouped_(?P<name>.+?)(?P<dir>Up|Down)(?:_(?P<year>\d{4}\w*))?$')
 
+
+def _is_year_decorrelated_jec_source(source_name):
+    return source_name.endswith("_Year")
 
 def modeling_prefix(proc_name):
     if re.match(r'(?i)^t[bw]ar?w|^tw', proc_name):
@@ -243,10 +415,14 @@ MODELING_TAG_PATTERNS = [
 def discover_shape_systematics(proc_dir, proc_name):
     """Find every per-file systematic variation for this process (everything
     that isn't the nominal file), returning
-    [(path, syst_name, direction, category, year_or_None), ...].
+    [(path, syst_name, direction, category, year_or_None, force_correlated), ...].
     year is None for systematics that aren't tied to one specific era
     (SF/theory weight systematics and the modeling variations) -- those get
-    filtered by the datasetId branch instead, same as the nominal file."""
+    filtered by the datasetId branch instead, same as the nominal file.
+    force_correlated is True only for the non-"_Year" regrouped-JES sources
+    (see JEC_PATTERN / _is_year_decorrelated_jec_source above), which must
+    keep an identical stored name across every era despite coming from a
+    separate per-era file."""
     shape_systs = []
     for f in glob.glob(os.path.join(proc_dir, f"{proc_name}_*.root")):
         base = os.path.basename(f)[:-5]
@@ -254,24 +430,37 @@ def discover_shape_systematics(proc_dir, proc_name):
         if tag in ("", "nominal"):
             continue
         matched = False
+
         for pattern, short_name, direction in MODELING_TAG_PATTERNS:
             if pattern.match(tag):
-                shape_systs.append((f, f"{modeling_prefix(proc_name)}_{short_name}", direction, "modeling", None))
+                shape_systs.append((f, f"{modeling_prefix(proc_name)}_{short_name}", direction, "modeling", None, False))
                 matched = True
                 break
         if matched:
             continue
+
+        m = JEC_PATTERN.match(tag)
+        if m:
+            source = m.group('name')
+            direction = m.group('dir')
+            year = m.group('year')
+            if _is_year_decorrelated_jec_source(source):
+                name = _year_suffixed(f"scale_j_{source}", m)
+                shape_systs.append((f, name, direction, "jec_jer", year, False))
+            else:
+                name = f"scale_j_{source}"
+                shape_systs.append((f, name, direction, "jec_jer", year, True))
+            continue
+
         for pattern, name_fn, dir_fn, category, year_fn in SHAPE_SYST_PATTERNS:
             m = pattern.match(tag)
             if m:
-                shape_systs.append((f, name_fn(m), dir_fn(m), category, year_fn(m)))
+                shape_systs.append((f, name_fn(m), dir_fn(m), category, year_fn(m), False))
                 matched = True
                 break
         if not matched:
             print(f"  WARNING: could not parse systematic tag '{tag}' in {f} -- skipping")
     return shape_systs
-
-
 
 
 def find_nominal_file(proc_dir, proc_name):
@@ -414,12 +603,15 @@ def build_theory_envelope_multi(nominal_path, df0, wexpr, region_specs, syst_cfg
 # BINNING
 # --------------------------------------------------------------------------
 
-def compute_equal_weight_edges(process_names, region_cfg):
+def compute_equal_weight_edges(era_process_pairs, region_cfg):
+    """era_process_pairs: [(era_name, proc), ...] -- pooled across every era
+    (and every process) that should contribute to this region's binning, each
+    process looked up under ITS OWN era's ERA_BASE_DIRS directory."""
     all_vals, all_wts = [], []
-    for proc in process_names:
+    for era_name, proc in era_process_pairs:
         if proc == DATA_PROCESS_NAME or proc in SIGNAL_PROCESSES_EXCLUDED_FROM_BINNING:
             continue
-        proc_dir = os.path.join(BASE_DIR, proc)
+        proc_dir = os.path.join(ERA_BASE_DIRS[era_name], proc)
         nominal = find_nominal_file(proc_dir, proc)
         if nominal is None:
             continue
@@ -428,7 +620,7 @@ def compute_equal_weight_edges(process_names, region_cfg):
             required = {region_cfg["variable"]} | required_branches_for_cut(region_cfg["cut"])
             missing_core = sorted(b for b in required if b not in avail)
             if missing_core:
-                print(f"  WARNING: {proc}: nominal file missing required branch(es) "
+                print(f"  WARNING: [{era_name}] {proc}: nominal file missing required branch(es) "
                       f"{missing_core} for binning; skipping")
                 continue
             df = ROOT.RDataFrame(TREE_NAME, nominal)
@@ -436,7 +628,7 @@ def compute_equal_weight_edges(process_names, region_cfg):
             df = df.Define("w_nom", wexpr).Filter(region_cfg["cut"])
             npy = df.AsNumpy([region_cfg["variable"], "w_nom"])
         except Exception as e:
-            print(f"  WARNING: {proc}: failed while computing binning contribution ({e}); skipping")
+            print(f"  WARNING: [{era_name}] {proc}: failed while computing binning contribution ({e}); skipping")
             continue
         finally:
             if "df" in locals():
@@ -473,6 +665,18 @@ def compute_equal_weight_edges(process_names, region_cfg):
     return np.array(edges, dtype=float)
 
 
+def compute_fixed_edges_with_overflow(region_cfg):
+    """Fixed-width bins from xmin to xmax (region_cfg['nbins'] of them), but
+    with the upper edge of the LAST bin pushed out to OVERFLOW_EDGE. This
+    keeps the visible bin boundaries evenly spaced up to xmax while still
+    catching every event above xmax in that final bin, rather than losing
+    them to ROOT's normal (invisible, unfilled-in-the-template) overflow
+    bin."""
+    edges = np.linspace(region_cfg["xmin"], region_cfg["xmax"], region_cfg["nbins"] + 1)
+    edges[-1] = OVERFLOW_EDGE
+    return edges
+
+
 # --------------------------------------------------------------------------
 # MAIN
 # --------------------------------------------------------------------------
@@ -491,21 +695,40 @@ def report_yield_ratio(proc, syst_label, region_name, h_nom, h_var, category=Non
               f"{var_integral:.3g} / {nom_integral:.3g} = {ratio:.2f}x nominal")
 
 
-def compute_all_edges(all_processes):
+def compute_all_edges(era_process_map):
+    """era_process_map: {era_name: [proc, ...]} -- the processes actually
+    found under each era's ERA_BASE_DIRS directory (see build_shapes()).
+    Binning pools are built by flattening this across every included era, so
+    the resulting edges are computed once from ALL eras' combined statistics
+    and then reused identically for every era's output file."""
     edges_by_region = {}
     for region_name, region_cfg in REGIONS.items():
         print(f"\n=== Region {region_name} ({region_cfg['variable']}) binning ===")
-        if region_cfg.get("equal_weight_binning", USE_EQUAL_WEIGHT_BINNING):
-            edges = compute_equal_weight_edges(all_processes, region_cfg)
-            print(f"  equal-yield bin edges: {edges}")
+        mode = region_cfg.get("binning_mode", "fixed_with_overflow")
+        if mode == "equal_sb_yield":
+            # Equal weighted-yield bins over EVERY signal+background process,
+            # pooled across every era. compute_equal_weight_edges() already
+            # skips DATA_PROCESS_NAME and anything in
+            # SIGNAL_PROCESSES_EXCLUDED_FROM_BINNING (empty by default, so
+            # signal is included in the split too).
+            binning_pool = [(era, proc) for era, procs in era_process_map.items()
+                             for proc in procs if proc != DATA_PROCESS_NAME]
+            edges = compute_equal_weight_edges(binning_pool, region_cfg)
+            print(f"  equal S+B-yield bin edges (pool={len(binning_pool)} era/process pairs): {edges}")
+        elif mode == "equal_ttbar_yield":
+            # legacy, kept for reference
+            binning_pool = [(era, proc) for era, procs in era_process_map.items()
+                             for proc in procs if proc in TTBAR_BINNING_PROCESSES]
+            edges = compute_equal_weight_edges(binning_pool, region_cfg)
+            print(f"  equal-ttbar-yield bin edges: {edges}")
+        elif mode == "fixed_with_overflow":
+            edges = compute_fixed_edges_with_overflow(region_cfg)
+            print(f"  fixed bin edges (last bin catches overflow above "
+                  f"{region_cfg['xmax']}): {edges}")
         else:
-            edges = np.linspace(region_cfg["xmin"], region_cfg["xmax"], region_cfg["nbins"] + 1)
-            print(f"  fixed bin edges: {edges}")
+            raise ValueError(f"{region_name}: unknown binning_mode '{mode}'")
         edges_by_region[region_name] = edges
     return edges_by_region
-
-
-ERAS = sorted(DATASET_ID_YEAR_MAP.items())  # [(0, "2022"), (1, "2022EE"), (2, "2023"), (3, "2023BPix")]
 
 
 def aggregate_by_group(region_procs):
@@ -547,9 +770,92 @@ def aggregate_by_group(region_procs):
         result[target] = combined
     return result
 
+def build_combined_shapes(era_names):
+    """Sum every per-era shapes_<era>.root file into one shapes_combined.root,
+    histogram-for-histogram (same TDirectory/key names in each), so the
+    existing plot_region() can be reused unchanged on a single all-eras-
+    summed file. This is safe because compute_all_edges() computes bin
+    edges ONCE and reuses them identically across every era's output file
+    -- so every era's histograms for a given region already share the same
+    binning and can be added directly."""
+    combined_path = "shapes_combined.root"
+    outfile = ROOT.TFile.Open(combined_path, "RECREATE")
+    for region_name in REGIONS:
+        outfile.mkdir(channel_name(region_name))
 
-def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
-    era_cut = f"datasetId == {era_id}"
+    accum = {region_name: {} for region_name in REGIONS}  # hist_name -> TH1 (running sum)
+
+    for era_name in era_names:
+        path = f"shapes_{era_name}.root"
+        infile = ROOT.TFile.Open(path)
+        if not infile or infile.IsZombie():
+            print(f"WARNING: could not open {path} for combining -- skipping this era")
+            continue
+        for region_name in REGIONS:
+            region_dir = infile.Get(channel_name(region_name))
+            if not region_dir:
+                continue
+            for key in region_dir.GetListOfKeys():
+                name = key.GetName()
+                h = region_dir.Get(name)
+                if not h:
+                    continue
+                if name in accum[region_name]:
+                    accum[region_name][name].Add(h)
+                else:
+                    hc = h.Clone(f"{name}_combined_tmp")
+                    hc.SetDirectory(0)  # detach so infile.Close() doesn't invalidate it
+                    accum[region_name][name] = hc
+        infile.Close()
+
+    for region_name in REGIONS:
+        outfile.cd(channel_name(region_name))
+        for name, h in accum[region_name].items():
+            h.Write(name)
+
+    outfile.Close()
+    print(f"\n[combined] Wrote {combined_path} (summed over eras: {era_names})")
+    return combined_path
+
+
+def save_mc_only_stack(region_name, region_cfg, display_nominal_hists, mc_order,
+                        band_graph, display_total_nominal, out_dir, era_name):
+    """Same background stack + systematic uncertainty band as plot_region(),
+    but with no data points and no ratio panel. Written alongside the
+    data/MC comparison plot in the same era output directory, as
+    'mcstack_<region>.pdf'. Uses CLONES of the display histograms so this
+    never mutates anything the main data/MC canvas already drew (e.g. the
+    x-axis label size that gets zeroed out when a ratio panel is present)."""
+    stack_mc = ROOT.THStack(f"mcstack_{region_name}_{era_name}", "")
+    legend_mc = ROOT.TLegend(0.71, 0.63, 0.89, 0.89)   # narrower + shorter box
+    legend_mc.SetBorderSize(0)
+    legend_mc.SetFillStyle(0)
+    legend_mc.SetTextSize(0.022)                        # smaller text
+    legend_mc.SetNColumns(1)                             # keep 1 col, or try 2 if it's tall
+
+    for i, (target, label) in enumerate(mc_order):
+        h = display_nominal_hists[target].Clone(
+            f"{display_nominal_hists[target].GetName()}_mcclone")
+        h.SetFillColor(GROUP_COLORS.get(target, FILL_COLORS[i % len(FILL_COLORS)]))
+        h.SetLineColor(ROOT.kBlack)
+        h.SetLineWidth(1)
+        stack_mc.Add(h)
+        legend_mc.AddEntry(h, label, "f")
+
+    canvas_mc = ROOT.TCanvas(f"c_{region_name}_mc_{era_name}", f"{region_name}_mc", 700, 700)
+    stack_mc.Draw("HIST")
+    stack_mc.GetXaxis().SetTitle(region_cfg["variable"])
+    stack_mc.GetYaxis().SetTitle("Events")
+    stack_mc.SetMaximum(1.5 * display_total_nominal.GetMaximum())
+    band_graph.Draw("2 SAME")
+    legend_mc.AddEntry(band_graph, "Total syst. unc.", "f")
+    legend_mc.Draw()
+
+    out_path = os.path.join(out_dir, era_name, f"mcstack_{region_name}.pdf")
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    canvas_mc.SaveAs(out_path)
+    print(f"  wrote {out_path}")
+def build_shapes_for_era(era_name, base_dir, all_processes, edges_by_region):
     out_path = f"shapes_{era_name}.root"
     outfile = ROOT.TFile.Open(out_path, "RECREATE")
     for region_name in REGIONS:
@@ -559,12 +865,12 @@ def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
     accum = {region_name: {} for region_name in REGIONS}
 
     for proc in all_processes:
-        print(f"\n--- Process {proc} ---")
+        print(f"\n--- [{era_name}] Process {proc} ---")
         is_data = (proc == DATA_PROCESS_NAME)
-        proc_dir = os.path.join(BASE_DIR, proc)
+        proc_dir = os.path.join(base_dir, proc)
         nominal_path = find_nominal_file(proc_dir, proc)
         if nominal_path is None:
-            print(f"  WARNING: no nominal file found for {proc}, skipping")
+            print(f"  WARNING: no nominal file found for {proc} in {proc_dir}, skipping")
             continue
 
         avail = get_available_branches(nominal_path)
@@ -572,7 +878,9 @@ def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
 
         usable_regions = {}
         for region_name, region_cfg in REGIONS.items():
-            full_cut = f"({region_cfg['cut']}) && ({era_cut})"
+            # No datasetId/era cut here -- this era's directory already only
+            # contains this era's events, so the region cut alone is enough.
+            full_cut = region_cfg["cut"]
             required = {region_cfg["variable"]} | required_branches_for_cut(full_cut)
             missing_core = sorted(b for b in required if b not in avail)
             if missing_core:
@@ -591,6 +899,52 @@ def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
                 dfilt = df0.Filter(region_cfg["cut"])
                 lazy_nom[region_name] = make_hist(dfilt, region_cfg["variable"], "w_nom",
                                                    edges_by_region[region_name], f"{proc}_nom_{era_name}")
+        except Exception as e:
+            print(f"  WARNING: {proc}: failed booking nominal histogram(s) ({e}); skipping process entirely")
+            continue
+
+        # ---- book SF weight systematics on the SAME df0, without triggering
+        # anything yet. RDataFrame only reads/decompresses the tree once per
+        # *trigger* (first .GetValue() call), and that one pass fills every
+        # not-yet-triggered lazy node booked on this source -- nominal AND
+        # every SF systematic below. Booking everything up front and
+        # triggering once (right after this block) turns what used to be 1
+        # (nominal) + up to 8 (one per SF systematic) = up to 9 full-tree
+        # passes into a single pass. Data files naturally book zero SF
+        # systematics here (the central-weight branches they need aren't
+        # present), so this is a no-op overhead-wise for Data.
+        sf_lazy = {}  # syst_name -> (lazy_up_by_region, lazy_dn_by_region)
+        for central, up_b, down_b, syst_name in ([] if NOMINAL_ONLY else SF_BRANCH_SYSTEMATICS):
+            if not systematic_enabled(syst_name, "sf"):
+                continue
+            if central not in avail:
+                continue
+            if up_b not in avail or down_b not in avail:
+                print(f"  WARNING: {proc}: '{up_b}'/'{down_b}' not found -- skipping {syst_name}")
+                continue
+            try:
+                up_expr = f"({wexpr})/({central})*({up_b})"
+                down_expr = f"({wexpr})/({central})*({down_b})"
+                # Column names are unique per systematic (rather than the old
+                # shared "w_up"/"w_dn") since all of these now coexist on the
+                # same df0 graph before anything is triggered.
+                d_up0 = df0.Define(f"w_up_{syst_name}", up_expr)
+                d_dn0 = df0.Define(f"w_dn_{syst_name}", down_expr)
+                lazy_up, lazy_dn = {}, {}
+                for region_name, region_cfg in usable_regions.items():
+                    cut, variable = region_cfg["cut"], region_cfg["variable"]
+                    lazy_up[region_name] = make_hist(d_up0.Filter(cut), variable, f"w_up_{syst_name}",
+                                                      edges_by_region[region_name], f"{proc}_{syst_name}Up_{era_name}")
+                    lazy_dn[region_name] = make_hist(d_dn0.Filter(cut), variable, f"w_dn_{syst_name}",
+                                                      edges_by_region[region_name], f"{proc}_{syst_name}Down_{era_name}")
+                sf_lazy[syst_name] = (lazy_up, lazy_dn)
+            except Exception as e:
+                print(f"  WARNING: {proc}: failed booking {syst_name} ({e}); skipping")
+
+        # ---- trigger: the FIRST .GetValue() call below runs the single
+        # combined event loop that fills the nominal histograms and every
+        # booked SF systematic histogram together. ----
+        try:
             nominal_hists = {}
             for region_name, h in lazy_nom.items():
                 # Keep the RAW (unfloored) nominal as the yield-ratio baseline
@@ -604,57 +958,50 @@ def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
                 nominal_hists[region_name] = hv_raw
                 accum[region_name].setdefault(proc, {})["nominal"] = ensure_nonempty(hv_raw.Clone())
         except Exception as e:
-            print(f"  WARNING: {proc}: failed building nominal histogram(s) ({e}); skipping process entirely")
-            continue
-
-        if is_data:
-            del df0
+            print(f"  WARNING: {proc}: failed computing nominal histogram(s) ({e}); skipping process entirely")
+            del df0, sf_lazy
             gc.collect()
             continue
 
         n_sf_written, n_theory_written, n_shape_written = 0, 0, 0
 
-        # ---- SF weight systematics ----
-        for central, up_b, down_b, syst_name in SF_BRANCH_SYSTEMATICS:
-            if not systematic_enabled(syst_name, "sf"):
-                continue
-            if central not in avail:
-                continue
-            if up_b not in avail or down_b not in avail:
-                print(f"  WARNING: {proc}: '{up_b}'/'{down_b}' not found -- skipping {syst_name}")
-                continue
+        # ---- SF weight systematics: read back results from the same pass
+        # triggered above -- no additional event loop here. ----
+        for syst_name, (lazy_up, lazy_dn) in sf_lazy.items():
             try:
-                up_expr = f"({wexpr})/({central})*({up_b})"
-                down_expr = f"({wexpr})/({central})*({down_b})"
-                d_up0 = df0.Define("w_up", up_expr)
-                d_dn0 = df0.Define("w_dn", down_expr)
-                lazy_up, lazy_dn = {}, {}
-                for region_name, region_cfg in usable_regions.items():
-                    cut, variable = region_cfg["cut"], region_cfg["variable"]
-                    lazy_up[region_name] = make_hist(d_up0.Filter(cut), variable, "w_up",
-                                                      edges_by_region[region_name], f"{proc}_{syst_name}Up_{era_name}")
-                    lazy_dn[region_name] = make_hist(d_dn0.Filter(cut), variable, "w_dn",
-                                                      edges_by_region[region_name], f"{proc}_{syst_name}Down_{era_name}")
-                for region_name in usable_regions:
+                out_syst_name = apply_era_correlation(syst_name, era_name, already_has_year=False)
+                for region_name in lazy_up:
                     hu = lazy_up[region_name].GetValue()
                     hd = lazy_dn[region_name].GetValue()
                     # Report against the RAW nominal (see comment above) before
-                    # flooring either side for storage.
+                    # flooring either side for storage. Use the original
+                    # (non-era-suffixed) name for this printout -- it's just a
+                    # human-readable label.
                     report_yield_ratio(proc, f"{syst_name}Up", region_name, nominal_hists[region_name], hu)
                     report_yield_ratio(proc, f"{syst_name}Down", region_name, nominal_hists[region_name], hd)
-                    accum[region_name][proc][f"{syst_name}Up"] = ensure_nonempty(hu)
-                    accum[region_name][proc][f"{syst_name}Down"] = ensure_nonempty(hd)
+                    accum[region_name][proc][f"{out_syst_name}Up"] = ensure_nonempty(hu)
+                    accum[region_name][proc][f"{out_syst_name}Down"] = ensure_nonempty(hd)
                 n_sf_written += 1
             except Exception as e:
-                print(f"  WARNING: {proc}: failed building {syst_name} ({e}); skipping")
+                print(f"  WARNING: {proc}: failed reading results for {syst_name} ({e}); skipping")
+
+        if is_data:
+            del df0, sf_lazy
+            gc.collect()
+            continue
 
         # ---- theory systematics ----
+        # Only built for the ttbar and single-tW processes (THEORY_SYST_PROCESSES);
+        # every other process is skipped entirely -- no envelope files are even
+        # booked, let alone written, for DY/VV/W+jets/ttG/ttV/etc.
         region_specs = {
             r: dict(variable=usable_regions[r]["variable"], cut=usable_regions[r]["cut"],
                      edges=edges_by_region[r])
             for r in usable_regions
         }
-        for syst_cfg in THEORY_SYSTEMATICS:
+        theory_group = modeling_prefix(proc)  # "ttbar" or "st" for the processes allowed below
+        run_theory = (not NOMINAL_ONLY) and (proc in THEORY_SYST_PROCESSES)
+        for syst_cfg in (THEORY_SYSTEMATICS if run_theory else []):
             if not systematic_enabled(syst_cfg["name"], "theory"):
                 continue
             try:
@@ -664,19 +1011,26 @@ def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
                 continue
             if not results:
                 continue
+            # Shared name across the two members of a group (e.g. TTbar_Dilept
+            # and TTbar_SemiLept both write "ttbar_pdf") so they land on ONE
+            # nuisance parameter per theory uncertainty per group, not one per
+            # process.
+            theory_syst_name = f"{theory_group}_{syst_cfg['name']}"
+            out_syst_name = apply_era_correlation(theory_syst_name, era_name, already_has_year=False)
             for region_name, (h_up, h_dn) in results.items():
                 # Report against the RAW nominal before flooring either side.
-                report_yield_ratio(proc, f"{syst_cfg['name']}Up", region_name, nominal_hists[region_name], h_up)
-                report_yield_ratio(proc, f"{syst_cfg['name']}Down", region_name, nominal_hists[region_name], h_dn)
-                accum[region_name][proc][f"{syst_cfg['name']}Up"] = ensure_nonempty(h_up)
-                accum[region_name][proc][f"{syst_cfg['name']}Down"] = ensure_nonempty(h_dn)
+                report_yield_ratio(proc, f"{theory_syst_name}Up", region_name, nominal_hists[region_name], h_up)
+                report_yield_ratio(proc, f"{theory_syst_name}Down", region_name, nominal_hists[region_name], h_dn)
+                accum[region_name][proc][f"{out_syst_name}Up"] = ensure_nonempty(h_up)
+                accum[region_name][proc][f"{out_syst_name}Down"] = ensure_nonempty(h_dn)
             n_theory_written += 1
 
         # ---- file-based ("shape") systematics ----
         # Files carrying an explicit year (JEC/JER/lepton/met_PU) are skipped
         # entirely for eras they don't apply to -- no need to even open them.
-        shape_systs = discover_shape_systematics(proc_dir, proc)
-        for i_syst, (path, syst_name, direction, category, syst_year) in enumerate(shape_systs):
+        # NOMINAL_ONLY skips even globbing the process directory for these.
+        shape_systs = [] if NOMINAL_ONLY else discover_shape_systematics(proc_dir, proc)
+        for i_syst, (path, syst_name, direction, category, syst_year, force_correlated) in enumerate(shape_systs):
             if syst_year is not None and syst_year != era_name:
                 continue
             if not systematic_enabled(syst_name, category):
@@ -701,12 +1055,26 @@ def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
                                                    f"{proc}_{syst_name}{direction}_{era_name}")
                 if not lazy:
                     continue
+                # JEC/JER/met_PU/lepton-scale names already have the year
+                # baked in (syst_year is not None) -- leave them alone.
+                # Modeling variations (CR1/CR2/tune/hdamp/mtop/UE) have no
+                # year in the name yet (syst_year is None), so they go
+                # through the same correlated/uncorrelated logic as the SF
+                # and theory systematics above.
+                if force_correlated:
+                    # Correlated regrouped-JES source (Absolute/BBEC1/EC2/HF/
+                    # FlavorQCD/RelativeBal/...): store under the SAME name
+                    # regardless of era, on purpose, even though it came from
+                    # a separate per-era file.
+                    out_syst_name = syst_name
+                else:
+                    out_syst_name = apply_era_correlation(syst_name, era_name, already_has_year=(syst_year is not None))
                 for region_name, h in lazy.items():
                     hv = h.GetValue()
                     # Report against the RAW nominal before flooring for storage.
                     report_yield_ratio(proc, f"{syst_name}{direction}", region_name,
                                         nominal_hists[region_name], hv, category=category)
-                    accum[region_name][proc][f"{syst_name}{direction}"] = ensure_nonempty(hv)
+                    accum[region_name][proc][f"{out_syst_name}{direction}"] = ensure_nonempty(hv)
                 n_shape_written += 1
             except Exception as e:
                 print(f"  WARNING: {proc}: failed building shape systematic {syst_name}{direction} "
@@ -733,7 +1101,7 @@ def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
         # process's SF/theory systematics too -- drop it and collect now,
         # once per process, rather than only relying on the next loop
         # iteration's reassignment to eventually trigger GC.
-        del df0
+        del df0, sf_lazy
         gc.collect()
 
     # ---- aggregate into FILE_GROUPS and write to disk ----
@@ -755,20 +1123,37 @@ def build_shapes_for_era(era_id, era_name, all_processes, edges_by_region):
 
 
 def build_shapes():
-    all_processes = sorted(
-        d for d in os.listdir(BASE_DIR)
-        if os.path.isdir(os.path.join(BASE_DIR, d)) and d not in SKIP_PROCESSES
-    )
-    print("Processes found:", all_processes)
+    # Each era gets its own process listing, since it's now discovered from
+    # that era's own directory (ERA_BASE_DIRS[era_name]) rather than shared
+    # across eras via one BASE_DIR + datasetId split. An era whose directory
+    # doesn't exist yet (not staged, typo'd path, etc.) is skipped entirely
+    # rather than crashing the whole run.
+    era_process_map = {}
+    for era_name in ERAS:
+        base_dir = ERA_BASE_DIRS[era_name]
+        if not os.path.isdir(base_dir):
+            print(f"WARNING: [{era_name}] base dir does not exist: {base_dir} -- skipping era entirely")
+            continue
+        procs = sorted(
+            d for d in os.listdir(base_dir)
+            if os.path.isdir(os.path.join(base_dir, d)) and d not in SKIP_PROCESSES
+        )
+        print(f"[{era_name}] processes found in {base_dir}: {procs}")
+        era_process_map[era_name] = procs
 
-    # Binning is computed once (combining all eras' statistics) and reused
-    # identically across all four era output files, so bin edges line up.
-    edges_by_region = compute_all_edges(all_processes)
+    if not era_process_map:
+        raise ValueError("No era directories were found on disk -- check ERA_BASE_DIRS")
+
+    # Binning is computed once (combining all eras' statistics, each read
+    # from its own directory) and reused identically across all era output
+    # files, so bin edges line up.
+    edges_by_region = compute_all_edges(era_process_map)
 
     out_paths = {}
-    for era_id, era_name in ERAS:
-        print(f"\n===================== ERA {era_name} (datasetId == {era_id}) =====================")
-        out_paths[era_name] = build_shapes_for_era(era_id, era_name, all_processes, edges_by_region)
+    for era_name, processes in era_process_map.items():
+        base_dir = ERA_BASE_DIRS[era_name]
+        print(f"\n===================== ERA {era_name} (dir={base_dir}) =====================")
+        out_paths[era_name] = build_shapes_for_era(era_name, base_dir, processes, edges_by_region)
         gc.collect()
     return out_paths
 
@@ -863,16 +1248,30 @@ STACK_ORDER = [
 SIGNAL_GROUP = "single_tW"
 
 
-def get_processes():
+def get_processes(era_name=None):
     """Returns (bkg_targets, has_data). bkg_targets are the top-level names
     actually written into shapes_<era>.root -- i.e. FILE_GROUPS group names,
     plus any process not covered by FILE_GROUPS (written standalone) -- NOT
     the raw per-process directory names, since those get merged into groups
-    at write time now."""
-    all_processes = sorted(
-        d for d in os.listdir(BASE_DIR)
-        if os.path.isdir(os.path.join(BASE_DIR, d)) and d not in SKIP_PROCESSES
-    )
+    at write time now.
+
+    era_name selects which era's directory (ERA_BASE_DIRS[era_name]) to list
+    processes from. Pass None or "combined" to union the process lists
+    across every era in ERAS instead (used for the all-eras-combined plot)."""
+    if era_name is None or era_name == "combined":
+        base_dirs = [ERA_BASE_DIRS[e] for e in ERAS if e in ERA_BASE_DIRS]
+    else:
+        base_dirs = [ERA_BASE_DIRS[era_name]] if era_name in ERA_BASE_DIRS else []
+
+    all_processes = set()
+    for base_dir in base_dirs:
+        if not os.path.isdir(base_dir):
+            continue
+        all_processes |= {
+            d for d in os.listdir(base_dir)
+            if os.path.isdir(os.path.join(base_dir, d)) and d not in SKIP_PROCESSES
+        }
+
     has_data = DATA_PROCESS_NAME in all_processes
     bkg_raw = [p for p in all_processes if p != DATA_PROCESS_NAME]
     bkg_targets = sorted({PROC_TO_GROUP.get(p, p) for p in bkg_raw})
@@ -926,6 +1325,25 @@ def build_uncertainty_band(region_dir, bkg_processes, total_nominal, syst_names)
     return np.sqrt(up_err_sq), np.sqrt(down_err_sq)
 
 
+def make_display_hist(h, region_cfg, suffix):
+    """For fixed_with_overflow regions, clone `h` onto NORMAL fixed-width
+    edges [xmin, xmax] (undoing the OVERFLOW_EDGE=1e6 push on the last bin)
+    -- see compute_fixed_edges_with_overflow(). For any other binning mode
+    (e.g. equal_sb_yield), the histogram's edges ARE the real, meaningful
+    bin boundaries, so just clone it unchanged -- remapping onto a uniform
+    axis would visually erase the variable bin widths."""
+    mode = region_cfg.get("binning_mode", "fixed_with_overflow")
+    if mode != "fixed_with_overflow":
+        return h.Clone(f"{h.GetName()}_{suffix}")
+
+    edges = np.linspace(region_cfg["xmin"], region_cfg["xmax"], region_cfg["nbins"] + 1)
+    hd = ROOT.TH1D(f"{h.GetName()}_{suffix}", h.GetTitle(), len(edges) - 1, edges)
+    for b in range(1, h.GetNbinsX() + 1):
+        hd.SetBinContent(b, h.GetBinContent(b))
+        hd.SetBinError(b, h.GetBinError(b))
+    return hd
+
+
 def make_band_graph(total_nominal, band_up, band_down):
     nbins = total_nominal.GetNbinsX()
     graph = ROOT.TGraphAsymmErrors(nbins)
@@ -967,7 +1385,7 @@ def plot_region(region_name, region_cfg, infile, out_dir, era_name):
         print(f"WARNING: no directory '{channel_name(region_name)}' found for era {era_name}, skipping")
         return
 
-    bkg_targets, has_data = get_processes()
+    bkg_targets, has_data = get_processes(era_name)
 
     # bkg_targets are already the exact top-level names written into
     # shapes_<era>.root (FILE_GROUPS group names + any standalone leftovers),
@@ -991,6 +1409,31 @@ def plot_region(region_name, region_cfg, infile, out_dir, era_name):
         else:
             total_nominal.Add(nominal_hists[target])
 
+    syst_names = find_systematic_names(region_dir, ordered_targets)
+    band_up, band_down = build_uncertainty_band(region_dir, ordered_targets, total_nominal, syst_names)
+    print(f"  [{era_name}] {region_name}: {len(syst_names)} distinct systematics found -> {syst_names}")
+
+    h_data = region_dir.Get(DATA_PROCESS_NAME) if has_data else None
+
+    # ---- rebuild everything that gets drawn onto NORMAL [xmin, xmax] edges.
+    # All the systematics math above stayed on the original (overflow-
+    # widened) edges, which is required for TH1::Add()/bin-by-bin
+    # consistency across nominal/up/down histograms sharing the same
+    # process. band_up/band_down are plain numpy arrays indexed by bin
+    # number, not by x-position, so they carry over unchanged. This is what
+    # actually fixes the x-axis running out to 1,000,000 -- previously we
+    # only tried to *view*-zoom the huge-range axis with SetRangeUser, but
+    # THStack/TH1 kept their true bin edges (and hence axis range) fixed to
+    # the overflow-widened ones no matter what. ----
+    display_nominal_hists = {
+        target: make_display_hist(h, region_cfg, era_name)
+        for target, h in nominal_hists.items()
+    }
+    display_total_nominal = make_display_hist(total_nominal, region_cfg, f"total_{era_name}")
+    display_h_data = make_display_hist(h_data, region_cfg, f"data_{era_name}") if h_data else None
+
+    band_graph = make_band_graph(display_total_nominal, band_up, band_down)
+
     stack = ROOT.THStack(f"stack_{region_name}_{era_name}", "")
     legend = ROOT.TLegend(0.62, 0.55, 0.89, 0.89)
     legend.SetBorderSize(0)
@@ -1000,34 +1443,31 @@ def plot_region(region_name, region_cfg, infile, out_dir, era_name):
     # Draw in the requested stacking order, then anything not covered by
     # STACK_ORDER (e.g. an ungrouped standalone process) on top.
     drawn = set()
+    mc_order = []  # NEW: (target, label) pairs in the order they were stacked
     for group in STACK_ORDER:
-        if group not in nominal_hists:
+        if group not in display_nominal_hists:
             continue
-        h = nominal_hists[group]
+        h = display_nominal_hists[group]
         h.SetFillColor(GROUP_COLORS.get(group, ROOT.kGray))
         h.SetLineColor(ROOT.kBlack)
         h.SetLineWidth(1)
         stack.Add(h)
         legend.AddEntry(h, GROUP_LABELS.get(group, group), "f")
         drawn.add(group)
+        mc_order.append((group, GROUP_LABELS.get(group, group)))  # NEW
     leftover = [t for t in ordered_targets if t not in drawn]
     if leftover:
         print(f"  WARNING: [{era_name}/{region_name}] target(s) not listed in STACK_ORDER, "
               f"appended on top: {leftover}")
     for i, target in enumerate(leftover):
-        h = nominal_hists[target]
+        h = display_nominal_hists[target]
         h.SetFillColor(GROUP_COLORS.get(target, FILL_COLORS[i % len(FILL_COLORS)]))
         h.SetLineColor(ROOT.kBlack)
         h.SetLineWidth(1)
         stack.Add(h)
         legend.AddEntry(h, GROUP_LABELS.get(target, target), "f")
-
-    syst_names = find_systematic_names(region_dir, ordered_targets)
-    band_up, band_down = build_uncertainty_band(region_dir, ordered_targets, total_nominal, syst_names)
-    band_graph = make_band_graph(total_nominal, band_up, band_down)
-    print(f"  [{era_name}] {region_name}: {len(syst_names)} distinct systematics found -> {syst_names}")
-
-    h_data = region_dir.Get(DATA_PROCESS_NAME) if has_data else None
+        mc_order.append((target, GROUP_LABELS.get(target, target)))  # NEW
+    h_data = display_h_data
 
     canvas = ROOT.TCanvas(f"c_{region_name}", region_name, 700, 700)
     if h_data:
@@ -1045,7 +1485,7 @@ def plot_region(region_name, region_cfg, infile, out_dir, era_name):
     stack.Draw("HIST")
     stack.GetXaxis().SetTitle(region_cfg["variable"])
     stack.GetYaxis().SetTitle("Events")
-    stack.SetMaximum(1.5 * max(total_nominal.GetMaximum(),
+    stack.SetMaximum(1.5 * max(display_total_nominal.GetMaximum(),
                                 h_data.GetMaximum() if h_data else 0))
     band_graph.Draw("2 SAME")
 
@@ -1064,7 +1504,7 @@ def plot_region(region_name, region_cfg, infile, out_dir, era_name):
     if h_data:
         pad2.cd()
         ratio = h_data.Clone("ratio")
-        ratio.Divide(total_nominal)
+        ratio.Divide(display_total_nominal)
         ratio.SetMarkerStyle(20)
         ratio.SetMarkerSize(0.9)
         ratio.SetLineColor(ROOT.kBlack)
@@ -1079,10 +1519,10 @@ def plot_region(region_name, region_cfg, infile, out_dir, era_name):
         ratio.GetYaxis().SetTitleSize(0.09)
         ratio.GetYaxis().SetTitleOffset(0.5)
         ratio.Draw("E1")
-        ratio_band = make_ratio_band_graph(total_nominal, band_up, band_down)
+        ratio_band = make_ratio_band_graph(display_total_nominal, band_up, band_down)
         ratio_band.Draw("2 SAME")
         ratio.Draw("E1 SAME")
-        line = ROOT.TLine(ratio.GetXaxis().GetXmin(), 1.0, ratio.GetXaxis().GetXmax(), 1.0)
+        line = ROOT.TLine(region_cfg["xmin"], 1.0, region_cfg["xmax"], 1.0)
         line.SetLineStyle(2)
         line.Draw()
 
@@ -1090,10 +1530,11 @@ def plot_region(region_name, region_cfg, infile, out_dir, era_name):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     canvas.SaveAs(out_path)
     print(f"  wrote {out_path}")
-
+    save_mc_only_stack(region_name, region_cfg, display_nominal_hists, mc_order,
+                        band_graph, display_total_nominal, out_dir, era_name)  # NEW
 
 def run_plots():
-    for era_id, era_name in ERAS:
+    for era_name in ERAS:
         shapes_path = f"shapes_{era_name}.root"
         infile = ROOT.TFile.Open(shapes_path)
         if not infile or infile.IsZombie():
@@ -1107,7 +1548,16 @@ def run_plots():
 
         infile.Close()
 
-
+    # ---- one final all-eras-combined plot per region ----
+    combined_path = build_combined_shapes(ERAS)
+    infile = ROOT.TFile.Open(combined_path)
+    if not infile or infile.IsZombie():
+        print(f"WARNING: could not open {combined_path} -- skipping combined plots")
+        return
+    for region_name, region_cfg in REGIONS.items():
+        print(f"\n=== Plotting [combined] {region_name} ===")
+        plot_region(region_name, region_cfg, infile, OUT_DIR, "combined")
+    infile.Close()
 # --------------------------------------------------------------------------
 # DATACARD GENERATION
 # --------------------------------------------------------------------------
@@ -1150,7 +1600,7 @@ def write_datacard(era_name, shapes_path):
         print(f"WARNING: could not open {shapes_path} for datacard generation -- skipping")
         return None
 
-    bkg_targets, has_data = get_processes()
+    bkg_targets, has_data = get_processes(era_name)
     bins = list(REGIONS.keys())
 
     bin_process_hists = {}   # region -> {target: TH1}
@@ -1243,7 +1693,10 @@ def write_datacard(era_name, shapes_path):
 
     # --- process section: "bin" / "process" (name) / "process" (index) /
     # "rate" rows share one table so every (bin, process) column lines up
-    # vertically across all four rows. ---
+    # vertically across all four rows. Rate is always "-1" (i.e. "read the
+    # rate from the nominal histogram's integral") for every process/channel,
+    # signal and background alike -- combine computes yields directly from
+    # the shapes file rather than a hardcoded number here. ---
     process_rows = [
         ["bin"] + [channel_name(c[0]) for c in columns],
         ["process"] + [c[1] for c in columns],
@@ -1255,7 +1708,14 @@ def write_datacard(era_name, shapes_path):
 
     # --- shape systematics section: one row per systematic name, all sharing
     # one table so long systematic names get their own column width without
-    # disturbing the "shape" / "1" / "-" columns that follow them. ---
+    # disturbing the "shape" / "1" / "-" columns that follow them. Names here
+    # already reflect the correlated/uncorrelated choice made in
+    # apply_era_correlation() when the histograms were written (e.g.
+    # "pileup_2022EE" vs a shared "pdf"), so combineCards.py will decorrelate
+    # or correlate them across eras purely based on whether the name matches
+    # between the per-era cards -- nothing further to do here. Combining the
+    # per-era cards into one is left to you (combineCards.py era1=card1.txt
+    # era2=card2.txt ... > combined.txt). ---
     shape_rows = []
     for syst in all_systs:
         row = [syst, "shape"]
@@ -1276,7 +1736,7 @@ def write_datacard(era_name, shapes_path):
 
 
 def write_datacards():
-    for era_id, era_name in ERAS:
+    for era_name in ERAS:
         write_datacard(era_name, f"shapes_{era_name}.root")
 
 

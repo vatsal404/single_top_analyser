@@ -45,15 +45,16 @@ int main(int argc, char* argv[]) {
         era = "PostEE";
     } else if (year == "2024") {
 //        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/RunIII2024Summer24NanoAODv15/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/08d67afd-e421-492c-b3fe-8c5d8878950c.root"};
+        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/RunIII2024Summer24NanoAODv15/TZQB-Zto2L-4FS_Bin-MLL-30_TuneCP5_13p6TeV_amcatnlo-pythia8/NANOAODSIM/Madgraph_2_6_5_150X_mcRun3_2024_realistic_v2-v2/2810000/049a96b9-df0c-4e43-ba77-ec1728657c95.root"};
 
       // inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2024D/Muon0/NANOAOD/PromptReco-v1/000/380/306/00000/0ae75550-22d5-455e-848c-11d3c4b3a2ee.root"};
-       inputFiles = {"root://cmsxrootd.fnal.gov//"};
+//       inputFiles = {"root://cmsxrootd.fnal.gov///store/data/Run2024C/MuonEG/NANOAOD/MINIv6NANOv15-v1/2530000/5ec3440b-ed82-41a9-9740-a4b5829ff450.root"};
         era = "none";
     } else if (year == "2023") {
     //    inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer23NanoAODv12/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v2/70000/01c164b9-8388-4aa3-b506-16ec245d2056.root"};
-        //inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root"};
+        inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23NanoAODv12/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_v15-v4/50000/063916a6-99cf-4832-a945-c2ddfaee53dd.root"};
 
-        inputFiles = {"root://cmsxrootd.fnal.gov///store/data/Run2023C/MuonEG/NANOAOD/22Sep2023_v4-v1/30000/0874994b-9d31-4c1f-bdbc-d0073f7c7c4a.root"};
+        //inputFiles = {"root://cmsxrootd.fnal.gov///store/data/Run2023C/MuonEG/NANOAOD/22Sep2023_v4-v1/30000/0874994b-9d31-4c1f-bdbc-d0073f7c7c4a.root"};
         era = "PreBPix";
     } else { // 2023BPix
         inputFiles = {"root://cmsxrootd.fnal.gov///store/mc/Run3Summer23BPixNanoAODv12/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2023_realistic_postBPix_v2-v3/2550000/1fc49961-22ba-4b79-86d7-e85128f21146.root"};
@@ -74,25 +75,25 @@ int main(int argc, char* argv[]) {
 
     if (!isData) {
 
-         systematics.push_back(SystType::muon_scaleup);
-         systematics.push_back(SystType::muon_scaledn);
-         systematics.push_back(SystType::muon_resoup);
-         systematics.push_back(SystType::muon_resodn);
-        // Electron
-       
-       systematics.push_back(SystType::EleSmearDown);
-        systematics.push_back(SystType::EleSmearUp);
+      //   systematics.push_back(SystType::muon_scaleup);
+      //   systematics.push_back(SystType::muon_scaledn);
+      //   systematics.push_back(SystType::muon_resoup);
+      //   systematics.push_back(SystType::muon_resodn);
+      //  // Electron
+      // 
+      // systematics.push_back(SystType::EleSmearDown);
+      //  systematics.push_back(SystType::EleSmearUp);
 
-//        systematics.push_back(SystType::Met_PUDown);
-//      systematics.push_back(SystType::Met_PUUp);
+//    //    systematics.push_back(SystType::Met_PUDown);
+//    //  systematics.push_back(SystType::Met_PUUp);
 
-           // ================= JEC Regrouped Systematics ================= //
+      //     // ================= JEC Regrouped Systematics ================= //
 
-        // -------- Global (correlated) -------- //
+      //  // -------- Global (correlated) -------- //
 
-        systematics.push_back(SystType::JER_Up);
-        systematics.push_back(SystType::JER_Down);
-        
+      //  systematics.push_back(SystType::JER_Up);
+      //  systematics.push_back(SystType::JER_Down);
+      //  
         systematics.push_back(SystType::JEC_Regrouped_FlavorQCDUp);
         systematics.push_back(SystType::JEC_Regrouped_FlavorQCDDown);
 
@@ -112,28 +113,28 @@ int main(int argc, char* argv[]) {
         systematics.push_back(SystType::JEC_Regrouped_AbsoluteDown);
 
 
-        // -------- Year-dependent (decorrelated) -------- //
+      //  // -------- Year-dependent (decorrelated) -------- //
 
-        systematics.push_back(SystType::JEC_Regrouped_Absolute_YearUp);
-        systematics.push_back(SystType::JEC_Regrouped_Absolute_YearDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_Absolute_YearUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_Absolute_YearDown);
 
-        systematics.push_back(SystType::JEC_Regrouped_HF_YearUp);
-        systematics.push_back(SystType::JEC_Regrouped_HF_YearDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_HF_YearUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_HF_YearDown);
 
-        systematics.push_back(SystType::JEC_Regrouped_EC2_YearUp);
-        systematics.push_back(SystType::JEC_Regrouped_EC2_YearDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_EC2_YearUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_EC2_YearDown);
 
-        systematics.push_back(SystType::JEC_Regrouped_RelativeSample_YearUp);
-        systematics.push_back(SystType::JEC_Regrouped_RelativeSample_YearDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_RelativeSample_YearUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_RelativeSample_YearDown);
 
-        systematics.push_back(SystType::JEC_Regrouped_BBEC1_YearUp);
-        systematics.push_back(SystType::JEC_Regrouped_BBEC1_YearDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_BBEC1_YearUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_BBEC1_YearDown);
     
     }
     else if (isData) {
 
-        systematics.push_back(SystType::EleScaleUp);
-        systematics.push_back(SystType::EleScaleDown);
+      //  systematics.push_back(SystType::EleScaleUp);
+      //  systematics.push_back(SystType::EleScaleDown);
     }
 
     cout << "Running for " << (isData ? "Data" : "MC") << endl;
