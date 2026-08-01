@@ -476,7 +476,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                         out.emplace_back(jetpts[i] * (1.f + unc_copy->evaluate({jetetas[i], jetpts[i]})));
                     return out;
                 },
-                {"Jet_pt_JEC", "Jet_eta"});
+                {"Jet_pt_corr", "Jet_eta"});
 
             _rlm = _rlm.Define(colDown,
                 [unc_copy](floats jetpts, floats jetetas) -> floats {
@@ -486,7 +486,7 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                         out.emplace_back(jetpts[i] * (1.f - unc_copy->evaluate({jetetas[i], jetpts[i]})));
                     return out;
                 },
-                {"Jet_pt_JEC", "Jet_eta"});
+                {"Jet_pt_corr", "Jet_eta"});
 
             std::cout << "Defined uncertainty columns: "
                       << colUp << ", " << colDown << std::endl;
