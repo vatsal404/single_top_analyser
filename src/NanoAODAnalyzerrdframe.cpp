@@ -349,69 +349,84 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
         // ------------------------------------------
         // Step 2: JER smearing (nom / up / down)
         // ------------------------------------------
-        auto jerSmearLambda =
-            [this](floats jetpts,
-                   floats jetetas,
-                   floats jetgenpt,
-                   float  rho,
-                   unsigned int       run_n,
-                   unsigned int       lumi,
-                   unsigned long long event,
-                   std::string        variation) -> floats
+    auto jerSmearLambda =
+    [this](floats jetpts,
+           floats jetetas,
+           floats jetgenpt,
+           float  rho,
+           unsigned int       run_n,
+           unsigned int       lumi,
+           unsigned long long event,
+           std::string        variation) -> floats
+{
+    floats out;
+    out.reserve(jetpts.size());
+
+    std::normal_distribution<float> gauss(0.f, 1.f);
+
+    for (size_t i = 0; i < jetpts.size(); i++)
+    {
+        float pt    = jetpts[i];
+        float eta   = jetetas[i];
+        float genpt = jetgenpt[i];
+
+        // Deterministic random seed
+        uint64_t seed =
+            (uint64_t(run_n) << 32) ^
+            (uint64_t(lumi)  << 16) ^
+            (uint64_t(event))       ^
+            uint64_t(i);
+
+        seed ^= (seed >> 33);
+        seed *= 0xff51afd7ed558ccdULL;
+        seed ^= (seed >> 33);
+        seed *= 0xc4ceb9fe1a85ec53ULL;
+        seed ^= (seed >> 33);
+
+        std::mt19937_64 gen(seed);
+
+        // JER resolution
+        float resolution = _jer_resolution->evaluate({eta, pt, rho});
+
+        // JER Scale Factor
+        float sf;
+        if (_year == "2024")
         {
-            floats out;
-            out.reserve(jetpts.size());
+            sf = _jer_corrector->evaluate({eta, pt});
+        }
+        else
+        {
+            sf = _jer_corrector->evaluate({eta, pt, variation});
+        }
 
-            std::normal_distribution<float> gauss(0.f, 1.f);
+        float smeared_pt;
+        if (genpt > 0.f)
+        {
+            // Hybrid (deterministic) smearing
+            smeared_pt = std::max(0.f, genpt + sf * (pt - genpt));
+        }
+        else
+        {
+            // Stochastic smearing
+            float sigma = resolution *
+                          std::sqrt(std::max(sf * sf - 1.f, 0.f));
 
-            for (size_t i = 0; i < jetpts.size(); i++)
-            {
-                float pt    = jetpts[i];
-                float eta   = jetetas[i];
-                float genpt = jetgenpt[i];
+            float gaus_val = gauss(gen);
 
-                uint64_t seed =
-                    (uint64_t(run_n) << 32) ^
-                    (uint64_t(lumi)  << 16) ^
-                    (uint64_t(event))       ^
-                    uint64_t(i);
+            smeared_pt = pt * (1.f + sigma * gaus_val);
+        }
 
-                seed ^= (seed >> 33);
-                seed *= 0xff51afd7ed558ccdULL;
-                seed ^= (seed >> 33);
-                seed *= 0xc4ceb9fe1a85ec53ULL;
-                seed ^= (seed >> 33);
+        out.emplace_back(smeared_pt);
+    }
 
-                std::mt19937_64 gen(seed);
+    return out;
+};
 
-                float resolution = _jer_resolution->evaluate({eta, pt, rho});
-                float sf = (_year == "2024")
-                    ? _jer_corrector->evaluate({eta, pt})
-                    : _jer_corrector->evaluate({eta, pt, variation});
-                float smeared_pt = pt;
-
-                if (genpt > 0)
-                {
-                    smeared_pt = std::max(0.f, genpt + sf * (pt - genpt));
-                }
-                else
-                {
-                    float sigma    = resolution * std::sqrt(std::max(sf*sf - 1.f, 0.f));
-                    float gaus_val = gauss(gen);
-                    smeared_pt     = pt * (1.f + sigma * gaus_val);
-                }
-
-                out.emplace_back(smeared_pt);
-            }
-            return out;
-        };
-
-        // GenJet matching
-        _rlm = _rlm.Define("Jet_genJetPt",
+_rlm = _rlm.Define("Jet_genJetPt",
             [](const floats& GenJet_pt,
-               const ROOT::VecOps::RVec<short>& Jet_genJetIdx)
+                const ROOT::VecOps::RVec<short>& Jet_genJetIdx)
             {
-                floats out;
+            floats out;
                 out.reserve(Jet_genJetIdx.size());
                 for (size_t i = 0; i < Jet_genJetIdx.size(); i++)
                 {
@@ -539,172 +554,93 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
 
 void NanoAODAnalyzerrdframe::applyMuPtCorrection()
 {
-    cout << "Applying Muon Pt correction using correctionlib" << endl;
+    cout << "Applying Muon Pt correction using correctionlib (MuonScaRe)" << endl;
 
-    // Create helper object that captures the CorrectionSet
     auto muonHelper = std::make_shared<MuonCorrectionHelper>(_muon_scalsmear_corrector.get());
+    const bool isData = _isData;
 
-    if (_isData) {
-        // Data: Only apply scale corrections
-        auto lambdaf_data = [muonHelper](const ROOT::VecOps::RVec<int>& mu_charges,
-                const ROOT::VecOps::RVec<float>& mu_pts,
-                const ROOT::VecOps::RVec<float>& mu_etas,
-                const ROOT::VecOps::RVec<float>& mu_phis)
-        {
-            ROOT::VecOps::RVec<float> corrMuPts;
-            corrMuPts.reserve(mu_pts.size());
+    // ---------------------------------------------------------------
+    // Single generic corrector: computes pt for "nom", "scaleUp",
+    // "scaleDn", "resolUp", or "resolDn". Only one ingredient (scale
+    // or resolution) is ever varied at a time; the other stays nominal.
+    // Data only ever calls this with "nom" (no MC-only uncertainties).
+    // ---------------------------------------------------------------
+    auto correctPt = [muonHelper, isData](
+            const ROOT::VecOps::RVec<int>&    charges,
+            const ROOT::VecOps::RVec<float>&  pts,
+            const ROOT::VecOps::RVec<float>&  etas,
+            const ROOT::VecOps::RVec<float>&  phis,
+            const ROOT::VecOps::RVec<UChar_t>& nls,
+            ULong64_t event,
+            UInt_t lumi,
+            const std::string& variation) -> ROOT::VecOps::RVec<float>
+    {
+        ROOT::VecOps::RVec<float> out;
+        out.reserve(pts.size());
 
-            for (size_t i = 0; i < mu_pts.size(); i++) {
-                float corrected_pt = muonHelper->pt_scale(true, mu_pts[i], mu_etas[i], 
-                        mu_phis[i], mu_charges[i]);
-                corrMuPts.emplace_back(corrected_pt);
+        for (size_t i = 0; i < pts.size(); i++) {
+            const double pt  = pts[i];
+            const double eta = etas[i];
+            const double phi = phis[i];
+            const int    q   = charges[i];
+
+            // --- Step 1: scale correction (nominal, works for data & MC) ---
+            double pt_scaled = muonHelper->pt_scale(isData, pt, eta, phi, q);
+
+            if (variation == "scaleUp" || variation == "scaleDn") {
+                pt_scaled = muonHelper->pt_scale_var(pt_scaled, eta, phi, q,
+                        variation == "scaleUp" ? "up" : "dn");
             }
-            return corrMuPts;
-        };
 
-        _rlm = _rlm.Define("Muon_pt_corr", lambdaf_data, 
-                {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi"});
-    }
-    else {
-        // MC: Apply both scale and resolution corrections
-        auto lambdaf_mc = [muonHelper](const ROOT::VecOps::RVec<int>& mu_charges,
-                const ROOT::VecOps::RVec<float>& mu_pts,
-                const ROOT::VecOps::RVec<float>& mu_etas,
-                const ROOT::VecOps::RVec<float>& mu_phis,
-                const ROOT::VecOps::RVec<UChar_t>& nls,
-                ULong64_t event,
-                UInt_t lumi)
-        {
-            ROOT::VecOps::RVec<float> corrMuPts;
-            corrMuPts.reserve(mu_pts.size());
-
-            for (size_t i = 0; i < mu_pts.size(); i++) {
-                float nTrackerLayers = static_cast<float>(nls[i]);
-
-                // Step 1: Apply scale correction
-                float pt_scaled = muonHelper->pt_scale(false, mu_pts[i], mu_etas[i], 
-                        mu_phis[i], mu_charges[i]);
-
-                // Step 2: Apply resolution smearing
-                float corrected_pt = muonHelper->pt_resol(pt_scaled, mu_etas[i], mu_phis[i],
-                        nTrackerLayers, 
-                        static_cast<int>(event), 
-                        static_cast<int>(lumi));
-
-                corrMuPts.emplace_back(corrected_pt);
+            if (isData) {
+                out.emplace_back(static_cast<float>(pt_scaled));
+                continue;
             }
-            return corrMuPts;
-        };
 
-        _rlm = _rlm.Define("Muon_pt_corr", lambdaf_mc, 
-                {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi",
-                "Muon_nTrackerLayers", "event", "luminosityBlock"});
+            // --- Step 2: resolution smearing (MC only) ---
+            const double nTrk = static_cast<double>(nls[i]);
+            double pt_smeared = muonHelper->pt_resol(pt_scaled, eta, phi, nTrk,
+                    static_cast<int>(event), static_cast<int>(lumi));
 
-        // --- MC ONLY: Add systematic uncertainty variations ---
+            if (variation == "resolUp" || variation == "resolDn") {
+                pt_smeared = muonHelper->pt_resol_var(pt_scaled, pt_smeared, eta,
+                        variation == "resolUp" ? "up" : "dn");
+            }
+
+            out.emplace_back(static_cast<float>(pt_smeared));
+        }
+        return out;
+    };
+
+    const std::vector<std::string> cols = {
+        "Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi",
+        "Muon_nTrackerLayers", "event", "luminosityBlock"
+    };
+
+    // Nominal correction - always defined, for both data and MC
+    _rlm = _rlm.Define("Muon_pt_corr",
+        [correctPt](const ROOT::VecOps::RVec<int>& q, const ROOT::VecOps::RVec<float>& pt,
+                    const ROOT::VecOps::RVec<float>& eta, const ROOT::VecOps::RVec<float>& phi,
+                    const ROOT::VecOps::RVec<UChar_t>& nl, ULong64_t evt, UInt_t lumi) {
+            return correctPt(q, pt, eta, phi, nl, evt, lumi, "nom");
+        }, cols);
+
+    if (!isData) {
         cout << "Adding Muon Pt correction uncertainties for MC" << endl;
 
-        // First, create the intermediate scaled pt (before resolution)
-        auto lambdaf_scaled = [muonHelper](const ROOT::VecOps::RVec<int>& mu_charges,
-                const ROOT::VecOps::RVec<float>& mu_pts,
-                const ROOT::VecOps::RVec<float>& mu_etas,
-                const ROOT::VecOps::RVec<float>& mu_phis)
-        {
-            ROOT::VecOps::RVec<float> scaledMuPts;
-            scaledMuPts.reserve(mu_pts.size());
-
-            for (size_t i = 0; i < mu_pts.size(); i++) {
-                float pt_scaled = muonHelper->pt_scale(false, mu_pts[i], mu_etas[i], 
-                        mu_phis[i], mu_charges[i]);
-                scaledMuPts.emplace_back(pt_scaled);
-            }
-            return scaledMuPts;
-        };
-
-        _rlm = _rlm.Define("Muon_pt_scaled", lambdaf_scaled,
-                {"Muon_charge", "Muon_pt", "Muon_eta", "Muon_phi"});
-
-        // Scale variations (Up)
-        auto lambdaf_scale_up = [muonHelper](const ROOT::VecOps::RVec<float>& mu_pts_corr,
-                const ROOT::VecOps::RVec<float>& mu_etas,
-                const ROOT::VecOps::RVec<float>& mu_phis,
-                const ROOT::VecOps::RVec<int>& mu_charges)
-        {
-            ROOT::VecOps::RVec<float> varMuPts;
-            varMuPts.reserve(mu_pts_corr.size());
-
-            for (size_t i = 0; i < mu_pts_corr.size(); i++) {
-                float pt_var = muonHelper->pt_scale_var(mu_pts_corr[i], mu_etas[i], 
-                        mu_phis[i], mu_charges[i], "up");
-                varMuPts.emplace_back(pt_var);
-            }
-            return varMuPts;
-        };
-
-        _rlm = _rlm.Define("Muon_pt_corr_scaleUp", lambdaf_scale_up,
-                {"Muon_pt_corr", "Muon_eta", "Muon_phi", "Muon_charge"});
-
-        // Scale variations (Down)
-        auto lambdaf_scale_dn = [muonHelper](const ROOT::VecOps::RVec<float>& mu_pts_corr,
-                const ROOT::VecOps::RVec<float>& mu_etas,
-                const ROOT::VecOps::RVec<float>& mu_phis,
-                const ROOT::VecOps::RVec<int>& mu_charges)
-        {
-            ROOT::VecOps::RVec<float> varMuPts;
-            varMuPts.reserve(mu_pts_corr.size());
-
-            for (size_t i = 0; i < mu_pts_corr.size(); i++) {
-                float pt_var = muonHelper->pt_scale_var(mu_pts_corr[i], mu_etas[i], 
-                        mu_phis[i], mu_charges[i], "dn");
-                varMuPts.emplace_back(pt_var);
-            }
-            return varMuPts;
-        };
-
-        _rlm = _rlm.Define("Muon_pt_corr_scaleDn", lambdaf_scale_dn,
-                {"Muon_pt_corr", "Muon_eta", "Muon_phi", "Muon_charge"});
-
-        // Resolution variations (Up)
-        auto lambdaf_resol_up = [muonHelper](const ROOT::VecOps::RVec<float>& pt_scaled,
-                const ROOT::VecOps::RVec<float>& pt_corr,
-                const ROOT::VecOps::RVec<float>& mu_etas)
-        {
-            ROOT::VecOps::RVec<float> varMuPts;
-            varMuPts.reserve(pt_corr.size());
-
-            for (size_t i = 0; i < pt_corr.size(); i++) {
-                float pt_var = muonHelper->pt_resol_var(pt_scaled[i], pt_corr[i], 
-                        mu_etas[i], "up");
-                varMuPts.emplace_back(pt_var);
-            }
-            return varMuPts;
-        };
-
-        _rlm = _rlm.Define("Muon_pt_corr_resolUp", lambdaf_resol_up,
-                {"Muon_pt_scaled", "Muon_pt_corr", "Muon_eta"});
-
-        // Resolution variations (Down)
-        auto lambdaf_resol_dn = [muonHelper](const ROOT::VecOps::RVec<float>& pt_scaled,
-                const ROOT::VecOps::RVec<float>& pt_corr,
-                const ROOT::VecOps::RVec<float>& mu_etas)
-        {
-            ROOT::VecOps::RVec<float> varMuPts;
-            varMuPts.reserve(pt_corr.size());
-
-            for (size_t i = 0; i < pt_corr.size(); i++) {
-                float pt_var = muonHelper->pt_resol_var(pt_scaled[i], pt_corr[i], 
-                        mu_etas[i], "dn");
-                varMuPts.emplace_back(pt_var);
-            }
-            return varMuPts;
-        };
-
-        _rlm = _rlm.Define("Muon_pt_corr_resolDn", lambdaf_resol_dn,
-                {"Muon_pt_scaled", "Muon_pt_corr", "Muon_eta"});
+        const std::vector<std::string> variations = {"scaleUp", "scaleDn", "resolUp", "resolDn"};
+        for (const auto& var : variations) {
+            _rlm = _rlm.Define("Muon_pt_corr_" + var,
+                [correctPt, var](const ROOT::VecOps::RVec<int>& q, const ROOT::VecOps::RVec<float>& pt,
+                            const ROOT::VecOps::RVec<float>& eta, const ROOT::VecOps::RVec<float>& phi,
+                            const ROOT::VecOps::RVec<UChar_t>& nl, ULong64_t evt, UInt_t lumi) {
+                    return correctPt(q, pt, eta, phi, nl, evt, lumi, var);
+                }, cols);
+        }
     }
 
     cout << "Muon Pt correction applied successfully" << endl;
 }
-
 void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
 {
     std::cout << "Apply Electron Pt correction" << std::endl;

@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     // Configure input files and era
     if (year == "2022") {
 //        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v5/120000/765ae6c3-8627-4bc3-a2e2-d19396ae34de.root"};
-        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/2540000/7b8ce81d-c82e-4508-bb2b-1bc9a8b16240.root"};
+        inputFiles = {"root://cmsxrootd.fnal.gov//store/mc/Run3Summer22NanoAODv12/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_v5-v2/30000/18e7be26-ece5-4c05-ab1f-e8276266daa1.root"};
 
         //inputFiles = {"root://cmsxrootd.fnal.gov//store/data/Run2022D/Muon/NANOAOD/16Dec2023-v1/50000/fa77d341-cad2-4902-a837-308655dbca47.root"};
         era = "PreEE";
@@ -91,26 +91,26 @@ int main(int argc, char* argv[]) {
 
       //  // -------- Global (correlated) -------- //
 
-      //  systematics.push_back(SystType::JER_Up);
-      //  systematics.push_back(SystType::JER_Down);
+        systematics.push_back(SystType::JER_Up);
+        systematics.push_back(SystType::JER_Down);
       //  
-        systematics.push_back(SystType::JEC_Regrouped_FlavorQCDUp);
-        systematics.push_back(SystType::JEC_Regrouped_FlavorQCDDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_FlavorQCDUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_FlavorQCDDown);
 
-        systematics.push_back(SystType::JEC_Regrouped_RelativeBalUp);
-        systematics.push_back(SystType::JEC_Regrouped_RelativeBalDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_RelativeBalUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_RelativeBalDown);
 
-        systematics.push_back(SystType::JEC_Regrouped_HFUp);
-        systematics.push_back(SystType::JEC_Regrouped_HFDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_HFUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_HFDown);
 
-        systematics.push_back(SystType::JEC_Regrouped_BBEC1Up);
-        systematics.push_back(SystType::JEC_Regrouped_BBEC1Down);
+      //  systematics.push_back(SystType::JEC_Regrouped_BBEC1Up);
+      //  systematics.push_back(SystType::JEC_Regrouped_BBEC1Down);
 
-        systematics.push_back(SystType::JEC_Regrouped_EC2Up);
-        systematics.push_back(SystType::JEC_Regrouped_EC2Down);
+      //  systematics.push_back(SystType::JEC_Regrouped_EC2Up);
+      //  systematics.push_back(SystType::JEC_Regrouped_EC2Down);
 
-        systematics.push_back(SystType::JEC_Regrouped_AbsoluteUp);
-        systematics.push_back(SystType::JEC_Regrouped_AbsoluteDown);
+      //  systematics.push_back(SystType::JEC_Regrouped_AbsoluteUp);
+      //  systematics.push_back(SystType::JEC_Regrouped_AbsoluteDown);
 
 
       //  // -------- Year-dependent (decorrelated) -------- //
