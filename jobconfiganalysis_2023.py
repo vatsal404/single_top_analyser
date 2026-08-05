@@ -46,23 +46,23 @@ config = {
         'jercfname': 'data/JERC/2023/jet_jerc.json',
 
         # conbined correction type for jets
-        'jerctag': 'Summer23Prompt23_V2_DATA_L1L2L3Res_AK4PFPuppi', 
+        'jerctag': 'Summer23Prompt23_V4_DATA_L1L2L3Res_AK4PFPuppi', 
 
         # jet uncertainty 
         'jercunctag': [
-            'Summer23Prompt23_V2_MC_Regrouped_FlavorQCD_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_RelativeBal_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_HF_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_BBEC1_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_EC2_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_Absolute_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_Absolute_2023_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_HF_2023_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_EC2_2023_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_RelativeSample_2023_AK4PFPuppi',
-            'Summer23Prompt23_V2_MC_Regrouped_BBEC1_2023_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_FlavorQCD_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_RelativeBal_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_HF_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_BBEC1_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_EC2_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_Absolute_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_Absolute_2023_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_HF_2023_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_EC2_2023_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_RelativeSample_2023_AK4PFPuppi',
+            'Summer23Prompt23_V4_MC_Regrouped_BBEC1_2023_AK4PFPuppi',
         ],
-        'jettagMC' :'Summer23Prompt23_V2_MC_L1L2L3Res_AK4PFPuppi',
+        'jettagMC' :'Summer23Prompt23_V4_MC_L1L2L3Res_AK4PFPuppi',
         'muon_roch_fname': 'data/MUON/2023/muon_scalesmearing.json',
         'muon_fname': 'data/MUON/2023/muon_Z.json',
         'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
@@ -78,8 +78,9 @@ config = {
         'jet_veto_tag' : 'Summer23Prompt23_RunC_V1',
         'electron_SSF' :'data/EGM/2023/electronSS_EtDependent.json',
         'metpt_fname' : 'data/JERC/2023/met_xyCorrections_2023_2023.json',
-        'JER_tag' : 'Summer23Prompt23_RunCv1234_JRV1_MC_ScaleFactor_AK4PFPuppi',
-        'JER_tag_res' :'Summer23Prompt23_RunCv1234_JRV1_MC_PtResolution_AK4PFPuppi'
+        'JER_tag' : 'Summer23Prompt23_RunCv1234_JRV3_MC_ScaleFactor_AK4PFPuppi',
+        'JER_tag_res' :'Summer23Prompt23_RunCv1234_JRV3_MC_PtResolution_AK4PFPuppi'
+        'JER_tag_unc' :'Summer23Prompt23_RunCv1234_JRV3_MC_SFUncertainty_AK4PFPuppi'
 }
 # processing options
 procflags = {

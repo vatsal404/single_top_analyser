@@ -59,8 +59,8 @@ public:
 	void selectFatJets();
 
 HLTSF getHLTSF(double ele_pt, double mu_pt) const;
-	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,string muon_roch_fname, string muon_fname, string muon_hlt_type, string muon_id_type, string muon_iso_type, string electron_fname,string Hlt_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jettagMC,  vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag, string electron_SSF,string metpt_fname ,string JER_tag,string JER_tag_res);
-	void setupJetMETCorrection(string fname, string jettag,string jettagMC,string JER_tag,string JER_tag_res);
+	void setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav,string muon_roch_fname, string muon_fname, string muon_hlt_type, string muon_id_type, string muon_iso_type, string electron_fname,string Hlt_fname, string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jettagMC,  vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag, string electron_SSF,string metpt_fname ,string JER_tag,string JER_tag_res,string JER_tag_unc);
+	void setupJetMETCorrection(string fname, string jettag,string jettagMC,string JER_tag,string JER_tag_res,string JER_tag_unc);
 	void applyJetMETCorrections();
     
 	//virtual void applyJetMETCorrections();
@@ -148,6 +148,7 @@ HLTSF getHLTSF(double ele_pt, double mu_pt) const;
     string _muon_roch_fname;
     string _JER_tag;
     string _JER_tag_res;
+    string _JER_tag_unc;
 	TFile *_outrootfile;
 	vector<string> _outrootfilenames;
 	RNode _rlm;
@@ -199,6 +200,7 @@ HLTSF getHLTSF(double ele_pt, double mu_pt) const;
     std::unique_ptr<correction::CorrectionSet>_muon_scalsmear_corrector;
     std::shared_ptr<const correction::Correction>_jer_corrector;
 	std::shared_ptr<const correction::Correction>_jer_resolution;
+	std::shared_ptr<const correction::Correction>_jer_uncertainty;
     TFile *f_btagEff;
 	TH2D *hist_btagEff_bcflav;
 	TH2D *hist_btagEff_lflav;

@@ -39,13 +39,23 @@ config = {
 
         # json file name for JERC
         'jercfname': 'data/JERC/2024/jet_jerc.json',
-        'jerctag' : 'Summer24Prompt24_V3_DATA_L1L2L3Res_AK4PFPuppi',
+        'jerctag' : 'Summer24Prompt24_V5_DATA_L1L2L3Res_AK4PFPuppi',
         # conbined correction type for jets
         'jercunctag': [
-            "Summer24Prompt24_V3_MC_Regrouped_Total_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_FlavorQCD_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_RelativeBal_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_HF_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_BBEC1_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_EC2_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_Absolute_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_Absolute_2024_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_HF_2024_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_EC2_2024_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_RelativeSample_2024_AK4PFPuppi",
+                "Summer24Prompt24_V5_MC_Regrouped_BBEC1_2024_AK4PFPuppi",
         ],
         # jet uncertainty 
-        'jettagMC' :'Summer24Prompt24_V3_MC_L1L2L3Res_AK4PFPuppi',
+        'jettagMC' :'Summer24Prompt24_V5_MC_L1L2L3Res_AK4PFPuppi',
         'muon_roch_fname': 'data/MUON/2024/muon_scalesmearing.json',
         'muon_fname': 'data/MUON/2024/muon_Z.json',
         'muonHLTtype': 'NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight',
@@ -61,8 +71,9 @@ config = {
         'jet_veto_tag' : 'Summer24Prompt24_RunBCDEFGHI_V1',
         'electron_SSF' :'data/EGM/2024/electronSS_EtDependent.json',
         'metpt_fname' : 'data/JERC/2022_preEE/met_xyCorrections_2022_2022.json',
-        'JER_tag' : 'Summer24Prompt24_JRV1_MC_ScaleFactor_AK4PFPuppi',
-        'JER_tag_res' : 'Summer24Prompt24_JRV1_MC_PtResolution_AK4PFPuppi',
+        'JER_tag' : 'Summer24Prompt24_JRV2_MC_ScaleFactor_AK4PFPuppi',
+        'JER_tag_res' : 'Summer24Prompt24_JRV2_MC_PtResolution_AK4PFPuppi',
+        'JER_tag_unc' : 'Summer24Prompt24_JRV2_MC_SFUncertainty_AK4PFPuppi',
         }
 
 # processing options

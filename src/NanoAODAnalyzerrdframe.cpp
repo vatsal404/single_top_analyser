@@ -23,7 +23,6 @@
 correction::CorrectionSet* muon_scalsmear_corrector = nullptr;
 #include "MuonScaRe.cc"
 using namespace std;
-
 NanoAODAnalyzerrdframe::NanoAODAnalyzerrdframe(TTree *atree, std::string outfilename)
 :_rd(*atree), _jsonOK(false),_outfilename(outfilename)
 	, _outrootfile(0), _rlm(_rd)
@@ -160,25 +159,29 @@ void NanoAODAnalyzerrdframe::selectFatJets()
 }
 
 
-void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,string jettagMC,string JER_tag,string JER_tag_res) //data
+void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,string jettagMC,string JER_tag,string JER_tag_res,string JER_tag_unc) //data
 {
 
     cout << "SETUP JETMET correction" << endl;
 	// read from file 
 	_correction_jerc = correction::CorrectionSet::from_file(fname);//jercfname=json
+    cout << "1" << endl;
 
 	assert(_correction_jerc->validate()); //the assert functionality : check if the parameters passed to a function are valid =1:true
-	// correction type(jobconfiganalysis.py)
+
+    cout << "2" << endl;
+// correction type(jobconfiganalysis.py)
 	cout<<"JERC JSON file : " << fname<<endl;
     if (_isData){
 
         _jetCorrector = _correction_jerc->compound().at(jettag);//jerctag#JSON 
     
+    cout << "3" << endl;
     }
     else {
         cout<<"JERC JSON file : " << fname<<endl;
         _jetCorrector = _correction_jerc->compound().at(jettagMC);
-    }
+    
 	cout<< "JET tag in JSON : " << jettag << endl;
     for (const auto& tag : _jercunctag){
         _jetCorrectionUnc.emplace_back(tag, _correction_jerc->at(tag));
@@ -190,8 +193,10 @@ void NanoAODAnalyzerrdframe::setupJetMETCorrection(string fname, string jettag,s
     _jer_corrector = _correction_jerc->at(JER_tag);
 
     _jer_resolution = _correction_jerc->at(JER_tag_res);
+    _jer_uncertainty = _correction_jerc->at(JER_tag_unc);
 
 	std::cout<< "================================//=================================" << std::endl;
+}
 }
 
 void NanoAODAnalyzerrdframe::applyJetMETCorrections()
@@ -291,12 +296,12 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
                 float rawpt = jetpts[i] * (1.f - jetrawf[i]);
                 float corr;
 
-                if (_year == "2023")
+                if (_year == "2023" || _year == "2022")
                     corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, run_f[i]});
                 else if (_year == "2023BPix" || _year == "2024")
                     corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, jetphis[i], run_f[i]});
                 else
-                    corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho});
+                corr = _jetCorrector->evaluate({jetAreas[i], jetetas[i], rawpt, rho, run_f[i]});
                 out.emplace_back(rawpt * corr);
             }
             return out;
@@ -389,14 +394,21 @@ void NanoAODAnalyzerrdframe::applyJetMETCorrections()
         float resolution = _jer_resolution->evaluate({eta, pt, rho});
 
         // JER Scale Factor
-        float sf;
-        if (_year == "2024")
+        float sf_nom;
+        sf_nom = _jer_corrector->evaluate({eta, pt});
+        float sf = sf_nom;
+        if (variation == "up" || variation == "down")
         {
-            sf = _jer_corrector->evaluate({eta, pt});
-        }
-        else
-        {
-            sf = _jer_corrector->evaluate({eta, pt, variation});
+            float sf_unc = _jer_uncertainty->evaluate({eta, pt});
+
+            if (variation == "up")
+            {
+                sf = sf_nom * (1.f + sf_unc);
+            }
+            else // "down"
+            {
+                sf = sf_nom * (1.f - sf_unc);
+            }
         }
 
         float smeared_pt;
@@ -991,7 +1003,7 @@ void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
         }
     }
 }
-void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag,string JER_tag_res)
+void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufname, string putag, string btvfname, string btvtype, string fname_btagEff, string hname_btagEff_bcflav, string hname_btagEff_lflav, string muon_roch_fname, string muon_fname, string muonhlttype,string muonidtype,string muonisotype,string electron_fname,string Hlt_fname,string electron_reco_type1,string electron_reco_type2, string electron_id_type, string jercfname, string jerctag,string jerctagMC, vector<string> jercunctag,string jet_veto_f_name,string jet_veto_tag,string electron_SSF,string metpt_fname,string JER_tag,string JER_tag_res,string JER_tag_unc)
 //In this function the correction is evaluated for each jet, Muon, Electron and MET. The correction depends on the momentum, pseudorapidity, energy, and cone area of the jet, as well as the value of “rho” (the average momentum per area) and number of interactions in the event. The correction is used to scale the momentum of the jet.
 {
     cout << "set up Corrections!" << endl;
@@ -1135,8 +1147,8 @@ else {
                   << " bins from " << hist_btagEff_lflav->GetXaxis()->GetXmin()
                   << " to " << hist_btagEff_lflav->GetXaxis()->GetXmax() << std::endl;
         std::cout << "  Y-axis (pt): " << hist_btagEff_lflav->GetYaxis()->GetNbins()
-                  << " bins from " << hist_btagEff_lflav->GetYaxis()->GetXmin()
-                  << " to " << hist_btagEff_lflav->GetYaxis()->GetXmax() << std::endl;
+            << " bins from " << hist_btagEff_lflav->GetYaxis()->GetXmin()
+            << " to " << hist_btagEff_lflav->GetYaxis()->GetXmax() << std::endl;
         std::cout << "  Total entries: " << hist_btagEff_lflav->GetEntries() << std::endl;
 
         // Detach from file so it persists
@@ -1157,16 +1169,16 @@ if (hist_btagEff_bcflav && hist_btagEff_lflav) {
 }
 std::cout << "======================================\n" << std::endl;
 
-	  // pile up weights
-	  _correction_pu = correction::CorrectionSet::from_file(pufname);
-	  cout<< "Pileup correction filename  : " << pufname << endl;
+// pile up weights
+_correction_pu = correction::CorrectionSet::from_file(pufname);
+cout<< "Pileup correction filename  : " << pufname << endl;
 
-	  assert(_correction_pu->validate());
-	  _putag = putag;
-	  auto punominal = [this](float x) { return pucorrection(_correction_pu, _putag, "nominal", x); };
-	  auto puplus = [this](float x) { return pucorrection(_correction_pu, _putag, "up", x); };
-	  auto puminus = [this](float x) { return pucorrection(_correction_pu, _putag, "down", x); };
-	  
+assert(_correction_pu->validate());
+_putag = putag;
+auto punominal = [this](float x) { return pucorrection(_correction_pu, _putag, "nominal", x); };
+auto puplus = [this](float x) { return pucorrection(_correction_pu, _putag, "up", x); };
+auto puminus = [this](float x) { return pucorrection(_correction_pu, _putag, "down", x); };
+
 	  if (!isDefined("puWeight")) _rlm = _rlm.Define("puWeight", punominal, {"Pileup_nTrueInt"});
 	  if (!isDefined("puWeight_up")) _rlm = _rlm.Define("puWeight_up", puplus, {"Pileup_nTrueInt"});
 	  if (!isDefined("puWeight_down")) _rlm = _rlm.Define("puWeight_down", puminus, {"Pileup_nTrueInt"});
@@ -1201,13 +1213,14 @@ std::cout << "======================================\n" << std::endl;
 	_jercunctag = jercunctag;
     _JER_tag = JER_tag;
     _JER_tag_res=JER_tag_res;
+    _JER_tag_unc=JER_tag_unc;
 	
-	setupJetMETCorrection(jercfname, _jerctag,_jerctagMC,_JER_tag,_JER_tag_res);
+	setupJetMETCorrection(jercfname, _jerctag,_jerctagMC,_JER_tag,_JER_tag_res,_JER_tag_unc);
 	applyJetMETCorrections();
 	applyMuPtCorrection();
     applyElectronPtCorrection();
     applyGoodJetId();
-    //applyMETPtPhiCorrection();
+    applyMETPtPhiCorrection();
 
 }
 HLTSF NanoAODAnalyzerrdframe::getHLTSF(double ele_pt, double mu_pt) const
