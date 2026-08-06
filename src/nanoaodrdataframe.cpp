@@ -89,6 +89,8 @@ std::cout << "Threads: "
        systematics.push_back(SystType::EleSmearDown);
         systematics.push_back(SystType::EleSmearUp);
 
+        systematics.push_back(SystType::EleScaleUp);
+        systematics.push_back(SystType::EleScaleDown);
       //systematics.push_back(SystType::Met_PUDown);
       //systematics.push_back(SystType::Met_PUUp);
 
@@ -138,8 +140,6 @@ std::cout << "Threads: "
     }
     else if (isData) {
 
-      //  systematics.push_back(SystType::EleScaleUp);
-      //  systematics.push_back(SystType::EleScaleDown);
     }
 
     cout << "Running for " << (isData ? "Data" : "MC") << endl;

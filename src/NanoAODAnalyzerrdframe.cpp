@@ -760,81 +760,116 @@ void NanoAODAnalyzerrdframe::applyElectronPtCorrection()
     // MC - Smear and Scale corrections
     // =====================================================
     else {
-        // For MC: apply Smearing corrections
-        auto smear_lambda =
-            [smear_corr](const floats &pt,
-                    const floats &scEta,
-                    const floats &r9,
-                    const UInt_t run,
-                    const UInt_t lumi,
-                    const ULong64_t event)
-            -> std::tuple<floats, floats, floats>
-            {
-                floats nominal, smear_up, smear_down;
-                size_t N = pt.size();
+// For MC: apply smearing and scale systematic variations
+auto corr_lambda =
+    [smear_corr](const floats &pt,
+                 const floats &scEta,
+                 const floats &r9,
+                 const UInt_t run,
+                 const UInt_t lumi,
+                 const ULong64_t event)
+    -> std::tuple<floats, floats, floats, floats, floats>
+{
+    const size_t N = pt.size();
 
-                nominal.reserve(N);
-                smear_up.reserve(N);
-                smear_down.reserve(N);
+    floats nominal;
+    floats smear_up;
+    floats smear_down;
+    floats scale_up;
+    floats scale_down;
 
-                std::normal_distribution<float> gauss(0.0, 1.0);
+    nominal.reserve(N);
+    smear_up.reserve(N);
+    smear_down.reserve(N);
+    scale_up.reserve(N);
+    scale_down.reserve(N);
 
-                for (size_t i = 0; i < N; ++i) {
+    std::normal_distribution<float> gauss(0.0, 1.0);
 
-                    /* -----------------------------------------
-                       Deterministic seed per electron
-                       ----------------------------------------- */
-                    uint64_t seed =
-                        (uint64_t(run)  << 32) ^
-                        (uint64_t(lumi) << 16) ^
-                        (uint64_t(event)) ^
-                        uint64_t(i);   // electron index
+    const std::vector<std::string> labels = {
+        "smear",
+        "smear_up",
+        "smear_down",
+        "scale_up",
+        "scale_down"
+    };
 
-                    std::mt19937 gen(seed);
-                    float rand = gauss(gen);
+    for (size_t i = 0; i < N; ++i) {
 
-                    try {
-                        float smear_val = smear_corr->evaluate({
-                                "smear",
-                                static_cast<double>(pt[i]),
-                                static_cast<double>(r9[i]),
-                                static_cast<double>(scEta[i])
-                                });
+        // Deterministic random seed per electron
+        uint64_t seed =
+            (uint64_t(run) << 32) ^
+            (uint64_t(lumi) << 16) ^
+            uint64_t(event) ^
+            uint64_t(i);
 
-                        float smear_unc_up = smear_corr->evaluate({
-                                "smear_up",
-                                static_cast<double>(pt[i]),
-                                static_cast<double>(r9[i]),
-                                static_cast<double>(scEta[i])
-                                });
+        std::mt19937 gen(seed);
+        float rand = gauss(gen);
 
-                        float smear_unc_down = smear_corr->evaluate({
-                                "smear_down",
-                                static_cast<double>(pt[i]),
-                                static_cast<double>(r9[i]),
-                                static_cast<double>(scEta[i])
-                                });
+        try {
 
-                        nominal.emplace_back(pt[i] * (1.0f + smear_val * rand));
-                        smear_up.emplace_back(pt[i] * (1.0f + smear_unc_up * rand));
-                        smear_down.emplace_back(pt[i] * (1.0f + smear_unc_down * rand));
-                    }
-                    catch (const std::exception &e) {
-                        std::cerr << "Smearing error at index " << i
-                            << ": " << e.what() << std::endl;
-                        nominal.emplace_back(pt[i]);
-                        smear_up.emplace_back(pt[i]);
-                        smear_down.emplace_back(pt[i]);
-                    }
-                }
+            // Evaluate all requested corrections
+            std::unordered_map<std::string, float> corr;
 
-                return std::make_tuple(nominal, smear_up, smear_down);
-            };
+            for (const auto &label : labels) {
+                corr[label] = smear_corr->evaluate({
+                    label,
+                    static_cast<double>(pt[i]),
+                    static_cast<double>(r9[i]),
+                    static_cast<double>(scEta[i])
+                });
+            }
 
+            // Nominal smeared pT
+            float pt_nom =
+                pt[i] * (1.0f + corr["smear"] * rand);
+
+            nominal.emplace_back(pt_nom);
+
+            // Smearing variations
+            smear_up.emplace_back(
+                pt[i] * (1.0f + corr["smear_up"] * rand)
+            );
+
+            smear_down.emplace_back(
+                pt[i] * (1.0f + corr["smear_down"] * rand)
+            );
+
+            // Scale variations applied after nominal smearing
+            scale_up.emplace_back(
+                pt_nom * corr["scale_up"]
+            );
+
+            scale_down.emplace_back(
+                pt_nom * corr["scale_down"]
+            );
+        }
+        catch (const std::exception &e) {
+
+            std::cerr << "Electron correction error at index "
+                      << i << ": "
+                      << e.what() << std::endl;
+
+            nominal.emplace_back(pt[i]);
+            smear_up.emplace_back(pt[i]);
+            smear_down.emplace_back(pt[i]);
+            scale_up.emplace_back(pt[i]);
+            scale_down.emplace_back(pt[i]);
+        }
+    }
+
+    return std::make_tuple(
+        nominal,
+        smear_up,
+        smear_down,
+        scale_up,
+        scale_down
+    );
+};
 
 _rlm = _rlm.Define(
-            "Electron_pt_corr_triple",
-            smear_lambda,
+            "Electron_pt_corr_tuple",
+            corr_lambda,
             {
                 "Electron_pt",
                 "Electron_eta_supercluster",
@@ -843,15 +878,29 @@ _rlm = _rlm.Define(
                 "luminosityBlock",
                 "event"
             })
-        .Define("Electron_pt_corr",
-                "std::get<0>(Electron_pt_corr_triple)")
-        .Define("Electron_pt_corr_smearUp",
-                "std::get<1>(Electron_pt_corr_triple)")
-        .Define("Electron_pt_corr_smearDown",
-                "std::get<2>(Electron_pt_corr_triple)");
+    .Define(
+        "Electron_pt_corr",
+        "std::get<0>(Electron_pt_corr_tuple)"
+    )
+    .Define(
+        "Electron_pt_corr_smearUp",
+        "std::get<1>(Electron_pt_corr_tuple)"
+    )
+    .Define(
+        "Electron_pt_corr_smearDown",
+        "std::get<2>(Electron_pt_corr_tuple)"
+    )
+    .Define(
+        "Electron_pt_corr_scaleUp",
+        "std::get<3>(Electron_pt_corr_tuple)"
+    )
+    .Define(
+        "Electron_pt_corr_scaleDown",
+        "std::get<4>(Electron_pt_corr_tuple)"
+    );
 
     }
-}
+    }
 
 void NanoAODAnalyzerrdframe::applyMETPtPhiCorrection()
 {
