@@ -26,6 +26,7 @@ BaseAnalyser::BaseAnalyser(TTree *t, std::string outfilename,float crossection,f
 
 
     //initiliaze the HLT names in your analyzer class
+    HLT2025Names= {"HLT_IsoMu27","HLT_Ele35_WPTight_Gsf","HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned"};
     HLT2024Names= {"HLT_IsoMu27","HLT_Ele35_WPTight_Gsf","HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned"};
 	HLT2023Names= {"HLT_IsoMu27","HLT_Ele35_WPTight_Gsf","HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned"};//HLT_IsoTkMu24
     HLT2022Names= {"HLT_Ele30_WPTight_Gsf","HLT_IsoMu24"};
@@ -75,7 +76,6 @@ _rlm = _rlm.Define("eu_channel","Ngoodmuons >= 1 && NgoodElectrons >= 1 && (abs(
 auto Nentry_eu = _rlm.Sum("eu_channel");
 std::cout << "Number of events in eu channel: " << *Nentry_eu << std::endl;
 */
-
 }
 void BaseAnalyser::defineCuts(){
     if (debug){
@@ -145,8 +145,8 @@ void BaseAnalyser::defineCuts(){
     //addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","1");
 
 
-	//addCuts(setHLT(),"00"); //HLT cut buy checking HLT names in the root file
-//    addCuts("( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)" , "0");
+//	addCuts("1","0"); //HLT cut buy checking HLT names in the root file
+//    addCuts("( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)" , "1");
 //    addCuts("(HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ) && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter" , "1");
 //
 //    addCuts("(HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ) && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && PV_npvsGood>=1" , "2");
@@ -164,24 +164,40 @@ void BaseAnalyser::defineCuts(){
 
 //addCuts("!vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56)) ","3");
 
+// cutflow ----------------------------------------------------------------------------------
+
+/*
+addCuts("1","0");
+addCuts("( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","1");
+addCuts(" Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","2");
+addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","3");
+addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (NgoodElectrons > 0)","4");
+addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (NgoodElectrons > 0) && (Ngoodmuons>0)","5");
+addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (NgoodElectrons > 0) && (Ngoodmuons>0) && (NgoodJets>0)","6");
+addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (NgoodElectrons > 0) && (Ngoodmuons>0) && (NgoodJets>0) && (ncleanjetspass>0)","7");
+addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (NgoodElectrons > 0) && (Ngoodmuons>0) && (NgoodJets>0) && (ncleanjetspass>0) && !loose_vetoed_jets && !vetoed_jets","8");
+addCuts("eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (NgoodElectrons > 0) && (Ngoodmuons>0) && (NgoodJets>0)","9");
+*/
+
 
 
 
 
 //addCuts(" eu_channel  && (HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)","0");
-
+/*
 addCuts("eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) ","0");
 
 if (_year=="2022EE"){
 addCuts("(!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56))","00");//include this in 2022 EE
 }
+*/
 //
 //
 //addCuts("Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (eu_channel && nElectron+nMuon>=2 && nJet>0 && PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)","0");
 //addCuts("!loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && Flag_ecalBadCalibFilter && (nElectron+nMuon>=2) && (nJet>0) && (PV_npvsGood>=1) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (!ROOT::VecOps::Any(Electron_seediEtaOriX<45 && Electron_seediPhiOriY >72 && Electron_eta_supercluster>1.56)) ","0");
 //
 //
-/*
+
 addCuts(" eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter  && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","0");
 
 addCuts(" eu_channel && !loose_vetoed_jets && !vetoed_jets && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","1");
@@ -201,7 +217,7 @@ addCuts("NgoodJets>=3 && !loose_vetoed_jets && !vetoed_jets && eu_channel && Fla
 addCuts("NgoodJets<3 && !loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1 ) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && ( HLT_Ele32_WPTight_Gsf || HLT_IsoMu24 || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","8");
 
 addCuts("NgoodJets<3 && !loose_vetoed_jets && !vetoed_jets && eu_channel && Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_BadPFMuonDzFilter && Flag_hfNoisyHitsFilter && Flag_eeBadScFilter && (nJet>0) && (PV_npvsGood>=1) && (ncleanbjetspass>=1) && (PuppiMET_pt_corr>100) && (HLT_PFMET120_PFMHT120_IDTight || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_FilterHF || HLT_PFMET200_NotCleaned || HLT_PFMET200_BeamHaloCleaned || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60 || HLT_PFHT500_PFMET100_PFMHT100_IDTight || HLT_PFHT500_PFMET110_PFMHT110_IDTight || HLT_PFHT700_PFMET85_PFMHT85_IDTight || HLT_PFHT800_PFMET75_PFMHT75_IDTight)","9");
-*/
+
 }
 //===============================Find Good Electrons===========================================//
 //: Define Good Electrons in rdata frame
@@ -425,7 +441,7 @@ void BaseAnalyser::selectJets()
         _rlm = _rlm.Define("goodJets_hadflav", "Jet_hadronFlavour[goodJets]");
     }
     //goot jets deep-b tag
-    if(_year=="2024"){
+    if(_year=="2024" || _year == "2025"){
     _rlm = _rlm.Define("goodjets_pnetbtag", "Jet_btagUParTAK4B[goodJets]");
     _rlm = _rlm.Define("loosejets_pnetbtag", "Jet_btagUParTAK4B[looseJets]");
     }else{
@@ -447,6 +463,7 @@ void BaseAnalyser::selectJets()
 (_year == "2023")     ?  0.3487 ://           0.0681 :
 (_year == "2023BPix") ?  0.3494 ://     0.0683 :
 (_year == "2024")     ?  0.1272 :        //0.0246 : 
+(_year == "2025")     ?  0.1272 :        //0.0246 : 
                         0.3;
 
 
@@ -624,16 +641,8 @@ void BaseAnalyser::removeOverlaps()
     _rlm = _rlm.Define("selected_cleanbjet_4vec",::generate_single_4vec, {"Selected_bjet_leading_pt", "Selected_bjet_leading_eta", "Selected_bjet_leading_phi", "Selected_bjet_leading_mass"});
     _rlm = _rlm.Define("selected_cleanbjet_TL4vec",:: generate_TLorentzVector,{"Selected_bjet_leading_pt", "Selected_bjet_leading_eta", "Selected_bjet_leading_phi", "Selected_bjet_leading_mass"});
 
-    auto Nentry_1 = _rlm.Count();
-     cout << "Usage of ranges:\n"
-    	<< " - Total entries " << *Nentry_1 << endl;
     _rlm = applyJetVetoMap(_rlm,"Selected_jeteta","Selected_jetphi").Filter("!vetoed_jets");
 
-     auto Nentry_2= _rlm.Count();
-     cout << "Usage of ranges:\n"
-    	<< " - Total entries " << *Nentry_2 << endl;
-   auto n_pass_bjet =_rlm.Define("pass_goodbjet","ncleanbjetspass>0").Sum("pass_goodbjet");
-   std::cout<<"events with >=1 bjet: "<< *n_pass_bjet << std::endl;
 
 
     if(!_isData){
@@ -764,7 +773,7 @@ _rlm = calculateHLTSF(_rlm);
 _rlm = applyTopPtWeight(_rlm);
 
   auto sumgenweight = _rd.Sum("genWeight");
-  float lumi=(_year == "2023" ? 17794 :_year == "2022" ? 7980 : _year=="2022EE" ? 26671.7 : _year=="2023BPix" ? 9400 : _year=="2024"? 109950  : 30 );
+  float lumi=(_year == "2023" ? 17794 :_year == "2022" ? 7980 : _year=="2022EE" ? 26671.7 : _year=="2023BPix" ? 9400 : _year=="2024"? 109950  : _year=="2025"? 110840 : 30 );
   double lumifactor = (_crossection * lumi) / (_sumgenWeight);
   _rlm = _rlm.Define("Lumifactor", [lumifactor]() {
     return lumifactor;
@@ -776,9 +785,9 @@ _rlm = applyTopPtWeight(_rlm);
    _rlm = _rlm.Define("no_puWeight","Lumifactor * genWeight");
    _rlm = _rlm.Define("Weight","Lumifactor * puWeight*genWeight ");//* btag_SF_central"); 
 
-        
-_rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
-_rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf");
+    
+//_rlm = _rlm.Define("evWeight", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central"); 
+//_rlm = _rlm.Define("evWeight_hlt", "Lumifactor * puWeight*genWeight* muon_SF_central * ele_SF_central * btag_SF_bcflav_central  * btag_SF_lflav_central * hlt_sf");
  } 
 
 }
@@ -795,10 +804,10 @@ void BaseAnalyser::selectMET()
 //    _rlm = _rlm.Define("goodMET", "MET_pt_active>0")  // Boolean flag
 //        .Define("goodMET_pt", "goodMET ?  MET_pt_active: numb")  // Assign numb for events failing cut
 //        .Define("goodMET_phi", "goodMET ? MET_phi_active : numb ");
-//      _rlm = _rlm.Define("goodMET_TL4Vecs", ::generate_TLorentzVector, {"goodMET_pt", "0", "goodMET_phi", "0"});
-     _rlm = _rlm.Define("goodMET", "PuppiMET_pt>0")  
-     .Define("goodMET_pt", "goodMET ?  PuppiMET_pt_corr: numb")  // Assign numb for events failing cut
-        .Define("goodMET_phi", "goodMET ? PuppiMET_phi_corr : numb ");
+      //_rlm = _rlm.Define("goodMET_TL4Vecs", ::generate_TLorentzVector, {"goodMET_pt", 0, "goodMET_phi", 0});
+    _rlm = _rlm.Define("goodMET", "PuppiMET_pt>100")  
+    .Define("goodMET_pt", "goodMET ?  PuppiMET_pt_corr: numb")  // Assign numb for events failing cut
+       .Define("goodMET_phi", "goodMET ? PuppiMET_phi_corr : numb ");
 
 _rlm = _rlm.Define("goodMET_TL4Vecs",
     [](double pt, double phi) {
@@ -873,14 +882,14 @@ void BaseAnalyser::defineSystematics()
     else if (_syst == SystType::EleScaleDown) {
         branches.ele_pt = "Electron_pt_corr_scaleDown";
     }
-//    else if (_syst == SystType::Met_PUUp) {
-//        branches.met_pt  = "MET_pt_corr_puUp";
-//        branches.met_phi = "MET_phi_corr_puUp";
-//    }
-//    else if (_syst == SystType::Met_PUDown) {
-//        branches.met_pt  = "MET_pt_corr_puDown";
-//        branches.met_phi = "MET_phi_corr_puDown";
-//    }
+    else if (_syst == SystType::Met_PUUp) {
+        branches.met_pt  = "MET_pt_corr_puUp";
+        branches.met_phi = "MET_phi_corr_puUp";
+    }
+    else if (_syst == SystType::Met_PUDown) {
+        branches.met_pt  = "MET_pt_corr_puDown";
+        branches.met_phi = "MET_phi_corr_puDown";
+    }
     else if (_syst == SystType::muon_scaleup) {
         branches.muon_pt = "Muon_pt_corr_scaleUp";
     }
@@ -1054,22 +1063,22 @@ void BaseAnalyser::defineSystematics()
     else if (_syst == SystType::JER_Up)
         branches.jet_pt = "Jet_pt_corr_jer_up";
     else if (_syst == SystType::JER_Down)
-        branches.jet_pt = "Jet_pt_corr_jer_up"; 
+        branches.jet_pt = "Jet_pt_corr_jer_down"; 
     // =========================
     // Define ACTIVE columns (only once)
     // =========================
     _rlm = _rlm
         .Define("Electron_pt_active", branches.ele_pt)
-//        .Define("MET_pt_active",      branches.met_pt)
-//        .Define("MET_phi_active",     branches.met_phi)
+        .Define("MET_pt_active",      branches.met_pt)
+        .Define("MET_phi_active",     branches.met_phi)
         .Define("Muon_pt_active",   branches.muon_pt)
         .Define("Jet_pt_active", branches.jet_pt);
 
     if (debug) {
         std::cout << "\n[Systematics] Active branches\n"
                   << "  Electron pt : " << branches.ele_pt << "\n"
-//                  << "  MET pt      : " << branches.met_pt << "\n"
- //                 << "  MET phi     : " << branches.met_phi << "\n"
+                 << "  MET pt      : " << branches.met_pt << "\n"
+                 << "  MET phi     : " << branches.met_phi << "\n"
                   << "  Muon pt      : " << branches.muon_pt << "\n"
                   << "  jet pt      : " << branches.jet_pt << "\n"
 
@@ -1180,13 +1189,13 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("run");
     addVartoStore("event");
     addVartoStore("luminosityBlock");
-   addVartoStore("HT");
+    addVartoStore("HT");
     addVartoStore("ST");
     addVartoStore("mbl_min");
     addVartoStore("mbl_max");
     addVartoStore("subleading_lepton_pt");
     addVartoStore("lepton_pt_asymmetry");
-//    addVartoStore("MT2");
+    addVartoStore("MT2");
     //new variables
     addVartoStore("dijet_mass");
     addVartoStore("max_delR");
@@ -1228,14 +1237,37 @@ void BaseAnalyser::defineMoreVars()
     addVartoStore("LHEScaleSumw");
     addVartoStore("PSSumw");
     addVartoStore("topPtWeight");
-    addVartoStore("Muon_pt_corr");
-    addVartoStore("Muon_pt_corr_scaleDn");
-    addVartoStore("Muon_pt_corr_scaleUp");
-    addVartoStore("Muon_pt_corr_resolUp");
-    addVartoStore("Muon_pt_corr_resolDn");
-    addVartoStore("leading_lepton_pdgId");
-    addVartoStore("subleading_lepton_pdgId");
-    addVartoStore("goodElectron_pdgId"); 
+//    addVartoStore("");
+//    addVartoStore("Electron_pt_corr_scaleUp");
+//    addVartoStore("Electron_pt_corr_scaleDown");
+//    addVartoStore("Electron_pt_corr_smearUp");
+//    addVartoStore("Electron_pt_corr_smearDown");
+//    addVartoStore("Muon_pt_corr");
+//    addVartoStore("Muon_pt_corr_scaleDn");
+//    addVartoStore("Muon_pt_corr_scaleUp");
+//    addVartoStore("Muon_pt_corr_resolUp");
+//    addVartoStore("Muon_pt_corr_resolDn");
+//    addVartoStore("leading_lepton_pdgId");
+//    addVartoStore("subleading_lepton_pdgId");
+//    addVartoStore("goodElectron_pdgId"); 
+////    addVartoStore("nGenDressedLeptons");
+//
+//    addVartoStore("gen_lepton_indices");
+//
+//    addVartoStore("leading_gen_lepton_pdgId");
+//    addVartoStore("subleading_gen_lepton_pdgId");
+//
+//    addVartoStore("leading_gen_lepton_hasTauAnc");
+//    addVartoStore("subleading_gen_lepton_hasTauAnc");
+//
+//    addVartoStore("Jet_pt_corr_jer_up");
+//    addVartoStore("Jet_pt_corr_jer_down");
+//    addVartoStore("Jet_pt_corr");
+//
+//    addVartoStore("gen_emu_direct");
+//    addVartoStore("gen_emu_with_tau");
+//    addVartoStore("gen_emu_one_tau");
+//    addVartoStore("gen_emu_two_tau");
 } 
 
 void BaseAnalyser::bookHists()
@@ -1333,9 +1365,6 @@ void BaseAnalyser::setupObjects()
 	    selectMET();
   //      reconstructWboson();
 	    bdt_variables();
-       auto Nentry_2 = _rlm.Count();
-    cout << "Usage of ranges:\n"
-        << " - All entries: " << *Nentry_2 << endl;
 
 }
 
